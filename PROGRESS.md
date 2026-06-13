@@ -4,7 +4,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 
 | ✓ | Phase | Title | Completed (date) | Commit |
 |---|---|---|---|---|
-| ☑ | 0 | Foundation, scaffolding, synthetic data | 2026-06-13 | _pending push_ |
+| ☑ | 0 | Foundation, scaffolding, synthetic data | 2026-06-13 | `1d1f573` |
 | ☐ | 1 | Document Integrity / Forensics | — | — |
 | ☐ | 2 | Semantic Consistency / Underwriting | — | — |
 | ☐ | 3 | Anomaly & Behavioral Scoring | — | — |
