@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0016",
+  "applicant_name": "Karan Mehta",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0016/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "d5b7a16fd741f12a0e8f8125ab9ac69477d94f2c0be711da62604c98d50e31f1"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0016/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0ad986e71b272f0151c47fbefb482ef86fefe5d4abd5d341cc58dbbf426e3152"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0016/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "c9088615a1e0943c9ab162ca0d0819ed34814edac859d7eec8438f74ea25935a"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0016/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "81feccab143b06255ade7fed48467a831864ffc9c5b1279f0a91e9d23407b533"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-07T10:00:00+00:00",
+  "submitted_at": "2024-07-14T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "QRSPM6789W",
+    "employer": "Mehta Exports",
+    "claims": {
+      "identity.pdf": {
+        "pan": "QRSPM6789W"
+      },
+      "form16.pdf": {
+        "gross_income": 1600000.0
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 53333,
+        "implied_annual": 639996
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 46667,
+        "implied_annual": 560004
+      }
+    },
+    "declared_income": 1600000.0,
+    "bank_implied_income": 560004,
+    "slip_implied_income": 639996
+  }
+}

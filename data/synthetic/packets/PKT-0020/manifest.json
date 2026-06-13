@@ -1,0 +1,66 @@
+{
+  "id": "PKT-0020",
+  "applicant_name": "Sahil Khan",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0020/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "893d90c65b1e096ca8efd2c78c6a9d4736a8e96f45068223964b45b78a06cbdb"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0020/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "9826615e4950981b4b68ac1d5ee1488eb840b002392f2aefc351fc1500515226"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0020/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "b271686ff4e1178eee30016d51b953a258b2a9c185f92460bf6ad9fd12ca7bcc"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0020/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "9b6f7963f567e1fa2cecf8fbd2c1edcaeef02746e48ba2413648ff540a4f491d"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-08-05T11:00:00+00:00",
+  "submitted_at": "2024-08-05T11:20:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ZZCPK3333C",
+    "employer": "QuickCash Finance Pvt Ltd",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ZZCPK3333C"
+      },
+      "form16.pdf": {
+        "gross_income": 1500000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 112500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 112500
+      }
+    },
+    "declared_income": 1500000,
+    "ais_reported_income": null
+  }
+}

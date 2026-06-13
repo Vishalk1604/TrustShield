@@ -1,0 +1,66 @@
+{
+  "id": "PKT-0021",
+  "applicant_name": "Nikhil Rao",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0021/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "a18b681c05282bb208c3982a5b8911de50639ff1cfe959db545d657d8d24cc6e"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0021/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6c896e5c278799a667526700ce260012a565b3626f164579183520879e444ff4"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0021/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "90f611b46a65aa61f1c2c42d48b0b5128e3625eedb4cb5ae3d69df4cc3e9070a"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0021/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "02c3238a61b6ab76849ac1e152fc25757402dd576b65965ffe927318d861ceaf"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-08-05T11:00:00+00:00",
+  "submitted_at": "2024-08-05T11:20:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ZZDPR4444D",
+    "employer": "QuickCash Finance Pvt Ltd",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ZZDPR4444D"
+      },
+      "form16.pdf": {
+        "gross_income": 1500000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 112500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 112500
+      }
+    },
+    "declared_income": 1500000,
+    "ais_reported_income": null
+  }
+}

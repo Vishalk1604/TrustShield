@@ -1,0 +1,9 @@
+# Normalize line endings so Windows + Linux teammates get clean diffs.
+* text=auto eol=lf
+
+# Binary assets — never normalize.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.joblib binary
+*.pkl binary

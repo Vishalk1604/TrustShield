@@ -1,0 +1,68 @@
+{
+  "id": "PKT-0022",
+  "applicant_name": "Amit Patel",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0022/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "4145da8ee986117045d6baa8e847e286a65447f9caeabe1348ae5e7da2c9ced7"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0022/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "98a959c1fe15c5481f59938cfa6e6629d0f0c6998f0202cc576638b150a1ab26"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0022/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "e0a5742bf0645d1b71ecfe41a83b03afaa7adc6ac03daee3695e4ec31e989f8c"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0022/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "d63343763b3acc1fb3f7d7cf6a258bdf655f0b6d8d769e75e101e2e0826c8183"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-09-01T03:14:00+00:00",
+  "submitted_at": "2024-09-01T03:16:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "EFKPP9012Q",
+    "employer": "Wipro Limited",
+    "claims": {
+      "identity.pdf": {
+        "pan": "EFKPP9012Q",
+        "name": "Amit Patel"
+      },
+      "form16.pdf": {
+        "gross_income": 980000,
+        "tax_paid": 98000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 73500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 73500,
+        "implied_annual": 882000
+      }
+    },
+    "declared_income": 980000
+  }
+}

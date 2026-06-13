@@ -1,0 +1,70 @@
+{
+  "id": "PKT-0010",
+  "applicant_name": "Priya Verma",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0010/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "5828911e526dcae89dcba0fdb0b6d323ff6515a7382ff6039da32dfc524d899c"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0010/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "773fc453e40e07b3879648914349c478ede6fcd925633e2b8d376f96a606f93d"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0010/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "e7c47a3b842e5f4c1ea9176cb38527adbe4c3f7de07a7250b0c4d341b2bdb30a"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0010/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6aaeb9efa5ff3e3c47b634193ceca5845728c318f5601eb4894fcc092975cebb"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-06-05T10:00:00+00:00",
+  "submitted_at": "2024-06-11T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "CDNPV5678L",
+    "employer": "Tata Consultancy Services",
+    "claims": {
+      "identity.pdf": {
+        "pan": "CDNPV5678L",
+        "name": "Priya Verma"
+      },
+      "form16.pdf": {
+        "gross_income": 1450000,
+        "tax_paid": 145000,
+        "edited_to": 2755000.0
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 108750
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 108750,
+        "implied_annual": 1305000
+      }
+    },
+    "declared_income": 1450000,
+    "displayed_income": 2755000.0
+  }
+}

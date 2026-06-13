@@ -1,0 +1,66 @@
+{
+  "id": "PKT-0018",
+  "applicant_name": "Mohit Kumar",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0018/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "7ca5eb74c801ba1ebf4807a15bd8501b9858c8d6c2717d68dc8a4ea61d6b7047"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0018/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "08e4f5144c4b80afabd58f3341fc6cecf4b33714c31d57a8692b90bf9cb1db7e"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0018/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "5ee62c4757cad82c1ae58577196a224039025f603395abce2d7291ae32f0c265"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0018/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0237f8821ab1efe9e897db739142dc153d1a22bb2cebaa72b2b968b1c31e6da2"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-08-05T11:00:00+00:00",
+  "submitted_at": "2024-08-05T11:20:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ZZAPK1111A",
+    "employer": "QuickCash Finance Pvt Ltd",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ZZAPK1111A"
+      },
+      "form16.pdf": {
+        "gross_income": 1500000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 112500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 112500
+      }
+    },
+    "declared_income": 1500000,
+    "ais_reported_income": null
+  }
+}

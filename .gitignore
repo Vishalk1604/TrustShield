@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+
+# Env / secrets (there should be NO real secrets or PII in this repo — all data is synthetic)
+.env
+.env.*
+*.key
+*.pem
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local model artifacts that may grow large (Phase 3 logs choice in DECISIONS.md)
+# models/*.joblib
+
+# NOTE: data/synthetic/packets/*.pdf ARE committed on purpose (tiny, synthetic, zero PII) so a
+# fresh clone demos with no setup. The generator is deterministic, so they can also be regenerated.

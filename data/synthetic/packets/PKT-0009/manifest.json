@@ -1,0 +1,68 @@
+{
+  "id": "PKT-0009",
+  "applicant_name": "Rahul Sharma",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0009/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "d473436ee36c7f80f8e65b7d7c248c36048be78355f090a63c751e34f07a2698"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0009/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "afb52638143fd6f2a214f26c2c60c3b21bc7fb0fcdcb134d7060e08e20899833"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0009/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "05048c4f352cf310c3c85bd655ac269fde0e8172baeebf879951771ada349bdf"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0009/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0be704e52c2e84a076c1cb2832b4b8c9e0f2b0e54a3071c2d4dc97afb31fc901"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-06-01T10:00:00+00:00",
+  "submitted_at": "2024-07-13T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ABMPS1234F",
+    "employer": "Infosys Limited",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ABMPS1234F",
+        "name": "Rahul Sharma"
+      },
+      "form16.pdf": {
+        "gross_income": 1820000,
+        "tax_paid": 327600
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 124367
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 124367,
+        "implied_annual": 1492404
+      }
+    },
+    "declared_income": 1820000
+  }
+}

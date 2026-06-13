@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0007",
+  "applicant_name": "Karan Mehta",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0007/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "b34d1b506af4a7a22ccf42fd6bd8f4d27a0a5ca5de2dc11074398d850e9bffdb"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0007/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6af214d5f8f8acb6611963f7ea8d9f84dc808c80e69465e7ef9375f077acc54b"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0007/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "5971c036dab9aa2cb20a0ae40e9812feff26aab1122cfe8b5f0d703e3f48457f"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0007/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "a2fb4fe47bed00e7ec0d6ba1c7d345ca73b42a512ddb13dae8a50980645eb352"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-03-19T09:00:00+00:00",
+  "submitted_at": "2024-03-26T09:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "QRSPM6789W",
+    "employer": "Mehta Exports",
+    "claims": {
+      "identity.pdf": {
+        "pan": "QRSPM6789W",
+        "name": "Karan Mehta"
+      },
+      "form16.pdf": {
+        "gross_income": 1600000,
+        "tax_paid": 288000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 109333
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 109333,
+        "implied_annual": 1311996
+      }
+    },
+    "declared_income": 1600000,
+    "ais_reported_income": 1600000
+  }
+}

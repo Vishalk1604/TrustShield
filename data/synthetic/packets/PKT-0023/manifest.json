@@ -1,0 +1,68 @@
+{
+  "id": "PKT-0023",
+  "applicant_name": "Anjali Nair",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0023/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "df7ef58d3830bc3d68340e3986560b644cc7171075064b6496fca7791b1ee806"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0023/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "a1a83548cac84c59cd910ea87b42c9464ed73df69bdb00c0da260536e678db39"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0023/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "44b2fb76667061677cd6348c401a78cee42b33d43f5461588bb3ac35a2a5959c"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0023/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "b2cfeeb3b3f7751243686fcccff9c42d17c0b37ac6ea3d522ab762abf0e144fd"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2027-01-15T10:00:00+00:00",
+  "submitted_at": "2024-09-05T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "NOPPN2345T",
+    "employer": "Tech Mahindra",
+    "claims": {
+      "identity.pdf": {
+        "pan": "NOPPN2345T",
+        "name": "Anjali Nair"
+      },
+      "form16.pdf": {
+        "gross_income": 1100000,
+        "tax_paid": 110000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 82500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 82500,
+        "implied_annual": 990000
+      }
+    },
+    "declared_income": 1100000
+  }
+}

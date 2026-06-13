@@ -1,0 +1,22 @@
+{
+  "29KLMPS7777N1Z5": {
+    "gstin": "29KLMPS7777N1Z5",
+    "legal_name": "Singh Traders",
+    "trade_name": "Singh Traders",
+    "pan": "KLMPS7777N",
+    "status": "active",
+    "state": "Karnataka",
+    "registration_date": "2018-08-12",
+    "taxpayer_type": "Regular"
+  },
+  "27QRSPM6789W1Z3": {
+    "gstin": "27QRSPM6789W1Z3",
+    "legal_name": "Mehta Exports",
+    "trade_name": "Mehta Exports",
+    "pan": "QRSPM6789W",
+    "status": "active",
+    "state": "Maharashtra",
+    "registration_date": "2016-03-01",
+    "taxpayer_type": "Regular"
+  }
+}

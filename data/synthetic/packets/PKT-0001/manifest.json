@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0001",
+  "applicant_name": "Rahul Sharma",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0001/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "4a74a54d20027bcc89bc1c7f2e09cd75091ae1a9e2c52c7cf03835fa9e9ae03a"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0001/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "e02d9c92df62c75e250eb0a0989ecf195fe1e5252dedf2696dea078d3931d577"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0001/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "14636045509cbdac1a26b49263a611d8defe37d5ca682f460e8ec92bed67d2bb"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0001/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "31a37ae3ff56abcb96b5f99de428c464141593728889ee2127cb24225887cf7e"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-03-01T09:00:00+00:00",
+  "submitted_at": "2024-03-08T09:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ABMPS1234F",
+    "employer": "Infosys Limited",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ABMPS1234F",
+        "name": "Rahul Sharma"
+      },
+      "form16.pdf": {
+        "gross_income": 1820000,
+        "tax_paid": 327600
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 124367
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 124367,
+        "implied_annual": 1492404
+      }
+    },
+    "declared_income": 1820000,
+    "ais_reported_income": 1820000
+  }
+}

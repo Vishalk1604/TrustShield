@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0011",
+  "applicant_name": "Amit Patel",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0011/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "53ae85108740ce318ed4bd11cbfb70647fb3c4cbc2dc3018ae2cb6a08a487edb"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0011/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "89e1f2f6930e9cb9e25d2e422027e5b9ab79bc6bb68cd6d43b3d80b29ce5b487"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0011/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "5982f45da6c68db54f93edf23891793e25e6ae08826955ed7ab5e4a688bdc0fe"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0011/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "3e89c2db5a4dd0caba49ceb9758f18e30f77004f97409906c560ce65b115a3a6"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-06-09T10:00:00+00:00",
+  "submitted_at": "2024-06-15T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "EFKPP9012Q",
+    "employer": "Wipro Limited",
+    "claims": {
+      "identity.pdf": {
+        "pan": "EFKPP9012Q",
+        "name": "Amit Patel"
+      },
+      "form16.pdf": {
+        "gross_income": 980000,
+        "tax_paid": 98000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 73500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 73500,
+        "implied_annual": 882000
+      }
+    },
+    "declared_income": 980000,
+    "displayed_income": 2058000.0
+  }
+}

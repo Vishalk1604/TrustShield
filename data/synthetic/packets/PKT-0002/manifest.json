@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0002",
+  "applicant_name": "Priya Verma",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0002/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "062175dab05f3f049cdb75da3b0be725c3865d90e69d6f289d549fe760e99819"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0002/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "5c2260a0db37dd1d2343677c3b92966bd3387d8ef62ed5ee679818bb56a2313e"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0002/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6ebc84c42cd54c63b3455e27b50a430f3489b3702a4fb6c49924e637a3923f30"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0002/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "867d2aaabcb7efad46482a32ea4b26cf19986a8bd6418a1804940dff228ce5c4"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-03-04T09:00:00+00:00",
+  "submitted_at": "2024-03-11T09:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "CDNPV5678L",
+    "employer": "Tata Consultancy Services",
+    "claims": {
+      "identity.pdf": {
+        "pan": "CDNPV5678L",
+        "name": "Priya Verma"
+      },
+      "form16.pdf": {
+        "gross_income": 1450000,
+        "tax_paid": 145000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 108750
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 108750,
+        "implied_annual": 1305000
+      }
+    },
+    "declared_income": 1450000,
+    "ais_reported_income": 1450000
+  }
+}

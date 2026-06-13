@@ -1,0 +1,68 @@
+{
+  "id": "PKT-0012",
+  "applicant_name": "Sneha Reddy",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0012/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "9aa10270e0093aa9c6a65f688258cf100acdb73a7de87bad36fd7220b59f072b"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0012/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0ea54370a8215a5f2c2857e15d71f196736c1438a326d88ce21a10af3c693509"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0012/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "06e88f92cc6d446c1a2efa4a0e1b6cc33a7fa4ea7561a74821ff52a6f0301172"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0012/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "94b399092d239d50d0aef4aa52c405ffd15884d09481cc9abbc69b5b672a3eb1"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-06-13T10:00:00+00:00",
+  "submitted_at": "2024-06-19T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "GHJPR3456M",
+    "employer": "HDFC Bank",
+    "claims": {
+      "identity.pdf": {
+        "pan": "GHJPR3456M",
+        "name": "Sneha Reddy"
+      },
+      "form16.pdf": {
+        "gross_income": 2100000,
+        "tax_paid": 378000
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 143500
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 143500,
+        "duplicated": true
+      }
+    },
+    "declared_income": 2100000
+  }
+}

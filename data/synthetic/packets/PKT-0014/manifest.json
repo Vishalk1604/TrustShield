@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0014",
+  "applicant_name": "Vikram Singh",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0014/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "4c5265fc4475649f356702c8c0081254ee3354cf9837adc308b41f6b9a567f2b"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0014/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "77d38ec04cc2b92af904fc4566f2d6381182ab22d30fcea94f8124c915bcfc31"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0014/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "86f40370c2b764b35b0a9b01374063ee4f0a0db968016bd0db7bf22b6f32da94"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0014/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "b64a281bdcb965bfd05f2e0bdff5257c4034ce189171ddd079ad01c22c84f26a"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-01T10:00:00+00:00",
+  "submitted_at": "2024-07-08T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "KLMPS7777N",
+    "employer": "Singh Traders",
+    "claims": {
+      "identity.pdf": {
+        "pan": "KLMPS7777N"
+      },
+      "form16.pdf": {
+        "gross_income": 1250000.0
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 52083,
+        "implied_annual": 624996
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 46875,
+        "implied_annual": 562500
+      }
+    },
+    "declared_income": 1250000.0,
+    "bank_implied_income": 562500,
+    "slip_implied_income": 624996
+  }
+}

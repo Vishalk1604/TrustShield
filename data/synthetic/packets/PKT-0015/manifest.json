@@ -1,0 +1,69 @@
+{
+  "id": "PKT-0015",
+  "applicant_name": "Anjali Nair",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0015/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "9b5008c1751bb2c407e6d86d557a8cca925259eda5b26053df3be659b20df224"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0015/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "50526de92ce9ca37fc3cf6eb718dfdc9f523638ce09c62051e1a19e367e622be"
+    },
+    {
+      "id": "salary_slip",
+      "filename": "salary_slip.pdf",
+      "doc_type": "salary_slip",
+      "path": "data/synthetic/packets/PKT-0015/salary_slip.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "1ac6323bd866ab29c3696bca731edcfa77e30d8f76c32313e55bcca94df8bb49"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0015/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "c8a8fa07f98973298bfa346b6c64629bb861adacbc6a3538d6bfb5c2045ad085"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-04T10:00:00+00:00",
+  "submitted_at": "2024-07-11T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "NOPPN2345T",
+    "employer": "Tech Mahindra",
+    "claims": {
+      "identity.pdf": {
+        "pan": "NOPPN2345T"
+      },
+      "form16.pdf": {
+        "gross_income": 1100000.0
+      },
+      "salary_slip.pdf": {
+        "net_monthly": 128333,
+        "implied_annual": 1539996
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 55000,
+        "implied_annual": 660000
+      }
+    },
+    "declared_income": 1100000.0,
+    "bank_implied_income": 660000,
+    "slip_implied_income": 1539996
+  }
+}

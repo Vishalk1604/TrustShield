@@ -1,0 +1,68 @@
+# TrustShield — local stack. Boots all three services on one laptop.
+#   forensics → http://localhost:8001/health
+#   risk      → http://localhost:8002/health
+#   dashboard → http://localhost:5173
+#
+# Local-only: ports are published to localhost; the dashboard (in the browser) reaches the backends
+# at localhost:8001 / :8002. No service makes outbound network calls at runtime.
+
+services:
+  forensics:
+    build:
+      context: .
+      dockerfile: services/forensics/Dockerfile
+    image: trustshield-forensics
+    ports:
+      - "8001:8001"
+    volumes:
+      # Bind-mount the repo for hot reload during development.
+      - ./services:/app/services
+      - ./shared:/app/shared
+    environment:
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: "1"
+    command: ["uvicorn", "services.forensics.app.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8001/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  risk:
+    build:
+      context: .
+      dockerfile: services/risk/Dockerfile
+    image: trustshield-risk
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./services:/app/services
+      - ./shared:/app/shared
+    environment:
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: "1"
+    command: ["uvicorn", "services.risk.app.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8002/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  dashboard:
+    build:
+      context: ./services/dashboard
+      dockerfile: Dockerfile
+    image: trustshield-dashboard
+    ports:
+      - "5173:5173"
+    depends_on:
+      - forensics
+      - risk
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5173').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s

@@ -1,0 +1,2 @@
+# Dependencies to run the synthetic data generator (host-side, not a service).
+PyMuPDF>=1.24

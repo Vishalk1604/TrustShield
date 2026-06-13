@@ -1,0 +1,26 @@
+{
+  "U51909KA2018PTC123456": {
+    "cin": "U51909KA2018PTC123456",
+    "company_name": "Singh Traders Private Limited",
+    "status": "active",
+    "registration_date": "2018-08-12",
+    "registered_state": "Karnataka",
+    "directors": ["KLMPS7777N"]
+  },
+  "U74999MH2016PTC654321": {
+    "cin": "U74999MH2016PTC654321",
+    "company_name": "Mehta Exports Private Limited",
+    "status": "active",
+    "registration_date": "2016-03-01",
+    "registered_state": "Maharashtra",
+    "directors": ["QRSPM6789W"]
+  },
+  "L72200KA1981PLC013115": {
+    "cin": "L72200KA1981PLC013115",
+    "company_name": "Infosys Limited",
+    "status": "active",
+    "registration_date": "1981-07-02",
+    "registered_state": "Karnataka",
+    "directors": []
+  }
+}

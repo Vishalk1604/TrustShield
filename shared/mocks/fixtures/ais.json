@@ -1,0 +1,80 @@
+{
+  "ABMPS1234F": {
+    "pan": "ABMPS1234F",
+    "name": "Rahul Sharma",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 1820000,
+    "tds": 312000,
+    "high_value_transactions": []
+  },
+  "CDNPV5678L": {
+    "pan": "CDNPV5678L",
+    "name": "Priya Verma",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 1450000,
+    "tds": 218000,
+    "high_value_transactions": []
+  },
+  "EFKPP9012Q": {
+    "pan": "EFKPP9012Q",
+    "name": "Amit Patel",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 980000,
+    "tds": 96000,
+    "high_value_transactions": []
+  },
+  "GHJPR3456M": {
+    "pan": "GHJPR3456M",
+    "name": "Sneha Reddy",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 2100000,
+    "tds": 462000,
+    "high_value_transactions": [
+      {"type": "mutual_fund_purchase", "amount": 500000}
+    ]
+  },
+  "KLMPS7777N": {
+    "pan": "KLMPS7777N",
+    "name": "Vikram Singh",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 1250000,
+    "tds": 0,
+    "high_value_transactions": [
+      {"type": "business_receipts", "amount": 1250000}
+    ]
+  },
+  "NOPPN2345T": {
+    "pan": "NOPPN2345T",
+    "name": "Anjali Nair",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 1100000,
+    "tds": 132000,
+    "high_value_transactions": []
+  },
+  "QRSPM6789W": {
+    "pan": "QRSPM6789W",
+    "name": "Karan Mehta",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 1600000,
+    "tds": 0,
+    "high_value_transactions": [
+      {"type": "business_receipts", "amount": 1600000}
+    ]
+  },
+  "TUVPJ0123H": {
+    "pan": "TUVPJ0123H",
+    "name": "Deepak Joshi",
+    "status": "active",
+    "assessment_year": "2024-25",
+    "reported_income": 1350000,
+    "tds": 189000,
+    "high_value_transactions": []
+  }
+}
