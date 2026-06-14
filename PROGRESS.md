@@ -11,7 +11,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 4 | Trust Score Aggregation & Evidence Chain | 2026-06-14 | `b72d357` |
 | ☑ | 5 | Cross-Application Graph | 2026-06-14 | `20a9cf4` |
 | ☑ | 6 | Investigator Dashboard | 2026-06-14 | `6e5967b` |
-| ☑ | 7 | Privacy & trust layer | 2026-06-14 | — |
+| ☑ | 7 | Privacy & trust layer | 2026-06-14 | `23e3fd2` |
 | ☐ | 8 | Demo script & narrative | — | — |
 
 ## Phase notes
