@@ -18,6 +18,8 @@ services:
       # Bind-mount the repo for hot reload during development.
       - ./services:/app/services
       - ./shared:/app/shared
+      # Synthetic packets (read-only) so the demo/scoring paths can read them.
+      - ./data:/app/data:ro
     environment:
       PYTHONPATH: /app
       PYTHONUNBUFFERED: "1"
@@ -39,6 +41,8 @@ services:
     volumes:
       - ./services:/app/services
       - ./shared:/app/shared
+      # Synthetic packets (read-only) — the demo endpoints (/risk/demo/*) read data/synthetic/.
+      - ./data:/app/data:ro
     environment:
       PYTHONPATH: /app
       PYTHONUNBUFFERED: "1"
