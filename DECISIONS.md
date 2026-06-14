@@ -75,6 +75,26 @@ dependency, these were pre-installed:
   per-doc forensic).** Only pure timestamp_anomaly packets (future dates, reversed dates) are
   expected to produce Phase 1 findings.
 
+## Phase 7 (2026-06-14) — Privacy & Trust Layer
+
+- **Redaction scrubs logs, not evidence.** Evidence items shown to the investigator legitimately
+  contain PANs / property IDs (that *is* the product); the contract is specifically "never log raw
+  PII." So `shared/privacy.py` is wired into the logging path (`install_log_redaction()` at service
+  startup + a `PIIRedactionFilter`), and `PacketDecision`/evidence payloads returned to the UI are
+  left intact. The dashboard runs locally, so showing them there does not transmit anything.
+- **Partial, format-preserving masks** (PAN → `AB*******F`, account → keep last 4, property →
+  `SY-***`) rather than full `[REDACTED]`. *Why:* a redacted log is still debuggable and lets an
+  operator correlate events without exposing the raw identifier — the standard logging-PII tradeoff.
+- **Amounts are not masked.** The account-number masker only fires on 9–18 digit runs; loan/income
+  figures are ≤ 8 digits, so operational logs keep their useful numbers. Documented tradeoff.
+- **Name redaction is field-based, best-effort in free text.** Names have no reliable regex, so
+  `redact_mapping` masks values under known PII keys (`name`/`owner_name`/…), and the discipline is to
+  not log name fields. Pattern maskers (PAN/account/property) cover the structured identifiers in free
+  text. Honest limitation noted in `PRIVACY.md`.
+- **`PRIVACY.md` is the auditable statement** of the on-premise posture, the log-redaction mechanism,
+  data retention (synthetic data committed; graph store gitignored; models local), and the
+  evidence-chain auditability — plus honest limitations.
+
 ## Phase 5 (2026-06-14) — Cross-Application Graph
 
 - **NetworkX attribute graph; node kinds = app / pan / employer / property / template.** Edges link an

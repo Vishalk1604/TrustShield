@@ -19,10 +19,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from shared.privacy import install_log_redaction
 from shared.schemas import Action
 
 SERVICE_NAME = "risk"
-VERSION = "5.0.0"
+VERSION = "6.0.0"
+
+# Phase 7: scrub PII (PAN, account numbers, property IDs) from any log output.
+install_log_redaction()
 
 
 def _graph_store_path() -> Path:

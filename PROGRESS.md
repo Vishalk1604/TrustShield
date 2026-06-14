@@ -11,7 +11,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 4 | Trust Score Aggregation & Evidence Chain | 2026-06-14 | `b72d357` |
 | ☑ | 5 | Cross-Application Graph | 2026-06-14 | `20a9cf4` |
 | ☑ | 6 | Investigator Dashboard | 2026-06-14 | `6e5967b` |
-| ☐ | 7 | Privacy & trust layer | — | — |
+| ☑ | 7 | Privacy & trust layer | 2026-06-14 | — |
 | ☐ | 8 | Demo script & narrative | — | — |
 
 ## Phase notes
@@ -151,5 +151,22 @@ Delivered:
 - `verify_local_only.py` → **PASS** (47 source files — now includes the dashboard JS).
 - `pytest tests/` → **123 passed**.
 
-### Phase 7 — Privacy & Trust Layer
+### Phase 7 — Privacy & Trust Layer ✅ (2026-06-14)
+Delivered:
+- `shared/privacy.py` — PII redaction: PAN / account / property-ID maskers, field-aware
+  `redact_mapping`, and a `PIIRedactionFilter` + `install_log_redaction()` installed at both
+  services' startup (forensics v1.1.0, risk v6.0.0).
+- `PRIVACY.md` — root privacy statement (on-premise posture, log redaction, data retention,
+  evidence-chain auditability, honest limitations).
+- The on-premise statement is surfaced in the dashboard (Phase 6 banner).
+- 11 new tests in `tests/test_privacy.py`.
+
+**Verified checks:**
+- Maskers + dict redaction + the logging filter all strip PAN / account / property IDs
+  ("grep a demo run's logs → no raw PII").
+- Income/loan amounts (≤ 8 digits) are intentionally preserved in logs.
+- `verify_local_only.py` → **PASS** (50 source files, 0 violations).
+- `pytest tests/` → **134 passed**.
+
+### Phase 8 — Demo Script & Narrative
 Next up. See `plan.md` §4.

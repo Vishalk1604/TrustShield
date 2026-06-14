@@ -18,11 +18,15 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from shared.privacy import install_log_redaction
 from shared.schemas import EvidenceCategory
 from services.forensics.app.analyzer import analyze_pdf
 
 SERVICE_NAME = "forensics"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
+
+# Phase 7: scrub PII (PAN, account numbers, property IDs) from any log output.
+install_log_redaction()
 
 app = FastAPI(title="TrustShield Forensics Service", version=VERSION)
 
