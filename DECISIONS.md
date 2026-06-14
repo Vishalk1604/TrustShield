@@ -33,6 +33,27 @@ dependency, these were pre-installed:
   pulled in). Each service still pins its own scoped `requirements.txt` per phase (the venv is for
   local runs, not the container images).
 
+## Phase 1 (2026-06-14) — Forensic analysis design decisions
+
+- **Template fingerprint = producer + font-set + image/drawing counts per page (no text content).**
+  *Why:* we want "same template → same hash" even when the data (name/PAN/amounts) differs. Using
+  structural features (fonts, layout image counts, producer) achieves this while keeping the hash
+  stable across different applicants on the same template. Text content is intentionally excluded.
+  The different producer ("QuickDocs Generator" vs "TrustShield SynthGen 1.0") makes the ring
+  fingerprint distinct from clean-packet fingerprints.
+- **White-box edit detection via drawing-object overlap.** After a whiteout edit, the PDF content
+  stream contains a white-filled rect + new text, while the original text remains in the text layer.
+  We detect overlap (>30% of text span covered by a white rect) rather than trying to re-OCR, since
+  fitz's text extraction still sees the original bytes. False-positive threshold guards against
+  legitimate white backgrounds in headers.
+- **behavioral_velocity and template_reuse are NOT flagged as per-document forensic fraud.**
+  These are cross-document (identical timestamps across multiple docs) or cross-packet (same
+  fingerprint in multiple applications) signals — they require comparison with other documents/packets
+  that Phase 1 doesn't have. Phase 3 (behavioral) and Phase 5 (graph) are the correct homes.
+- **timestamp_anomaly with behavioral_velocity = "identical timestamps" behavioral signal (not
+  per-doc forensic).** Only pure timestamp_anomaly packets (future dates, reversed dates) are
+  expected to produce Phase 1 findings.
+
 ## Scope + model expansion (2026-06-14) — aligning to the problem statement
 
 The hackathon problem statement is explicitly *"tampering/forgery across **land records, legal

@@ -1,5 +1,5 @@
-# Phase 0 scope for the Forensics service. Heavier deps (PyMuPDF, pytesseract) are added in
-# Phase 1/2 when the analysis endpoints land.
+# Phase 1: forensic analysis added — PyMuPDF required for PDF parsing.
 fastapi>=0.110
 uvicorn[standard]>=0.29
 pydantic>=2.5
+PyMuPDF>=1.23

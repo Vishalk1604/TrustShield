@@ -5,7 +5,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ✓ | Phase | Title | Completed (date) | Commit |
 |---|---|---|---|---|
 | ☑ | 0 | Foundation, scaffolding, synthetic data | 2026-06-13 | `1d1f573` |
-| ☐ | 1 | Document Integrity / Forensics | — | — |
+| ☑ | 1 | Document Integrity / Forensics | 2026-06-14 | — |
 | ☐ | 2 | Semantic Consistency / Underwriting | — | — |
 | ☐ | 3 | Anomaly & Behavioral Scoring | — | — |
 | ☐ | 4 | Trust Score Aggregation & Evidence Chain | — | — |
@@ -26,5 +26,22 @@ Delivered: full folder tree with CLAUDE.md everywhere; root docs (plan/README/PR
 - `pytest tests/` → **17 passed**.
 - Every required folder has a non-empty CLAUDE.md.
 
-### Phase 1 — Document Integrity / Forensics
+### Phase 1 — Document Integrity / Forensics ✅ (2026-06-14)
+Delivered: `services/forensics/app/analyzer.py` — DocumentAnalyzer with 5 forensic checks
+(metadata/suspicious-producer/date anomalies, white-box edit detection, font inconsistency,
+duplicate-image copy-paste, incremental-update / multiple-%%EOF); structural template fingerprint
+hash (producer + fonts + image/drawing counts per page). `POST /forensics/analyze` (file upload) +
+`POST /forensics/analyze/path` (local path). Updated requirements.txt (PyMuPDF). 12 new tests.
+
+**Verified checks:**
+- Precision/recall vs labels.json: **TP=10, FN=0, FP=0** across all 33 packets / per-document
+  forensic signal types (suspicious_metadata, edited_income_figure, font_inconsistency,
+  copy_paste, incremental_update, forged_title, tampered_encumbrance, timestamp_anomaly with
+  future/reversed dates).
+- Template fingerprint: 4 template-reuse ring packets share one fingerprint on form16.pdf;
+  clean-packet fingerprints all differ (different producer key).
+- `verify_local_only.py` → **PASS** (33 source files, 0 violations).
+- `pytest tests/` → **33 passed**.
+
+### Phase 2 — Semantic Consistency / Underwriting
 Next up. See `plan.md` §4.
