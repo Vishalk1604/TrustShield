@@ -40,5 +40,13 @@ The two backend services must be running for the health dots to go green.
 
 ## Status
 - **Done (Phase 0):** placeholder page + live service-health polling + privacy banner.
-- TODO (Phase 6): upload flow, evidence-chain view, tampered-vs-clean comparison, exportable report,
-  cluster graph (if Phase 5 done).
+- **Done (Phase 6):** full investigator console — packet picker (driven by `GET /risk/demo/packets`),
+  trust gauge + recommendation, forensic/semantic/model sub-scores, severity-colored evidence chain,
+  cross-application graph SVG (`GraphView.jsx`), and JSON report export. `src/api.js` wraps the local
+  risk endpoints; `POST /risk/demo/seed` + `POST /risk/demo/score/{id}` provide the data.
+
+## Phase 6 notes
+- The browser cannot pass local file paths to the backend, so the demo scores the committed synthetic
+  packets **by id** via `/risk/demo/*`. A real upload flow (multipart → forensics) is a later refinement.
+- No new npm dependencies were added (React + inline styles + hand-rolled SVG only) to keep the image
+  small and the build fast. `package-lock.json` is committed; `node_modules/` and `dist/` are gitignored.

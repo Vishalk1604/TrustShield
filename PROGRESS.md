@@ -10,7 +10,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 3 | Anomaly & Behavioral Scoring | 2026-06-14 | `3889fa6` |
 | ☑ | 4 | Trust Score Aggregation & Evidence Chain | 2026-06-14 | `b72d357` |
 | ☑ | 5 | Cross-Application Graph | 2026-06-14 | `20a9cf4` |
-| ☐ | 6 | Investigator Dashboard | — | — |
+| ☑ | 6 | Investigator Dashboard | 2026-06-14 | — |
 | ☐ | 7 | Privacy & trust layer | — | — |
 | ☐ | 8 | Demo script & narrative | — | — |
 
@@ -133,5 +133,23 @@ Delivered:
 - `verify_local_only.py` → **PASS** (45 source files, 0 violations).
 - `pytest tests/` → **117 passed**.
 
-### Phase 6 — Investigator Dashboard
+### Phase 6 — Investigator Dashboard ✅ (2026-06-14)
+Delivered:
+- Backend demo endpoints (`services/risk/app/main.py`): `GET /risk/demo/packets`,
+  `POST /risk/demo/seed`, `POST /risk/demo/score/{id}` — score the committed synthetic packets by id
+  (the browser can't hand local file paths to the backend) and return decision + subgraph.
+- React investigator console (`services/dashboard/src/App.jsx` + `api.js` + `GraphView.jsx`):
+  packet picker with ground-truth chips, trust gauge, recommendation badge + rationale, forensic/
+  semantic/model sub-score bars, severity-colored evidence chain, cross-application graph SVG viz,
+  and an "export evidence report (JSON)" button. Keeps the live service-health + on-premise banner.
+- 6 new backend tests in `tests/test_demo_api.py`.
+
+**Verified checks:**
+- `npm run build` compiles clean (34 modules, ~50 kB gzipped).
+- Demo endpoints over real HTTP (uvicorn :8002): 33 packets listed; seed → 1 ring + 3 collateral
+  clusters; PKT-0031 → trust 12.9 FREEZE with a 7-node subgraph; PKT-0001 → approve.
+- `verify_local_only.py` → **PASS** (47 source files — now includes the dashboard JS).
+- `pytest tests/` → **123 passed**.
+
+### Phase 7 — Privacy & Trust Layer
 Next up. See `plan.md` §4.

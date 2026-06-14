@@ -322,3 +322,106 @@ def graph_subgraph(packet_id: str) -> dict:
 
     graph = ApplicationGraph.load(_graph_store_path())
     return graph.subgraph_for(packet_id)
+
+
+# --------------------------------------------------------------------------
+# Phase 6 — Demo endpoints (drive the investigator dashboard over the synthetic set)
+# --------------------------------------------------------------------------
+# These let the browser score the committed synthetic packets by id (the browser
+# cannot hand local file paths to the backend). They read only local synthetic data.
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+
+def _synthetic_dirs() -> tuple[Path, Path]:
+    root = _repo_root()
+    return root / "data" / "synthetic" / "packets", root / "data" / "synthetic" / "labels.json"
+
+
+@app.get("/risk/demo/packets")
+def demo_packets() -> dict:
+    """List the synthetic packets available to score (for the dashboard picker)."""
+    import json
+
+    packets_dir, labels_path = _synthetic_dirs()
+    if not labels_path.exists():
+        raise HTTPException(status_code=404, detail="Synthetic labels.json not found.")
+    labels = json.loads(labels_path.read_text())
+
+    out = []
+    for pkt_id, entry in labels.items():
+        manifest_path = packets_dir / pkt_id / "manifest.json"
+        applicant = None
+        n_docs = 0
+        if manifest_path.exists():
+            m = json.loads(manifest_path.read_text())
+            applicant = m.get("applicant_name")
+            n_docs = len(m.get("documents", []))
+        out.append({
+            "packet_id": pkt_id,
+            "applicant_name": applicant,
+            "n_docs": n_docs,
+            # ground truth — shown in the UI as a "known label" chip for demo verification
+            "ground_truth_label": entry.get("label"),
+            "ground_truth_fraud_types": entry.get("fraud_types", []),
+        })
+    return {"packets": out, "count": len(out)}
+
+
+@app.post("/risk/demo/seed")
+def demo_seed() -> dict:
+    """(Re)build the cross-application graph from all synthetic packets and persist it.
+
+    The dashboard calls this once so ring/collateral clusters are populated before scoring.
+    """
+    import json
+
+    from services.risk.app.graph import ApplicationGraph
+
+    packets_dir, labels_path = _synthetic_dirs()
+    if not labels_path.exists():
+        raise HTTPException(status_code=404, detail="Synthetic labels.json not found.")
+    labels = json.loads(labels_path.read_text())
+    graph = ApplicationGraph.build_from_packets(packets_dir, labels)
+    graph.save(_graph_store_path())
+    clusters = graph.clusters()
+    return {
+        "seeded": True,
+        "n_applications": clusters["n_applications"],
+        "collateral_clusters": len(clusters["collateral_clusters"]),
+        "employer_rings": len(clusters["employer_rings"]),
+    }
+
+
+@app.post("/risk/demo/score/{packet_id}")
+def demo_score(packet_id: str, use_graph: bool = True) -> dict:
+    """Score one synthetic packet by id and return the decision + its graph subgraph."""
+    from services.risk.app.aggregator import score_packet_dir
+    from services.risk.app.graph import ApplicationGraph
+
+    packets_dir, _ = _synthetic_dirs()
+    pkt_dir = packets_dir / packet_id
+    if not (pkt_dir / "manifest.json").exists():
+        raise HTTPException(status_code=404, detail=f"Unknown packet: {packet_id}")
+
+    graph = None
+    subgraph = {"nodes": [], "edges": []}
+    if use_graph:
+        graph = ApplicationGraph.load(_graph_store_path())
+        if not graph.G.has_node(f"app:{packet_id}"):
+            # Graph not seeded yet — build it on the fly so clusters are present.
+            import json
+
+            _, labels_path = _synthetic_dirs()
+            labels = json.loads(labels_path.read_text())
+            graph = ApplicationGraph.build_from_packets(packets_dir, labels)
+            graph.save(_graph_store_path())
+        subgraph = graph.subgraph_for(packet_id)
+
+    try:
+        decision = score_packet_dir(pkt_dir, packet_id, graph=graph)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return {"decision": decision.model_dump(mode="json"), "subgraph": subgraph}
