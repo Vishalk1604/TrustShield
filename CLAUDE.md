@@ -44,5 +44,8 @@ Run Python from the **repo root** so `from shared.schemas.models import ...` res
 - Synthetic PDFs under `data/synthetic/packets/` are committed on purpose (tiny, synthetic, zero PII).
 
 ## Status
-- **Phase 0 (in progress):** scaffolding, schemas, mocks, generator, compose health endpoints, verify guard.
-- Phases 1–8: see `plan.md` §4. Not started.
+- **All phases complete (0–8).** Forensics + semantic rules + learned model (Isolation Forest + GBC,
+  ROC-AUC 0.97) + trust-score aggregation + cross-application graph (fraud rings + double-financed
+  collateral) + investigator dashboard + PII-redaction/privacy layer + demo. See `PROGRESS.md` for the
+  per-phase log and `DECISIONS.md` for the why. **135 tests pass; `verify_local_only.py` passes.**
+- Run the demo: `python -m services.risk.train` (once) → `python scripts/seed_demo.py` → follow `DEMO.md`.

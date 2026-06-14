@@ -33,4 +33,6 @@ To confirm it still bites: drop `requests.get("https://x.com")` into any non-exe
 
 ## Status
 - **Done (Phase 0):** guard implemented + verified (catches violations, passes when clean).
-- Future phases add scripts here as needed (e.g. `seed_demo.py` lands at the root in Phase 8).
+- **Done (Phase 8):** `seed_demo.py` — rebuilds the cross-application graph and replays the staged
+  demo packets, self-checking each lands on its expected action (see `DEMO.md`). Run it from the
+  repo root: `python scripts/seed_demo.py`.

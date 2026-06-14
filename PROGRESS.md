@@ -12,7 +12,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 5 | Cross-Application Graph | 2026-06-14 | `20a9cf4` |
 | ☑ | 6 | Investigator Dashboard | 2026-06-14 | `6e5967b` |
 | ☑ | 7 | Privacy & trust layer | 2026-06-14 | `23e3fd2` |
-| ☐ | 8 | Demo script & narrative | — | — |
+| ☑ | 8 | Demo script & narrative | 2026-06-14 | — |
 
 ## Phase notes
 
@@ -168,5 +168,23 @@ Delivered:
 - `verify_local_only.py` → **PASS** (50 source files, 0 violations).
 - `pytest tests/` → **134 passed**.
 
-### Phase 8 — Demo Script & Narrative
-Next up. See `plan.md` §4.
+### Phase 8 — Demo Script & Narrative ✅ (2026-06-14)
+Delivered:
+- `scripts/seed_demo.py` — rebuilds the cross-application graph, scores 8 staged demo packets,
+  self-checks each lands on its expected action, and prints the model-metrics slide.
+- `DEMO.md` — root 3-minute narrative: setup, exact packet order + expected results, the
+  double-financing graph reveal (PKT-0031→32→33 on SY-911/2C), scoring explanation, model metrics,
+  and honest real-vs-mocked / trained-on-synthetic Q&A.
+- 1 new test in `tests/test_demo_replay.py`.
+
+**Verified checks:**
+- `python scripts/seed_demo.py` → "Demo replay OK" (all 8 staged packets match: clean approves;
+  tampered/inconsistent/forged-EC freeze; double-financing + identity ring freeze via the graph).
+- Reproduces identically from a clean state (graph store is rebuilt deterministically).
+- `verify_local_only.py` → **PASS** (52 source files, 0 violations).
+- `pytest tests/` → **135 passed**.
+
+---
+
+## All phases complete (0–8). 🎉
+Run `python scripts/seed_demo.py` then follow `DEMO.md` for the walkthrough.
