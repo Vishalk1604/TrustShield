@@ -11,6 +11,7 @@ adapter in shared/mocks/.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Optional
 
@@ -21,7 +22,13 @@ from pydantic import BaseModel
 from shared.schemas import Action
 
 SERVICE_NAME = "risk"
-VERSION = "4.0.0"
+VERSION = "5.0.0"
+
+
+def _graph_store_path() -> Path:
+    """Path to the persisted cross-application graph (override via env for tests)."""
+    default = Path(__file__).resolve().parent.parent / "graph_store" / "app_graph.pkl"
+    return Path(os.environ.get("TRUSTSHIELD_GRAPH_STORE", str(default)))
 
 app = FastAPI(title="TrustShield Risk Service", version=VERSION)
 
@@ -51,6 +58,9 @@ def root() -> dict:
         "endpoints": {
             "rules_check": "POST /risk/rules/check",
             "score": "POST /risk/score",
+            "graph_upsert": "POST /risk/graph/upsert",
+            "graph_clusters": "GET /risk/graph/clusters",
+            "graph_subgraph": "GET /risk/graph/subgraph/{packet_id}",
         },
         "docs": "/docs",
     }
@@ -141,8 +151,10 @@ class ScoreRequest(BaseModel):
     documents: list[DocumentRef]
     loan_amount: Optional[float] = None
     applicant_pan: Optional[str] = None
+    employer: Optional[str] = None
     created_at: Optional[str] = None
     submitted_at: Optional[str] = None
+    use_graph: bool = False
 
 
 @app.post("/risk/score")
@@ -152,12 +164,16 @@ def risk_score(req: ScoreRequest) -> dict:
     Pipeline: Phase 1 forensic analysis (per doc) + Phase 2 semantic rules
     (cross-doc) + Phase 3 learned model (fraud probability + novelty) ->
     Phase 4 aggregation into a 0-100 TrustScore + ordered evidence chain +
-    recommended action. Never returns a score without a non-empty evidence chain.
+    recommended action. When ``use_graph`` is set, the packet is upserted into the
+    persisted cross-application graph (Phase 5) and its relational evidence
+    (double-financed collateral, fraud rings) is folded into the decision.
+    Never returns a score without a non-empty evidence chain.
     """
     from services.forensics.app.analyzer import analyze_pdf
     from services.forensics.app.extractor import extract_entities
     from services.risk.app.aggregator import aggregate
     from services.risk.app.features import compute_features
+    from services.risk.app.graph import ApplicationGraph
     from services.risk.app.rules import run_all_rules
     from services.risk.app.scorer import (
         anomaly_score,
@@ -176,11 +192,14 @@ def risk_score(req: ScoreRequest) -> dict:
     # ---- Phase 1 forensic + Phase 2 entity extraction ----
     forensic_items: list[EvidenceItem] = []
     entities_by_doc: dict[str, dict] = {}
+    template_fingerprints: set[str] = set()
     for doc in req.documents:
         try:
             result = analyze_pdf(doc.path, doc_type=doc.doc_type, filename=doc.filename)
             for f in result.get("findings", []):
                 forensic_items.append(EvidenceItem(**f))
+            if result.get("template_fingerprint"):
+                template_fingerprints.add(result["template_fingerprint"])
             entities_by_doc[doc.doc_type] = extract_entities(doc.path, doc.doc_type)
         except Exception as exc:
             raise HTTPException(
@@ -224,6 +243,25 @@ def risk_score(req: ScoreRequest) -> dict:
         # Models not trained yet.
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
+    # ---- Phase 5 cross-application graph (optional) ----
+    graph_items: list[EvidenceItem] = []
+    if req.use_graph:
+        property_ids = {
+            ent.get("property_id")
+            for ent in entities_by_doc.values()
+            if ent.get("property_id")
+        }
+        graph = ApplicationGraph.load(_graph_store_path())
+        graph.upsert_application(
+            packet_id,
+            applicant_pan=pan,
+            employer=req.employer or entities_by_doc.get("form16", {}).get("employer"),
+            property_ids=property_ids,
+            template_fingerprints=template_fingerprints,
+        )
+        graph.save(_graph_store_path())
+        graph_items = graph.graph_evidence_for(packet_id)
+
     # ---- Phase 4 aggregation ----
     decision = aggregate(
         packet_id=packet_id,
@@ -232,6 +270,55 @@ def risk_score(req: ScoreRequest) -> dict:
         fraud_probability=fraud_prob,
         anomaly_score=anom,
         attributions=attributions,
+        graph_items=graph_items,
     )
 
     return decision.model_dump(mode="json")
+
+
+# --------------------------------------------------------------------------
+# Phase 5 — Cross-application graph endpoints
+# --------------------------------------------------------------------------
+
+class GraphUpsertRequest(BaseModel):
+    """Add or update one application's nodes/edges in the cross-application graph."""
+    packet_id: str
+    applicant_pan: Optional[str] = None
+    employer: Optional[str] = None
+    property_ids: list[str] = []
+    template_fingerprints: list[str] = []
+
+
+@app.post("/risk/graph/upsert")
+def graph_upsert(req: GraphUpsertRequest) -> dict:
+    """Upsert one application into the persisted cross-application graph."""
+    from services.risk.app.graph import ApplicationGraph
+
+    graph = ApplicationGraph.load(_graph_store_path())
+    graph.upsert_application(
+        req.packet_id,
+        applicant_pan=req.applicant_pan,
+        employer=req.employer,
+        property_ids=req.property_ids,
+        template_fingerprints=req.template_fingerprints,
+    )
+    graph.save(_graph_store_path())
+    return {"packet_id": req.packet_id, "ok": True, "n_applications": len(graph._app_nodes())}
+
+
+@app.get("/risk/graph/clusters")
+def graph_clusters() -> dict:
+    """Return all surfaced fraud rings and double-financed-collateral clusters."""
+    from services.risk.app.graph import ApplicationGraph
+
+    graph = ApplicationGraph.load(_graph_store_path())
+    return graph.clusters()
+
+
+@app.get("/risk/graph/subgraph/{packet_id}")
+def graph_subgraph(packet_id: str) -> dict:
+    """Return a small subgraph around one application for visualisation."""
+    from services.risk.app.graph import ApplicationGraph
+
+    graph = ApplicationGraph.load(_graph_store_path())
+    return graph.subgraph_for(packet_id)

@@ -9,7 +9,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 2 | Semantic Consistency / Underwriting | 2026-06-14 | `75bcfc9` |
 | ☑ | 3 | Anomaly & Behavioral Scoring | 2026-06-14 | `3889fa6` |
 | ☑ | 4 | Trust Score Aggregation & Evidence Chain | 2026-06-14 | `b72d357` |
-| ☐ | 5 | Cross-Application Graph | — | — |
+| ☑ | 5 | Cross-Application Graph | 2026-06-14 | — |
 | ☐ | 6 | Investigator Dashboard | — | — |
 | ☐ | 7 | Privacy & trust layer | — | — |
 | ☐ | 8 | Demo script & narrative | — | — |
@@ -111,5 +111,27 @@ Delivered:
 - `verify_local_only.py` → **PASS** (43 source files, 0 violations).
 - `pytest tests/` → **96 passed**.
 
-### Phase 5 — Cross-Application Graph
-Next up. See `plan.md` §4. (The double_financing ring + behavioral_velocity ring are waiting here.)
+### Phase 5 — Cross-Application Graph ✅ (2026-06-14)
+Delivered:
+- `services/risk/app/graph.py` — `ApplicationGraph` (NetworkX): per-packet upsert of app/pan/
+  employer/property/template nodes; hub suppression; `collateral_clusters()`, `employer_rings()`,
+  `graph_evidence_for()`, `subgraph_for()`, pickle persistence, `build_from_packets()`.
+- `services/risk/app/aggregator.py` — graph evidence folded in as an additive risk overlay
+  (`GRAPH_OVERLAY_WEIGHT=0.5`) + CRITICAL graph escalation; `score_packet_dir(graph=…)`.
+- `services/risk/app/main.py` — `POST /risk/graph/upsert`, `GET /risk/graph/clusters`,
+  `GET /risk/graph/subgraph/{id}`, and `use_graph` on `POST /risk/score`. VERSION 5.0.0.
+- 21 new tests in `tests/test_graph.py`.
+
+**Verified checks:**
+- Template/employer-reuse ring: QuickCash → 4 distinct PANs + shared template, exactly PKT-0018–21.
+- Double-financed collateral: SY-911/2C → cluster across PKT-0029/31/32/33.
+- Unrelated packets stay unlinked: the 25-packet default template is hub-suppressed; clean PKT-0001
+  gets only an INFO repeat-applicant note.
+- Subgraphs small (5–7 nodes) + fast.
+- Graph-informed scoring: ring (PKT-0018–21) and double-financing (PKT-0031–33) escalate from Phase-4
+  manual_review → **FREEZE** (trust ~13); all 10 clean packets stay **APPROVE**.
+- `verify_local_only.py` → **PASS** (45 source files, 0 violations).
+- `pytest tests/` → **117 passed**.
+
+### Phase 6 — Investigator Dashboard
+Next up. See `plan.md` §4.

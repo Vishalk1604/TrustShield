@@ -27,5 +27,10 @@ Thumbs.db
 # Local model artifacts that may grow large (Phase 3 logs choice in DECISIONS.md)
 # models/*.joblib
 
+# Phase 5: the cross-application graph is runtime state that accumulates across uploads.
+# It is rebuilt deterministically from the packets (ApplicationGraph.build_from_packets),
+# so the persisted pickle is not committed.
+services/risk/graph_store/
+
 # NOTE: data/synthetic/packets/*.pdf ARE committed on purpose (tiny, synthetic, zero PII) so a
 # fresh clone demos with no setup. The generator is deterministic, so they can also be regenerated.

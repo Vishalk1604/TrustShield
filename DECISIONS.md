@@ -75,6 +75,40 @@ dependency, these were pre-installed:
   per-doc forensic).** Only pure timestamp_anomaly packets (future dates, reversed dates) are
   expected to produce Phase 1 findings.
 
+## Phase 5 (2026-06-14) — Cross-Application Graph
+
+- **NetworkX attribute graph; node kinds = app / pan / employer / property / template.** Edges link an
+  application to each of its attributes; two applications are "related" iff they share a (non-hub)
+  attribute node. Persisted to a pickle under `services/risk/graph_store/` (gitignored — it is runtime
+  state, rebuilt deterministically by `ApplicationGraph.build_from_packets`).
+- **Hub suppression is the key idea.** The generator emits a *default* document template that 25 of 33
+  packets share — linking on it would collapse nearly every clean packet into one giant false "ring."
+  Any attribute node connected to more applications than `max(6, ⌈0.33·n_apps⌉)` (= 11 here) is treated
+  as a non-discriminative hub and ignored for clustering, evidence, and subgraph extraction. Only
+  *minority* shared attributes form links. This is what makes "unrelated packets stay unlinked" true.
+- **Ring discriminator = an employer (or template) claimed by ≥2 DISTINCT applicant PANs.** In the
+  synthetic set every legitimate employer maps to exactly one PAN (the same person re-applying), while
+  "QuickCash Finance Pvt Ltd" maps to 4 distinct PANs — uniquely identifying the fraud ring. Template
+  fingerprint is corroboration, not the primary signal (the default template is a hub and useless alone).
+- **Double-financed collateral = a property pledged across ≥2 applications by ≥2 distinct PANs.** SY-911/2C
+  surfaces across 4 applications (1 valuation-inflation + 3 double-financing) → the hero cluster. The two
+  2-app property clusters (SY-217/3B, SY-058/1A) pair a clean owner with a fraud application; surfacing
+  them is correct (the asset is contested), not a false positive.
+- **Graph evidence is an ADDITIVE risk overlay, not a blend channel.** `total_risk =
+  min(1, per_packet_blend + 0.5·graph_risk)`. *Why additive:* folding the graph into the weighted blend
+  would have to steal weight from the per-packet channels and weaken Phase 4's document-backed freezes.
+  The overlay leaves every Phase-4 score unchanged when no graph evidence is present (verified) and only
+  *adds* risk for relational findings. A graph CRITICAL (collateral across ≥3 apps, or a ≥3-PAN ring)
+  also trips the same `CRITICAL_TRUST_CEILING` (25) used for document criticals.
+- **Severity ladder:** collateral/ring across ≥3 distinct applicants → CRITICAL (→ freeze); across 2 →
+  MEDIUM (collateral) / HIGH (ring); same-applicant repeat → INFO (context only, never escalates — so a
+  clean packet that merely shares a PAN with its own fraud sibling stays APPROVE).
+- **This closes the Phase 4 loop.** Phase 4 deliberately routed evidence-less model flags (the QuickCash
+  ring at trust 43, the double-financing packets at 43) to "manual review + check the graph." Phase 5
+  supplies that concrete relational evidence: the ring (PKT-0018–21) and the double-financing packets
+  (PKT-0031–33) drop to ~13 trust → **FREEZE**, while all 10 clean packets remain APPROVE. The graph is
+  the demo's hero: a single-document tool is structurally blind to both of these frauds.
+
 ## Phase 4 (2026-06-14) — Trust Score Aggregation & Evidence Chain
 
 - **Explicit, documented blend weights (sum = 1.0):** model 0.55, forensic 0.25, semantic 0.15,

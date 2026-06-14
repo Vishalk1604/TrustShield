@@ -65,6 +65,12 @@ FREEZE_BELOW = 40.0
 # Any CRITICAL document finding caps trust at this ceiling (forces a freeze-band score).
 CRITICAL_TRUST_CEILING = 25.0
 
+# Phase 5: cross-application graph evidence is an ADDITIVE risk overlay on top of the
+# per-packet blend (it does not steal weight from the per-packet channels, so Phase 4
+# scores are unchanged when no graph evidence is present). A graph CRITICAL (e.g. a
+# property pledged across >=3 applications) also triggers the CRITICAL_TRUST_CEILING.
+GRAPH_OVERLAY_WEIGHT = 0.5
+
 # Human-readable labels for model feature names (for the model evidence item).
 FEATURE_LABELS: dict[str, str] = {
     "n_forensic_total": "number of document tamper signals",
@@ -250,6 +256,7 @@ def aggregate(
     fraud_probability: float,
     anomaly_score: float,
     attributions: Optional[list[dict]] = None,
+    graph_items: Optional[list[EvidenceItem]] = None,
 ) -> PacketDecision:
     """Blend all channels into a PacketDecision (score + evidence chain + recommendation).
 
@@ -260,8 +267,12 @@ def aggregate(
         fraud_probability: Phase 3 GBC probability in [0, 1].
         anomaly_score: Phase 3 Isolation Forest novelty in [0, 1].
         attributions: optional model feature attributions (list of {feature, value, attribution}).
+        graph_items: optional Phase 5 cross-application graph EvidenceItems (category=graph).
+            Treated as an additive risk overlay; CRITICAL graph evidence (e.g. double-financed
+            collateral) escalates exactly like a CRITICAL document finding.
     """
     attributions = attributions or []
+    graph_items = graph_items or []
 
     # ── channel risks ──
     forensic_risk = _channel_risk(forensic_items)
@@ -276,24 +287,33 @@ def aggregate(
         + WEIGHTS["anomaly"] * anomaly_risk
     )
 
-    trust = 100.0 * (1.0 - blended_risk)
+    # Phase 5: additive graph overlay (does not dilute the per-packet channels).
+    graph_risk = _channel_risk(graph_items)
+    total_risk = min(1.0, blended_risk + GRAPH_OVERLAY_WEIGHT * graph_risk)
 
-    # Critical override: any CRITICAL document finding caps trust into the freeze band.
+    trust = 100.0 * (1.0 - total_risk)
+
+    # Critical override: any CRITICAL finding (document OR graph) caps trust into the freeze band.
     has_critical = any(
-        it.severity == Severity.CRITICAL for it in (forensic_items + semantic_items)
+        it.severity == Severity.CRITICAL
+        for it in (forensic_items + semantic_items + graph_items)
     )
     if has_critical:
         trust = min(trust, CRITICAL_TRUST_CEILING)
 
     trust = round(max(0.0, min(100.0, trust)), 1)
 
-    has_doc_evidence = bool(forensic_items or semantic_items)
+    # Concrete evidence = any forensic/semantic finding OR any non-INFO graph finding.
+    # (An INFO "repeat applicant" graph note is context, not grounds for a hard action.)
+    has_doc_evidence = bool(forensic_items or semantic_items) or any(
+        it.severity != Severity.INFO for it in graph_items
+    )
 
     # ── evidence chain assembly ──
     model_item = _build_model_evidence(
         fraud_probability, anomaly_score, attributions, has_doc_evidence
     )
-    chain = _dedupe([*forensic_items, *semantic_items, model_item])
+    chain = _dedupe([*forensic_items, *semantic_items, *graph_items, model_item])
     # Order: most severe first, then by confidence.
     chain.sort(key=lambda e: (e.severity.rank, e.confidence), reverse=True)
 
@@ -316,11 +336,16 @@ def aggregate(
     )
 
 
-def score_packet_dir(pkt_dir: Path, packet_id: Optional[str] = None) -> PacketDecision:
-    """Full Phase 4 scoring for a synthetic packet directory (offline path).
+def score_packet_dir(
+    pkt_dir: Path,
+    packet_id: Optional[str] = None,
+    graph: object = None,
+) -> PacketDecision:
+    """Full scoring for a synthetic packet directory (offline path).
 
     Runs Phase 1 forensics + Phase 2 semantic rules + Phase 3 model on the packet,
-    then aggregates into a PacketDecision.
+    then aggregates into a PacketDecision. If a Phase 5 ``graph`` (ApplicationGraph)
+    is supplied, its cross-application evidence for this packet is folded in.
     """
     import json
 
@@ -365,6 +390,12 @@ def score_packet_dir(pkt_dir: Path, packet_id: Optional[str] = None) -> PacketDe
 
     # Phase 3 model
     x = compute_features(pkt_dir)
+
+    # Phase 5 graph evidence (optional)
+    graph_items: list[EvidenceItem] = []
+    if graph is not None:
+        graph_items = graph.graph_evidence_for(packet_id)
+
     return aggregate(
         packet_id=packet_id,
         forensic_items=forensic_items,
@@ -372,4 +403,5 @@ def score_packet_dir(pkt_dir: Path, packet_id: Optional[str] = None) -> PacketDe
         fraud_probability=_fraud_prob(x),
         anomaly_score=_anomaly(x),
         attributions=feature_attributions(x),
+        graph_items=graph_items,
     )

@@ -42,7 +42,11 @@ curl http://localhost:8002/health        # -> {"status":"ok","service":"risk",..
   joblib artifacts in `models/`), `app/scorer.py` inference wrapper.
 - **Done (Phase 4):** `app/aggregator.py` (documented-weight blend → `TrustScore` + evidence chain +
   `Recommendation`) and `POST /risk/score` (main orchestration endpoint, Phase 1→4 in-process).
-- TODO: Phase 5 NetworkX cross-application graph.
+- **Done (Phase 5):** `app/graph.py` (`ApplicationGraph`: rings + double-financed-collateral clusters,
+  hub suppression, pickle persistence) + `POST /risk/graph/upsert`, `GET /risk/graph/clusters`,
+  `GET /risk/graph/subgraph/{id}`, and `use_graph` on `POST /risk/score`. Graph evidence folds into the
+  score as an additive risk overlay (see DECISIONS.md). Graph store under `graph_store/` is gitignored.
+- TODO: Phase 6 dashboard (React/Vite), Phase 7 privacy/redaction, Phase 8 demo.
 
 ## Scoring weights (Phase 4 — documented, never magic constants)
 `aggregator.WEIGHTS`: model 0.55 / forensic 0.25 / semantic 0.15 / IF-anomaly 0.05 (sum 1.0).
