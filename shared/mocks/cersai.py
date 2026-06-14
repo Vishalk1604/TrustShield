@@ -22,3 +22,19 @@ class CersaiAdapter(ExternalVerificationAdapter):
     def existing_charges(self, pan: str) -> list[dict[str, Any]]:
         result: VerificationResult = self.verify(pan)
         return result.data.get("charges", []) if result.found else []
+
+    def charges_for_property(self, property_id: str) -> list[dict[str, Any]]:
+        """All registered charges against a given property/survey id, across every borrower.
+
+        Real CERSAI is asset-keyed; this scans the fixture's per-PAN records for matching
+        `property_id`. Two uses: (1) the **EC-vs-registry cross-check** — if a packet's encumbrance
+        certificate claims NIL for a property that CERSAI shows as charged, that's a forged EC;
+        (2) **double-financing by asset** — the same property charged to more than one lender.
+        Returns `[{"pan": ..., **charge}, ...]`.
+        """
+        hits: list[dict[str, Any]] = []
+        for pan, record in self._load_fixture().items():
+            for charge in record.get("charges", []):
+                if charge.get("property_id") == property_id:
+                    hits.append({"pan": pan, **charge})
+        return hits

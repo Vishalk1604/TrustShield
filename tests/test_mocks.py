@@ -43,6 +43,22 @@ def test_convenience_accessors():
     assert CersaiAdapter().existing_charges("ABMPS1234F") == []
 
 
+def test_cersai_charge_carries_property_id():
+    """The tampered-EC packet (Sneha, property SY-058/1A) must have a queryable CERSAI charge so
+    the Phase 2 EC-vs-registry cross-check has something to contradict the forged 'NIL' EC."""
+    charges = CersaiAdapter().existing_charges("GHJPR3456M")
+    assert charges and charges[0]["property_id"] == "SY-058/1A"
+    assert charges[0]["lender"] == "HDFC Bank"
+
+
+def test_cersai_lookup_by_property():
+    cersai = CersaiAdapter()
+    hits = cersai.charges_for_property("SY-058/1A")
+    assert len(hits) == 1
+    assert hits[0]["pan"] == "GHJPR3456M" and hits[0]["lender"] == "HDFC Bank"
+    assert cersai.charges_for_property("SY-000/0") == []
+
+
 def test_adapters_make_no_network_calls(monkeypatch):
     """If any adapter touched the network, constructing a socket would explode."""
     def _boom(*args, **kwargs):

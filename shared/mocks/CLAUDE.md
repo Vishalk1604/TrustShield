@@ -32,6 +32,12 @@ The fixtures use the same 8 synthetic applicants the generator builds packets fo
 self-employed applicants (Singh Traders, Mehta Exports). If you add applicants to the generator's
 roster, add matching fixture rows here.
 
+**CERSAI ↔ EC cross-check:** `cersai.json` charges now carry a `property_id`. The tampered-EC packet
+(Sneha Reddy `GHJPR3456M`, property `SY-058/1A`) has an active HDFC Bank charge on that property — so
+when the packet's encumbrance certificate (forged to read "NIL") is checked against CERSAI, the rule
+finds the contradiction. Use `CersaiAdapter().charges_for_property(property_id)` for the asset-keyed
+lookup (also the basis for double-financing-by-asset detection).
+
 ## How to run / test just this part
 ```bash
 pytest tests/test_mocks.py
