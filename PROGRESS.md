@@ -13,7 +13,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 6 | Investigator Dashboard | 2026-06-14 | `6e5967b` |
 | ☑ | 7 | Privacy & trust layer | 2026-06-14 | `23e3fd2` |
 | ☑ | 8 | Demo script & narrative | 2026-06-14 | `5a9ef2c` |
-| ☑ | 9 | Forensic/OCR depth — re-OCR cross-check + tamper localization (§6.D2/D3) | 2026-06-14 | _pending_ |
+| ☑ | 9 | Forensic/OCR depth — re-OCR cross-check + tamper localization (§6.D2/D3) | 2026-06-14 | `3e36c22` |
 
 ## Phase notes
 
