@@ -7,7 +7,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 0 | Foundation, scaffolding, synthetic data | 2026-06-13 | `1d1f573` |
 | ☑ | 1 | Document Integrity / Forensics | 2026-06-14 | `8c2f043` |
 | ☑ | 2 | Semantic Consistency / Underwriting | 2026-06-14 | `75bcfc9` |
-| ☑ | 3 | Anomaly & Behavioral Scoring | 2026-06-14 | `004b97c` |
+| ☑ | 3 | Anomaly & Behavioral Scoring | 2026-06-14 | `3889fa6` |
 | ☐ | 4 | Trust Score Aggregation & Evidence Chain | — | — |
 | ☐ | 5 | Cross-Application Graph | — | — |
 | ☐ | 6 | Investigator Dashboard | — | — |
