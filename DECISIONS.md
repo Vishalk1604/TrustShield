@@ -32,3 +32,26 @@ dependency, these were pre-installed:
   `scikit-learn 1.9.0`, `joblib 1.5.3`, `networkx 3.6.1`, `pandas 3.0.3` (+ `numpy`/`scipy`/`Pillow`
   pulled in). Each service still pins its own scoped `requirements.txt` per phase (the venv is for
   local runs, not the container images).
+
+## Scope + model expansion (2026-06-14) — aligning to the problem statement
+
+The hackathon problem statement is explicitly *"tampering/forgery across **land records, legal
+documents and financial statements** … in real time … intelligent insights for underwriting."*
+The original build was financial-only. Two strategic changes (reflected in `plan.md`):
+
+- **Document scope expanded to legal + land records**, not just financial. New doc types:
+  `sale_deed`, `encumbrance_certificate`, `property_valuation`, `legal_opinion`. New fraud types:
+  `forged_title`, `tampered_encumbrance`, `valuation_inflation`, `property_mismatch`,
+  `double_financing`. *Why:* it's literally in the theme, and most teams will only do "is this PDF
+  edited." The breadth (financial + legal + land) is a differentiator.
+- **Collateral-fraud as the hero feature.** The Phase 5 graph gains **property/title-ID nodes** so the
+  *same property pledged across multiple applications* (double-financing / loan stacking — what
+  CERSAI exists to catch) forms a cluster. A single-document tool is blind to this; the cross-
+  application graph is the demo "wow." Also adds property-consistency + LTV rules in Phase 2 and an
+  EC-vs-CERSAI charge cross-check.
+- **Add a supervised, explainable model** (gradient-boosted trees / random forest) alongside the
+  Isolation Forest (Phase 3). *Why:* judges expect "a trained model with metrics" (AUC/PR/confusion
+  + feature importance), and learned weights beat hand-tuned ones in Phase 4 — while tree-based +
+  feature attribution stays auditable. **No deep/black-box models:** in regulated lending an
+  unexplainable rejection is a compliance problem, not a feature. Models are trained on *synthetic*
+  data to prove the pipeline; the honest production answer is "retrain on the bank's labeled history."
