@@ -11,15 +11,30 @@ from __future__ import annotations
 
 import io
 import os
+import shutil
 from typing import Optional
 
 import fitz  # PyMuPDF
 
-# Tesseract binary path — overridable via env for Docker/CI; defaults to the Windows host install.
-TESSERACT_CMD = os.environ.get(
-    "TESSERACT_CMD",
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-)
+
+def _resolve_tesseract_cmd() -> str:
+    """Locate the Tesseract binary across host (Windows) and container (Linux).
+
+    Order: explicit TESSERACT_CMD env → the Windows host install if present → a
+    `tesseract` on PATH (Linux/Docker, where the Dockerfile apt-installs it) →
+    a bare "tesseract" (let pytesseract resolve via PATH).
+    """
+    env = os.environ.get("TESSERACT_CMD")
+    if env:
+        return env
+    win = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    if os.path.exists(win):
+        return win
+    return shutil.which("tesseract") or "tesseract"
+
+
+# Tesseract binary path — overridable via env for Docker/CI.
+TESSERACT_CMD = _resolve_tesseract_cmd()
 
 _AVAILABLE: Optional[bool] = None  # cached availability probe
 

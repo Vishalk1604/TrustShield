@@ -2,6 +2,8 @@
 fastapi>=0.110
 uvicorn[standard]>=0.29
 pydantic>=2.5
+# Required by the /forensics/analyze file-upload (multipart/form-data) endpoint.
+python-multipart>=0.0.9
 PyMuPDF>=1.23
 # Phase 2 OCR + §6.D2 re-OCR cross-check (Tesseract via pytesseract; Pillow for image I/O).
 # Tesseract itself is installed in the Dockerfile; without it OCR/re-OCR gracefully no-op.
