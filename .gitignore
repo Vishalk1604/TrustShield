@@ -34,3 +34,12 @@ services/risk/graph_store/
 
 # NOTE: data/synthetic/packets/*.pdf ARE committed on purpose (tiny, synthetic, zero PII) so a
 # fresh clone demos with no setup. The generator is deterministic, so they can also be regenerated.
+
+# data/real/ holds REAL, PII-bearing documents used ONLY for local validation of the real-document
+# pipeline. NEVER commit them. data/real/.gitignore keeps just the folder structure + README.
+# (Belt-and-suspenders: also ignored here at the repo root.)
+data/real/**
+!data/real/.gitignore
+!data/real/README.md
+!data/real/**/
+!data/real/**/.gitkeep

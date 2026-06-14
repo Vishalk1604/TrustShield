@@ -1,0 +1,7 @@
+# data/real/ holds REAL, PII-bearing documents for LOCAL validation only — NEVER commit them.
+# This file keeps the folder structure + README while ignoring every actual document.
+*
+!*/
+!.gitignore
+!README.md
+!.gitkeep
