@@ -6,8 +6,8 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 |---|---|---|---|---|
 | ☑ | 0 | Foundation, scaffolding, synthetic data | 2026-06-13 | `1d1f573` |
 | ☑ | 1 | Document Integrity / Forensics | 2026-06-14 | `8c2f043` |
-| ☑ | 2 | Semantic Consistency / Underwriting | 2026-06-14 | — |
-| ☐ | 3 | Anomaly & Behavioral Scoring | — | — |
+| ☑ | 2 | Semantic Consistency / Underwriting | 2026-06-14 | `75bcfc9` |
+| ☑ | 3 | Anomaly & Behavioral Scoring | 2026-06-14 | `004b97c` |
 | ☐ | 4 | Trust Score Aggregation & Evidence Chain | — | — |
 | ☐ | 5 | Cross-Application Graph | — | — |
 | ☐ | 6 | Investigator Dashboard | — | — |
@@ -66,5 +66,28 @@ Delivered:
 - `verify_local_only.py` → **PASS** (37 source files, 0 violations).
 - `pytest tests/` → **53 passed**.
 
-### Phase 3 — Anomaly + Learned Risk Model
+### Phase 3 — Anomaly + Learned Risk Model ✅ (2026-06-14)
+Delivered:
+- `services/risk/app/features.py` — 16-feature vector from Phase 1 forensics + Phase 2 semantic
+  rules + behavioral/temporal PDF metadata signals (velocity, timestamp spread, doc count).
+- `services/risk/train.py` — offline training: Isolation Forest (clean-only, novelty detection) +
+  GradientBoostingClassifier (supervised, all 33 packets). Saves models + metrics to
+  `services/risk/models/`.
+- `services/risk/app/scorer.py` — lazy-loading inference wrapper: `score_packet(pkt_dir)` returns
+  `anomaly_score`, `fraud_probability`, `feature_vector`, `feature_attributions`.
+- 22 new tests in `tests/test_anomaly.py`.
+
+**Verified checks:**
+- Feature extraction: 33 packets × 16 features, no NaN/Inf.
+- Clean packets: 0 forensic, 0 semantic, velocity ~168h, all_docs_same_timestamp=0.
+- Behavioral-velocity ring (PKT-0018): velocity=0.33h, all_docs_same_timestamp=1 ✓.
+- Future-date packet (PKT-0023): creation_before_submission=0 ✓.
+- GBC ROC-AUC (5-fold CV): **0.9696** (target >= 0.80) ✓.
+- Confusion matrix: TN=10, FP=0, FN=1, TP=22.
+- FN=1 is a double_financing packet (no per-packet signal; Phase 5 graph closes the gap).
+- Top feature: `submit_velocity_hours` (0.49) → behavioral ring detected by velocity alone.
+- `verify_local_only.py` → **PASS** (41 source files, 0 violations).
+- `pytest tests/` → **75 passed**.
+
+### Phase 4 — Trust Score Aggregation
 Next up. See `plan.md` §4.

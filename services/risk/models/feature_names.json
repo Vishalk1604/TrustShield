@@ -1,0 +1,18 @@
+[
+  "n_forensic_total",
+  "n_forensic_high_critical",
+  "has_whitebox_edit",
+  "has_font_inconsistency",
+  "has_duplicate_image",
+  "has_incremental_update",
+  "has_suspicious_metadata",
+  "n_semantic_total",
+  "has_income_inconsistency",
+  "has_property_irregularity",
+  "has_cersai_violation",
+  "submit_velocity_hours",
+  "max_doc_gap_days",
+  "all_docs_same_timestamp",
+  "creation_before_submission",
+  "doc_count"
+]

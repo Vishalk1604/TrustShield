@@ -1,0 +1,94 @@
+{
+  "n_packets": 33,
+  "n_clean": 10,
+  "n_fraud": 23,
+  "n_features": 16,
+  "isolation_forest": {
+    "clean_mean": 0.4997,
+    "clean_max": 0.6909,
+    "fraud_mean": 0.4975,
+    "fraud_min": 0.4519
+  },
+  "gradient_boosting": {
+    "roc_auc_cv": 0.9696,
+    "confusion_matrix": [
+      [
+        10,
+        0
+      ],
+      [
+        1,
+        22
+      ]
+    ],
+    "classification_report": {
+      "clean": {
+        "precision": 0.9090909090909091,
+        "recall": 1.0,
+        "f1-score": 0.9523809523809523,
+        "support": 10.0
+      },
+      "fraud": {
+        "precision": 1.0,
+        "recall": 0.9565217391304348,
+        "f1-score": 0.9777777777777777,
+        "support": 23.0
+      },
+      "accuracy": 0.9696969696969697,
+      "macro avg": {
+        "precision": 0.9545454545454546,
+        "recall": 0.9782608695652174,
+        "f1-score": 0.965079365079365,
+        "support": 33.0
+      },
+      "weighted avg": {
+        "precision": 0.9724517906336089,
+        "recall": 0.9696969696969697,
+        "f1-score": 0.9700817700817701,
+        "support": 33.0
+      }
+    }
+  },
+  "top_features": [
+    {
+      "feature": "submit_velocity_hours",
+      "importance": 0.4947
+    },
+    {
+      "feature": "n_semantic_total",
+      "importance": 0.2201
+    },
+    {
+      "feature": "has_income_inconsistency",
+      "importance": 0.1538
+    },
+    {
+      "feature": "max_doc_gap_days",
+      "importance": 0.0552
+    },
+    {
+      "feature": "has_suspicious_metadata",
+      "importance": 0.037
+    },
+    {
+      "feature": "n_forensic_total",
+      "importance": 0.0274
+    },
+    {
+      "feature": "n_forensic_high_critical",
+      "importance": 0.0118
+    },
+    {
+      "feature": "has_font_inconsistency",
+      "importance": 0.0
+    },
+    {
+      "feature": "has_property_irregularity",
+      "importance": 0.0
+    },
+    {
+      "feature": "has_cersai_violation",
+      "importance": 0.0
+    }
+  ]
+}

@@ -1,5 +1,9 @@
-# Phase 0 scope for the Risk service. Heavier deps (scikit-learn, networkx, joblib) are added in
-# Phase 3/5 when the model and graph land.
+# Phase 0 baseline
 fastapi>=0.110
 uvicorn[standard]>=0.29
 pydantic>=2.5
+# Phase 3 additions: feature engineering + model inference
+scikit-learn>=1.3
+joblib>=1.3
+numpy>=1.26
+PyMuPDF>=1.23

@@ -75,6 +75,35 @@ dependency, these were pre-installed:
   per-doc forensic).** Only pure timestamp_anomaly packets (future dates, reversed dates) are
   expected to produce Phase 1 findings.
 
+## Phase 3 (2026-06-14) — Anomaly + Learned Risk Model
+
+- **Feature vector = 16 scalar features** (forensic counts, semantic counts, behavioral, property)
+  assembled from Phase 1 (forensic findings) + Phase 2 (semantic rule violations) + PDF metadata
+  timestamps. Fixed-length; safe for scikit-learn without dynamic sizing.
+- **Isolation Forest trained on clean packets only** (10 samples). Gives a novelty/anomaly sub-score
+  in [0, 1] via `0.5 - decision_function(x)`. With only 10 training samples the IF produces weak
+  separation (clean mean 0.50 vs fraud mean 0.50) — it functions as a light anomaly heuristic,
+  not a primary signal. Production use would require hundreds of clean baseline packets.
+- **GradientBoostingClassifier (supervised) on all 33 packets** — ROC-AUC 0.9696 (5-fold CV);
+  0 false positives; 1 false negative (a double_financing packet). This is the primary signal.
+  `submit_velocity_hours` (0.49), `n_semantic_total` (0.22), `has_income_inconsistency` (0.15)
+  are the three dominant features — exactly what the domain expects.
+- **1 FN (double_financing packet) is intentional, not a bug.** Double_financing fraud (same
+  property pledged across multiple applications) produces zero per-packet signals — no forensic
+  tampering, no internal inconsistency, fair valuation. It REQUIRES cross-packet graph comparison
+  (Phase 5). Training the Phase 3 model on these samples would teach a spurious correlation.
+  Decision: include all 33 in training, document the limitation; Phase 5 closes the gap.
+- **Feature attributions use global importance × |normalized feature value|** (not SHAP) to stay
+  dependency-free (no shap library needed). This is an approximation — acceptable for
+  the demo's "why did it flag this?" story; a SHAP upgrade can be added later.
+- **StandardScaler fit on CLEAN packets only** (not all data). This is the standard practice for
+  novelty detection: the scaler defines the "normal" reference; scaling must not be contaminated
+  by fraud samples. The same scaler is reused for the GBC (normalization doesn't hurt trees,
+  but keeps the IF and GBC on consistent scales).
+- **Model artifacts committed to the repo** (services/risk/models/*.joblib + *.json). They are
+  deterministic (fixed random_state=42), <200KB total, and required to run the inference path
+  without re-running train.py on every fresh clone.
+
 ## Scope + model expansion (2026-06-14) — aligning to the problem statement
 
 The hackathon problem statement is explicitly *"tampering/forgery across **land records, legal
