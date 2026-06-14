@@ -75,6 +75,41 @@ dependency, these were pre-installed:
   per-doc forensic).** Only pure timestamp_anomaly packets (future dates, reversed dates) are
   expected to produce Phase 1 findings.
 
+## Phase 4 (2026-06-14) — Trust Score Aggregation & Evidence Chain
+
+- **Explicit, documented blend weights (sum = 1.0):** model 0.55, forensic 0.25, semantic 0.15,
+  Isolation-Forest anomaly 0.05. *Why these:* the GBC is the calibrated learned signal and the
+  primary driver; forensic + semantic are deterministic, auditable document evidence; the IF is a
+  weak novelty signal (only 10 clean training packets — see Phase 3) so it gets a near-token weight.
+  The model's contribution is **surfaced as its own evidence item** (with feature attributions), never
+  hidden inside the number — judges/underwriters can see exactly how much the model moved the score.
+- **Risk-blend, not naive average.** Each channel is converted to a 0–1 risk; `trust = 100·(1−blend)`.
+  Forensic/semantic risk = Σ severity penalties / 100 (critical 60, high 35, medium 18, low 6),
+  capped at 1.0. This lets a single strong document finding meaningfully drop the score instead of
+  being diluted by clean channels.
+- **CRITICAL findings cap trust at 25** (freeze band). A registered-charge contradiction (EC-vs-CERSAI)
+  or loan-exceeds-market-value is near-certain fraud; it should force a freeze regardless of the blend.
+- **Thresholds:** trust ≥ 70 → APPROVE; 40–70 → MANUAL_REVIEW; < 40 → FREEZE.
+- **"No freeze without document evidence" safeguard.** A FREEZE requires a concrete forensic/semantic
+  finding (or a CRITICAL). A low score driven **only** by the learned model (no attributable document
+  evidence) is softened to MANUAL_REVIEW and explicitly **routed to the cross-application graph**. This
+  encodes the product rule "never a hard action without explainable evidence" and is exactly what the
+  double-financing case needs — the fraud is relational, not in any single document.
+- **double_financing honesty caveat.** The full-data GBC outputs ~1.0 for the three double-financing
+  packets, but that separation leans on a **synthetic-data artifact**: those packets were generated with
+  a 120 h create→submit velocity vs ~168–192 h for clean packets, so `submit_velocity_hours` (the top
+  model feature) flags them. In production these packets would have normal velocity and be
+  per-packet-**indistinguishable** from clean. The principled detector is the Phase 5 graph (shared
+  collateral across applications). Phase 4 therefore (correctly) lands them at trust ≈ 43 →
+  MANUAL_REVIEW with a "route to graph" rationale, rather than a confident freeze. Documented so the
+  demo narrative ("per-packet scoring is blind to collateral reuse; the graph is the hero") stays honest.
+- **Every decision carries a non-empty evidence chain** (enforced by `PacketDecision`). Even a clean
+  packet gets the model-verdict item ("low fraud probability; no tampering detected"), so the contract
+  holds with zero document findings.
+- **Endpoint `POST /risk/score`** orchestrates Phase 1→4 from local document paths (in-memory manifest;
+  no manifest.json required). Returns the full `PacketDecision`. `httpx` added as a **test-only** dep
+  (FastAPI `TestClient` talks to the ASGI app in-process — no sockets; local-only contract intact).
+
 ## Phase 3 (2026-06-14) — Anomaly + Learned Risk Model
 
 - **Feature vector = 16 scalar features** (forensic counts, semantic counts, behavioral, property)

@@ -8,7 +8,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 1 | Document Integrity / Forensics | 2026-06-14 | `8c2f043` |
 | ☑ | 2 | Semantic Consistency / Underwriting | 2026-06-14 | `75bcfc9` |
 | ☑ | 3 | Anomaly & Behavioral Scoring | 2026-06-14 | `3889fa6` |
-| ☐ | 4 | Trust Score Aggregation & Evidence Chain | — | — |
+| ☑ | 4 | Trust Score Aggregation & Evidence Chain | 2026-06-14 | — |
 | ☐ | 5 | Cross-Application Graph | — | — |
 | ☐ | 6 | Investigator Dashboard | — | — |
 | ☐ | 7 | Privacy & trust layer | — | — |
@@ -89,5 +89,27 @@ Delivered:
 - `verify_local_only.py` → **PASS** (41 source files, 0 violations).
 - `pytest tests/` → **75 passed**.
 
-### Phase 4 — Trust Score Aggregation
-Next up. See `plan.md` §4.
+### Phase 4 — Trust Score Aggregation & Evidence Chain ✅ (2026-06-14)
+Delivered:
+- `services/risk/app/aggregator.py` — blends forensic + semantic + learned-model signals into a
+  0–100 `TrustScore` with explicit documented weights (model 0.55 / forensic 0.25 / semantic 0.15
+  / IF 0.05). Assembles an ordered, deduplicated evidence chain (incl. the model verdict + feature
+  attributions) and a `Recommendation` with documented thresholds.
+- `services/risk/app/main.py` — `POST /risk/score` main orchestration endpoint (Phase 1→4) +
+  VERSION 4.0.0.
+- `compute_features()` refactored to accept an in-memory manifest (API path, no manifest.json).
+- 21 new tests in `tests/test_scoring.py`.
+
+**Verified checks:**
+- End-to-end vs labels.json: **TP=23, FP=0, TN=10, FN=0** (every clean approves, every fraud flagged).
+- Recommendation bands: per-document fraud (forensic/semantic evidence) → **FREEZE** (trust 18–39);
+  behavioral-only & double_financing (no document evidence) → **MANUAL_REVIEW** (trust ≈ 43), routed
+  to the Phase 5 graph; clean → **APPROVE** (trust 97–99).
+- CRITICAL findings (tampered EC vs CERSAI, valuation inflation) cap trust at 25 → freeze.
+- "No freeze without document evidence" safeguard verified (double_financing → review, not freeze).
+- Every decision carries a non-empty evidence chain (contract enforced).
+- `verify_local_only.py` → **PASS** (43 source files, 0 violations).
+- `pytest tests/` → **96 passed**.
+
+### Phase 5 — Cross-Application Graph
+Next up. See `plan.md` §4. (The double_financing ring + behavioral_velocity ring are waiting here.)

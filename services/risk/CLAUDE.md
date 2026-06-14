@@ -37,5 +37,14 @@ curl http://localhost:8002/health        # -> {"status":"ok","service":"risk",..
 
 ## Status
 - **Done (Phase 0):** health + schema wiring.
-- TODO: Phase 2 rules engine, Phase 3 Isolation Forest (+ `train.py`), Phase 4 aggregation +
-  `POST /risk/score`, Phase 5 NetworkX graph.
+- **Done (Phase 2):** `app/rules.py` cross-document rules engine + `POST /risk/rules/check`.
+- **Done (Phase 3):** `app/features.py` (16-feature vector), `train.py` (Isolation Forest + GBC,
+  joblib artifacts in `models/`), `app/scorer.py` inference wrapper.
+- **Done (Phase 4):** `app/aggregator.py` (documented-weight blend → `TrustScore` + evidence chain +
+  `Recommendation`) and `POST /risk/score` (main orchestration endpoint, Phase 1→4 in-process).
+- TODO: Phase 5 NetworkX cross-application graph.
+
+## Scoring weights (Phase 4 — documented, never magic constants)
+`aggregator.WEIGHTS`: model 0.55 / forensic 0.25 / semantic 0.15 / IF-anomaly 0.05 (sum 1.0).
+Thresholds: approve ≥ 70, freeze < 40, CRITICAL caps trust at 25. A freeze requires concrete
+document evidence — a model-only low score softens to manual_review + graph routing. See DECISIONS.md.

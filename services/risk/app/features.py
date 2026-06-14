@@ -82,6 +82,18 @@ def _parse_pdf_date(date_str: str) -> Optional[datetime]:
 # Behavioral feature extraction
 # --------------------------------------------------------------------------
 
+def _resolve_doc_path(pkt_dir: Path, doc_rec: dict) -> Path:
+    """Resolve a document's filesystem path.
+
+    Prefers an explicit absolute ``abspath`` (used by the API path, where docs may
+    not live under a common packet directory) and falls back to ``pkt_dir/filename``
+    (the offline synthetic-packet layout).
+    """
+    if doc_rec.get("abspath"):
+        return Path(doc_rec["abspath"])
+    return pkt_dir / doc_rec["filename"]
+
+
 def _behavioral_features(pkt_dir: Path, manifest: dict) -> dict[str, float]:
     """Extract temporal/behavioral features from the packet manifest and PDF metadata."""
     import fitz
@@ -98,7 +110,7 @@ def _behavioral_features(pkt_dir: Path, manifest: dict) -> dict[str, float]:
     doc_creation_dates: list[datetime] = []
     all_before_submission = True
     for doc_rec in manifest.get("documents", []):
-        doc_path = pkt_dir / doc_rec["filename"]
+        doc_path = _resolve_doc_path(pkt_dir, doc_rec)
         if not doc_path.exists():
             continue
         try:
@@ -135,14 +147,17 @@ def _behavioral_features(pkt_dir: Path, manifest: dict) -> dict[str, float]:
 # Public: compute feature vector for one packet
 # --------------------------------------------------------------------------
 
-def compute_features(pkt_dir: Path) -> np.ndarray:
-    """Compute the feature vector for a packet directory.
+def compute_features(pkt_dir: Path, manifest: Optional[dict] = None) -> np.ndarray:
+    """Compute the feature vector for a packet.
 
     Runs Phase 1 (forensic analysis) and Phase 2 (semantic rules + entity extraction)
     on the packet, then combines with behavioral features into a numeric array.
 
     Args:
-        pkt_dir: Path to the packet directory containing PDFs and manifest.json.
+        pkt_dir: Base directory for resolving relative document filenames.
+        manifest: Optional in-memory manifest dict (API path). When omitted, the
+            packet's ``manifest.json`` is read from ``pkt_dir`` (offline path).
+            Documents may carry an ``abspath`` to override ``pkt_dir/filename``.
 
     Returns:
         np.ndarray of shape (len(FEATURE_NAMES),), dtype float32.
@@ -151,15 +166,15 @@ def compute_features(pkt_dir: Path) -> np.ndarray:
     from services.forensics.app.extractor import extract_entities
     from services.risk.app.rules import run_all_rules
 
-    manifest_path = pkt_dir / "manifest.json"
-    manifest = json.loads(manifest_path.read_text())
+    if manifest is None:
+        manifest = json.loads((pkt_dir / "manifest.json").read_text())
 
     # ---- Phase 1: Forensic analysis ----
     all_forensic: list[dict] = []
     entities_by_doc: dict[str, dict] = {}
 
     for doc_rec in manifest.get("documents", []):
-        doc_path = pkt_dir / doc_rec["filename"]
+        doc_path = _resolve_doc_path(pkt_dir, doc_rec)
         doc_type = doc_rec.get("doc_type", "other")
         if not doc_path.exists():
             continue

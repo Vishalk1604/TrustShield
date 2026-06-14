@@ -1,7 +1,9 @@
 """TrustShield — Risk + Scoring service (Service B).
 
-Phase 2: adds `POST /risk/rules/check` for cross-document semantic consistency analysis.
-Returns semantic EvidenceItems from the financial and property/legal rules engine.
+Phase 2: `POST /risk/rules/check` — cross-document semantic consistency analysis.
+Phase 4: `POST /risk/score` — the main orchestration endpoint. Blends forensic +
+semantic + learned-model signals into a 0-100 TrustScore with an ordered, deduplicated
+evidence chain and a recommended action (the full PacketDecision envelope).
 
 All analysis is local — no outbound network calls. CERSAI verification uses the local mock
 adapter in shared/mocks/.
@@ -19,7 +21,7 @@ from pydantic import BaseModel
 from shared.schemas import Action
 
 SERVICE_NAME = "risk"
-VERSION = "2.0.0"
+VERSION = "4.0.0"
 
 app = FastAPI(title="TrustShield Risk Service", version=VERSION)
 
@@ -46,7 +48,10 @@ def root() -> dict:
         "service": SERVICE_NAME,
         "version": VERSION,
         "actions": [a.value for a in Action],
-        "endpoints": {"rules_check": "POST /risk/rules/check"},
+        "endpoints": {
+            "rules_check": "POST /risk/rules/check",
+            "score": "POST /risk/score",
+        },
         "docs": "/docs",
     }
 
@@ -119,3 +124,114 @@ def rules_check(req: RulesCheckRequest) -> dict:
         "findings": [f.model_dump(mode="json") for f in findings],
         "finding_count": len(findings),
     }
+
+
+# --------------------------------------------------------------------------
+# Phase 4 — Trust Score Aggregation (main orchestration endpoint)
+# --------------------------------------------------------------------------
+
+class ScoreRequest(BaseModel):
+    """Score a full packet: blend forensic + semantic + model signals.
+
+    Documents are referenced by local path (consistent with the local-only contract).
+    ``created_at``/``submitted_at`` enable the behavioral (velocity) features; omit
+    them and those features fall back to neutral values.
+    """
+    packet_id: Optional[str] = None
+    documents: list[DocumentRef]
+    loan_amount: Optional[float] = None
+    applicant_pan: Optional[str] = None
+    created_at: Optional[str] = None
+    submitted_at: Optional[str] = None
+
+
+@app.post("/risk/score")
+def risk_score(req: ScoreRequest) -> dict:
+    """Run the full TrustShield pipeline on a packet and return a PacketDecision.
+
+    Pipeline: Phase 1 forensic analysis (per doc) + Phase 2 semantic rules
+    (cross-doc) + Phase 3 learned model (fraud probability + novelty) ->
+    Phase 4 aggregation into a 0-100 TrustScore + ordered evidence chain +
+    recommended action. Never returns a score without a non-empty evidence chain.
+    """
+    from services.forensics.app.analyzer import analyze_pdf
+    from services.forensics.app.extractor import extract_entities
+    from services.risk.app.aggregator import aggregate
+    from services.risk.app.features import compute_features
+    from services.risk.app.rules import run_all_rules
+    from services.risk.app.scorer import (
+        anomaly_score,
+        feature_attributions,
+        fraud_probability,
+    )
+    from shared.schemas import EvidenceItem
+
+    # Validate all paths exist.
+    for doc in req.documents:
+        if not Path(doc.path).exists():
+            raise HTTPException(status_code=404, detail=f"File not found: {doc.path}")
+
+    packet_id = req.packet_id or "packet"
+
+    # ---- Phase 1 forensic + Phase 2 entity extraction ----
+    forensic_items: list[EvidenceItem] = []
+    entities_by_doc: dict[str, dict] = {}
+    for doc in req.documents:
+        try:
+            result = analyze_pdf(doc.path, doc_type=doc.doc_type, filename=doc.filename)
+            for f in result.get("findings", []):
+                forensic_items.append(EvidenceItem(**f))
+            entities_by_doc[doc.doc_type] = extract_entities(doc.path, doc.doc_type)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500, detail=f"Analysis failed for {doc.filename}: {exc}"
+            ) from exc
+
+    # Resolve applicant_pan: prefer explicit, fall back to extracted.
+    pan = req.applicant_pan
+    if not pan:
+        for dt in ("identity", "form16"):
+            pan = entities_by_doc.get(dt, {}).get("pan")
+            if pan:
+                break
+
+    # ---- Phase 2 semantic rules ----
+    semantic_items = run_all_rules(
+        entities_by_doc, loan_amount=req.loan_amount, applicant_pan=pan
+    )
+
+    # ---- Phase 3 learned model (build features from an in-memory manifest) ----
+    base_dir = Path(req.documents[0].path).parent
+    manifest = {
+        "documents": [
+            {"filename": d.filename, "doc_type": d.doc_type, "abspath": d.path}
+            for d in req.documents
+        ],
+        "created_at": req.created_at,
+        "submitted_at": req.submitted_at,
+        "ground_truth": {
+            "applicant_pan": pan,
+            "loan_amount": req.loan_amount,
+            "claims": {},
+        },
+    }
+    try:
+        x = compute_features(base_dir, manifest=manifest)
+        fraud_prob = fraud_probability(x)
+        anom = anomaly_score(x)
+        attributions = feature_attributions(x)
+    except RuntimeError as exc:
+        # Models not trained yet.
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    # ---- Phase 4 aggregation ----
+    decision = aggregate(
+        packet_id=packet_id,
+        forensic_items=forensic_items,
+        semantic_items=semantic_items,
+        fraud_probability=fraud_prob,
+        anomaly_score=anom,
+        attributions=attributions,
+    )
+
+    return decision.model_dump(mode="json")
