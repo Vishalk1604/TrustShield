@@ -12,18 +12,13 @@ Local-only: no network, no external service calls.
 
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
 from typing import Any, Optional
 
 import fitz  # PyMuPDF
 
-# Tesseract path — set via env var for Docker/CI, defaults to Windows host install.
-_TESSERACT_CMD = os.environ.get(
-    "TESSERACT_CMD",
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-)
+from services.forensics.app.ocr import ocr_pdf
 
 # --------------------------------------------------------------------------
 # Text extraction helpers
@@ -47,30 +42,11 @@ def _has_embedded_text(path: str) -> bool:
     return False
 
 
-def _ocr_text(path: str) -> str:
-    """OCR fallback — renders each page to image and runs Tesseract."""
-    try:
-        import pytesseract
-        from PIL import Image
-        import io
-
-        pytesseract.pytesseract.tesseract_cmd = _TESSERACT_CMD
-        with fitz.open(path) as doc:
-            parts: list[str] = []
-            for page in doc:
-                pix = page.get_pixmap(dpi=200)
-                img = Image.open(io.BytesIO(pix.tobytes("png")))
-                parts.append(pytesseract.image_to_string(img))
-        return "\n".join(parts)
-    except Exception:
-        return ""
-
-
 def _doc_text(path: str) -> str:
     """Get text from PDF: embedded first, OCR if the page appears image-only."""
     if _has_embedded_text(path):
         return _embedded_text(path)
-    return _ocr_text(path)
+    return ocr_pdf(path)
 
 
 # --------------------------------------------------------------------------

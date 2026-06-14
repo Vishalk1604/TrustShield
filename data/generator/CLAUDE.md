@@ -65,4 +65,7 @@ pytest tests/test_generator.py
 ## Status
 - **Done (Phase 0):** all six category builders; every fraud type present and spot-checked,
   including land/legal collateral docs + the double-financing ring.
-- TODO: add more volume/variety if Phase 3's model needs it; richer/realistic document layouts.
+- TODO (generator v2 — see `plan.md` §6.B): scale to hundreds–thousands of randomised packets with a
+  train/val/test split; multiple document layouts (fixes the 25-packet fingerprint collision); scanned
+  & image (JPG/PNG) variants to exercise the OCR pipeline; realistic multi-page transaction streams;
+  normalise double-financing velocity (remove the leakage artifact); region/bounding-box labels.

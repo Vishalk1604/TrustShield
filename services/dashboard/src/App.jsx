@@ -98,7 +98,42 @@ function EvidenceCard({ item }) {
       {item.source_location && (
         <div style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>source: {item.source_location}</div>
       )}
+      {Array.isArray(item.values?.regions) && item.values.regions.length > 0 && (
+        <div style={{ fontSize: 11, color: "#fca5a5", marginTop: 4 }}>
+          📍 localized:{" "}
+          {item.values.regions.map((r, i) => (
+            <span key={i}>
+              {i > 0 ? ", " : ""}page {r.page}
+              {Array.isArray(r.bbox) ? ` (${r.bbox[0]}, ${r.bbox[1]})` : ""}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
+  );
+}
+
+// ── tamper localization (D3) ───────────────────────────────────────────────────
+function TamperLocalization({ overlays }) {
+  if (!overlays || overlays.length === 0) return null;
+  return (
+    <section>
+      <h2 style={sectionTitle}>Tamper localization ({overlays.length})</h2>
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+        {overlays.map((o, i) => (
+          <figure key={i} style={{ margin: 0, background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: 10 }}>
+            <img
+              src={`data:image/png;base64,${o.image_b64}`}
+              alt={`Edit region on ${o.doc} page ${o.page}`}
+              style={{ width: "100%", borderRadius: 6, border: "1px solid #334155", display: "block" }}
+            />
+            <figcaption style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
+              <span style={{ color: "#fca5a5" }}>◼</span> detected edit region — {o.doc}, page {o.page}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -250,6 +285,9 @@ export default function App() {
                   <SubScoreBar label="Model (anomaly)" value={decision.trust_score.anomaly_subscore} />
                 </div>
               </div>
+
+              {/* tamper localization (D3) */}
+              <TamperLocalization overlays={result.tamper_overlays} />
 
               {/* evidence + graph */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 480px", gap: 16, alignItems: "start" }}>

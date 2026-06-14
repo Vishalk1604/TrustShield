@@ -104,14 +104,21 @@ class DocumentAnalyzer:
     # Public
     # ------------------------------------------------------------------
 
-    def analyze(self) -> dict:
-        """Run all forensic checks and return the result dict."""
+    def analyze(self, enable_reocr: bool = True) -> dict:
+        """Run all forensic checks and return the result dict.
+
+        ``enable_reocr`` toggles the OCR-based re-OCR cross-check (§6.D2). It is left on
+        for the evidence path but switched off for the learned-model feature path (which
+        excludes the re-OCR signal anyway), so scoring does not pay the OCR cost twice.
+        """
         findings: list[EvidenceItem] = []
         findings.extend(self._check_metadata())
         findings.extend(self._check_whitebox_edits())
         findings.extend(self._check_font_inconsistency())
         findings.extend(self._check_duplicate_images())
         findings.extend(self._check_incremental_updates())
+        if enable_reocr:
+            findings.extend(self._check_reocr_mismatch())
 
         return {
             "filename": self.filename,
@@ -264,6 +271,10 @@ class DocumentAnalyzer:
                         break
 
             if overlapping:
+                regions = [
+                    {"page": page_num + 1, "bbox": _round_bbox(wr)}
+                    for wr in overlapping
+                ]
                 items.append(EvidenceItem(
                     category=EvidenceCategory.FORENSIC,
                     severity=Severity.HIGH,
@@ -275,7 +286,8 @@ class DocumentAnalyzer:
                         "visually but survives in the PDF content stream."
                     ),
                     source_location=f"page {page_num + 1} — drawing objects vs text layer",
-                    values={"page": page_num + 1, "whitebox_count": len(overlapping)},
+                    values={"page": page_num + 1, "whitebox_count": len(overlapping),
+                            "regions": regions},
                     confidence=0.88,
                 ))
         return items
@@ -430,6 +442,91 @@ class DocumentAnalyzer:
         return items
 
     # ------------------------------------------------------------------
+    # Check: re-OCR vs text-layer cross-check (roadmap §6.D2)
+    # ------------------------------------------------------------------
+
+    def _check_reocr_mismatch(self) -> list[EvidenceItem]:
+        """Render each page, OCR it, and compare the *visible* values against the
+        embedded text layer.
+
+        A "whiteout" edit hides the original value behind a white box and draws the
+        forged value on top: the original survives in the text layer but is not visible
+        on the page. Rendering + OCR sees only the visible (forged) value, so a value
+        present in the text layer is missing from the rendered page — the mismatch.
+
+        This signal is layout-independent and would survive flattening/re-scanning that
+        defeats PDF-structure checks. It compares only OCR-robust tokens (money amounts
+        and PANs) with fuzzy matching, so legitimate documents (where every value is
+        both in the layer and visible) produce no findings.
+
+        Degrades gracefully: returns [] if Tesseract is unavailable or OCR is empty.
+        """
+        from services.forensics.app.ocr import ocr_page, tesseract_available
+
+        items: list[EvidenceItem] = []
+        if not tesseract_available():
+            return items
+
+        for page_num, page in enumerate(self._doc):
+            embedded = page.get_text("text") or ""
+            # 150 DPI is enough to read amounts/PANs and is faster than the 200 DPI used for
+            # full extraction — detection results are identical on the synthetic corpus.
+            visible = ocr_page(page, dpi=150) or ""
+            # Require a substantial OCR result so a "missing" value means genuinely hidden,
+            # not a wholesale OCR failure on a blank/image page.
+            if len(visible.strip()) < 40:
+                continue
+
+            for kind, label in (("money", "monetary amount"), ("pan", "PAN")):
+                emb = _sensitive_tokens(embedded, kind)   # {normalized: literal}
+                if not emb:
+                    continue
+                # Visibility set = what the rendered page actually shows. For money we use
+                # ALL digit runs (a whiteboxed amount is absent entirely; a rendered amount
+                # shows up even if OCR drops its "Rs." prefix). For PAN, the PAN tokens.
+                if kind == "money":
+                    ocr_tokens = _digit_runs(visible)
+                else:
+                    ocr_tokens = set(_sensitive_tokens(visible, "pan").keys())
+                emb_norms = set(emb)
+                hidden = {
+                    n for n in emb
+                    if not _is_visible(n, ocr_tokens, emb_norms)
+                }
+                if not hidden:
+                    continue
+                visible_literals = sorted({emb[n] for n in emb if n not in hidden})
+                for n in sorted(hidden):
+                    literal = emb[n]
+                    bbox = _first_search_bbox(page, literal)
+                    region = {"page": page_num + 1, "bbox": bbox}
+                    items.append(EvidenceItem(
+                        category=EvidenceCategory.FORENSIC,
+                        severity=Severity.HIGH,
+                        title="Visible content contradicts PDF text layer (re-OCR cross-check)",
+                        description=(
+                            f"'{self.filename}' page {page_num + 1}: the {label} "
+                            f"'{literal}' is present in the PDF text layer but is not "
+                            "visible on the rendered page — a hallmark of a covered/overlaid "
+                            "edit where the original survives in the content stream while a "
+                            "different value (or none) is shown. This check reads pixels "
+                            "(OCR), not PDF structure, so it catches edits even when "
+                            "structural residue is cleaned or the document is flattened."
+                        ),
+                        source_location=f"page {page_num + 1} — rendered image vs text layer",
+                        values={
+                            "page": page_num + 1,
+                            "check": "reocr",
+                            "kind": kind,
+                            "hidden_text_layer_value": literal,
+                            "visible_values": visible_literals,
+                            "regions": [region],
+                        },
+                        confidence=0.85,
+                    ))
+        return items
+
+    # ------------------------------------------------------------------
     # Template fingerprint
     # ------------------------------------------------------------------
 
@@ -493,6 +590,138 @@ def _is_sans(font_base: str) -> bool:
     return False
 
 
+# --- re-OCR cross-check + tamper-localization helpers (§6.D2 / §6.D3) ---
+
+# Only currency-prefixed amounts — bare numbers (PIN codes, dates, survey/ref numbers)
+# render inconsistently under OCR (internal spaces, line breaks) and are not what gets
+# fraudulently whiteboxed. Requiring "Rs."/"INR"/"₹" keeps the check on real money values.
+_MONEY_RE = re.compile(r"(?:Rs\.?|INR|₹)\s*(\d[\d,]*\d)", re.IGNORECASE)
+_PAN_RE = re.compile(r"[A-Z]{5}\d{4}[A-Z]")
+
+
+_DIGIT_RUN_RE = re.compile(r"\d[\d,]*\d")
+
+
+def _round_bbox(rect: "fitz.Rect") -> list[float]:
+    """Round a fitz.Rect to a [x0, y0, x1, y1] list of 1-decimal floats."""
+    return [round(rect.x0, 1), round(rect.y0, 1), round(rect.x1, 1), round(rect.y1, 1)]
+
+
+def _digit_runs(text: str) -> set[str]:
+    """All comma-free digit runs (≥4 digits) in `text` — used as the OCR visibility set."""
+    return {
+        m.group(0).replace(",", "")
+        for m in _DIGIT_RUN_RE.finditer(text)
+        if len(m.group(0).replace(",", "")) >= 4
+    }
+
+
+def _sensitive_tokens(text: str, kind: str) -> dict[str, str]:
+    """Extract OCR-robust tokens. Returns {normalized_key: literal_as_found}.
+
+    kind='money' -> digit runs with ≥4 digits (keyed by digits only).
+    kind='pan'   -> PAN pattern (keyed by the uppercased token).
+    """
+    out: dict[str, str] = {}
+    if kind == "money":
+        for m in _MONEY_RE.finditer(text):
+            literal = m.group(1)
+            digits = literal.replace(",", "")
+            if len(digits) >= 4:
+                out.setdefault(digits, literal)
+    elif kind == "pan":
+        for m in _PAN_RE.finditer(text.upper()):
+            out.setdefault(m.group(0), m.group(0))
+    return out
+
+
+def _edit_distance_le1(a: str, b: str) -> bool:
+    """True if `a` and `b` differ by at most one insertion/deletion/substitution.
+
+    This tolerates the common OCR slips (a dropped/added/misread digit) so that a value
+    which IS rendered but mis-OCR'd is not mistaken for a hidden one.
+    """
+    if a == b:
+        return True
+    la, lb = len(a), len(b)
+    if abs(la - lb) > 1:
+        return False
+    if la == lb:  # one substitution
+        return sum(c1 != c2 for c1, c2 in zip(a, b)) == 1
+    shorter, longer = (a, b) if la < lb else (b, a)
+    i = j = 0
+    skipped = False
+    while i < len(shorter) and j < len(longer):
+        if shorter[i] == longer[j]:
+            i += 1
+            j += 1
+        elif skipped:
+            return False
+        else:
+            skipped = True
+            j += 1
+    return True
+
+
+def _is_visible(value: str, ocr_tokens: set[str], other_values: set[str]) -> bool:
+    """Decide whether a text-layer `value` is actually rendered on the page.
+
+    `value` is visible if some OCR token is within one edit of it — UNLESS that OCR
+    token exactly equals a *different* real text-layer value. That guard distinguishes:
+      • OCR misread: 143,500 rendered but read as 43,500 (43,500 is not its own value)
+        → 43,500 explains 143,500 → visible (don't flag).
+      • Genuine hide: 1,450,000 covered; the only near token is 145,000, which is the
+        real (separate) TDS value → it cannot explain the gross → 1,450,000 stays hidden.
+    """
+    for tok in ocr_tokens:
+        if not _edit_distance_le1(value, tok):
+            continue
+        if tok != value and tok in other_values:
+            continue  # this OCR token is a *different* real value, not a misread of `value`
+        return True
+    return False
+
+
+def _first_search_bbox(page: "fitz.Page", literal: str) -> Optional[list[float]]:
+    """Best-effort bbox of `literal` on the page via PyMuPDF search. None if not found."""
+    try:
+        rects = page.search_for(literal)
+        if rects:
+            return _round_bbox(rects[0])
+    except Exception:
+        pass
+    return None
+
+
+def render_tamper_overlay(path: str, regions: list[dict], dpi: int = 150) -> bytes:
+    """Render the page referenced by `regions` with red boxes over the tamper bboxes.
+
+    Pure PyMuPDF (no Tesseract): draws semi-transparent red rectangles on an in-memory
+    copy of the page (never saved) and returns PNG bytes. Returns b'' on failure.
+    """
+    if not regions:
+        return b""
+    try:
+        page_no = int(regions[0].get("page", 1))
+        with fitz.open(path) as doc:
+            idx = max(0, min(page_no - 1, doc.page_count - 1))
+            page = doc[idx]
+            for reg in regions:
+                if int(reg.get("page", page_no)) != page_no:
+                    continue
+                bbox = reg.get("bbox")
+                if not bbox:
+                    continue
+                rect = fitz.Rect(*bbox)
+                page.draw_rect(
+                    rect, color=(0.9, 0.1, 0.1), fill=(0.9, 0.1, 0.1),
+                    fill_opacity=0.22, width=1.5,
+                )
+            return page.get_pixmap(dpi=dpi).tobytes("png")
+    except Exception:
+        return b""
+
+
 def _ev_to_dict(ev: EvidenceItem) -> dict:
     return ev.model_dump(mode="json")
 
@@ -501,8 +730,16 @@ def _ev_to_dict(ev: EvidenceItem) -> dict:
 # Convenience function (used by the endpoint and the test suite)
 # --------------------------------------------------------------------------
 
-def analyze_pdf(path: str, doc_type: str = "other", filename: Optional[str] = None) -> dict:
+def analyze_pdf(
+    path: str,
+    doc_type: str = "other",
+    filename: Optional[str] = None,
+    enable_reocr: bool = True,
+) -> dict:
     """Analyze a PDF file at `path` and return the forensics result dict.
+
+    Set ``enable_reocr=False`` to skip the OCR-based re-OCR cross-check (§6.D2) — used by
+    the model-feature path, which excludes that signal and so should not pay the OCR cost.
 
     Returns:
         {
@@ -514,4 +751,4 @@ def analyze_pdf(path: str, doc_type: str = "other", filename: Optional[str] = No
         }
     """
     with DocumentAnalyzer(path, doc_type=doc_type, filename=filename) as da:
-        return da.analyze()
+        return da.analyze(enable_reocr=enable_reocr)

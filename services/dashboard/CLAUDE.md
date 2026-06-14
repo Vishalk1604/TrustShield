@@ -44,6 +44,13 @@ The two backend services must be running for the health dots to go green.
   trust gauge + recommendation, forensic/semantic/model sub-scores, severity-colored evidence chain,
   cross-application graph SVG (`GraphView.jsx`), and JSON report export. `src/api.js` wraps the local
   risk endpoints; `POST /risk/demo/seed` + `POST /risk/demo/score/{id}` provide the data.
+- **Done (Phase 9 — §6.D3):** a **Tamper localization** panel (annotated page images with the edit
+  region boxed) + per-finding region badges in the evidence cards, fed by the new `tamper_overlays`
+  field on the demo-score response. Still no new npm deps (base64 PNGs rendered server-side by PyMuPDF).
+
+## Phase 9 notes (§6.D3 — tamper localization)
+- `POST /risk/demo/score/{id}` now also returns `tamper_overlays:[{doc,page,image_b64}]` **outside** the
+  `decision` payload, so the exported JSON report stays lean. `App.jsx` reads `result.tamper_overlays`.
 
 ## Phase 6 notes
 - The browser cannot pass local file paths to the backend, so the demo scores the committed synthetic

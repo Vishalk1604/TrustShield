@@ -3,3 +3,7 @@ fastapi>=0.110
 uvicorn[standard]>=0.29
 pydantic>=2.5
 PyMuPDF>=1.23
+# Phase 2 OCR + §6.D2 re-OCR cross-check (Tesseract via pytesseract; Pillow for image I/O).
+# Tesseract itself is installed in the Dockerfile; without it OCR/re-OCR gracefully no-op.
+pytesseract>=0.3.10
+Pillow>=10

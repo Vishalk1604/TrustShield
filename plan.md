@@ -136,3 +136,133 @@ Root `DEMO.md` (3-min narrative + exact upload order + expected results). Staged
 2. **During a phase:** make reasonable choices for ambiguities, implement, and log non-obvious ones in `DECISIONS.md` — don't stall.
 3. **End of a phase:** run that phase's checks (fix before committing — a green PROGRESS.md must mean it actually works); update PROGRESS.md + touched CLAUDE.md; commit `Phase N: <desc>` (no AI co-author trailer); push to `main`; print the commit hash.
 4. **Global rules:** never a real network call at runtime; never a score without an evidence chain; never log raw PII; keep it laptop-runnable; explainable models only.
+
+---
+
+## 6. Production Roadmap / Future Work
+
+Phases 0–8 are complete as a **demo on synthetic data**. This section captures what a **real-world**
+deployment still needs, grounded in today's actual gaps. It is the backlog beyond the demo — nothing
+here is required for the hackathon build, but it is the honest answer to "what would it take to ship
+this to a bank?" The hard constraint stays: **everything runs locally; the system never calls an
+external API** — so every capability below is either a local model we train or a local mock behind the
+production-shaped adapter seam.
+
+### Where we are today (the gaps this roadmap closes)
+- **Ingestion** (`services/forensics/app/extractor.py`): embedded-PDF-text fast path + a Tesseract OCR
+  fallback that is **never exercised** (all synthetic PDFs carry a text layer). Extraction is **brittle
+  regex** keyed to one synthetic layout; `doc_type` is **handed in**, never inferred. No image (JPG/PNG)
+  intake, no scan preprocessing, no table parsing, no multi-bank formats.
+- **Forensics** (`analyzer.py`): PDF-structure signals (metadata, white-box rects, font set,
+  duplicate images, incremental `%%EOF`, structural template hash) **plus a re-OCR vs text-layer
+  cross-check (§6.D2 ✅) and tamper localization (§6.D3 ✅)** — render→OCR→compare catches whiteout
+  edits independent of PDF structure, and findings now carry page+bbox regions with an annotated
+  overlay. Still missing: true **pixel/image-level forensics** (ELA, copy-move, noise/JPEG-ghost) for
+  a photographed/scanned forgery with no text layer (§6.D1).
+- **Semantics** (`services/risk/app/rules.py`): income↔bank↔salary, name/PAN, owner↔applicant,
+  property-id, LTV, valuation↔registry, EC↔CERSAI. No FOIR/affordability, transaction analytics,
+  credit-bureau, title-chain, or identifier validation.
+- **Models** (`features.py`/`train.py`): 16 hand features; IsolationForest on **10 clean** rows;
+  GradientBoosting on **33 rows** that partly memorises (double-financing is separable only via a
+  velocity artifact — see DECISIONS.md). No proper split, calibration, real SHAP, or CV models.
+- **Data** (`data/generator/generate.py`): 33 deterministic, single-template, digital-born packets —
+  too small/uniform to train real models (and the shared template is why 25 packets collide on one
+  fingerprint).
+- **Platform**: decisions not persisted; graph is a bare pickle; the dashboard scores **by packet-id**
+  (no real upload / case management); no feedback loop, model registry, or auth/audit.
+
+### A. Document ingestion & OCR
+- **A1. Accept image uploads** (JPG/PNG/TIFF, multi-page) and **scanned/image-only PDFs**, not just text
+  PDFs — detect image-only pages and route them to OCR.
+- **A2. Scan preprocessing** (OpenCV, local): deskew, denoise, binarize/contrast, DPI normalize, auto-crop.
+- **A3. Layout-aware OCR**: upgrade raw Tesseract to a local engine (PaddleOCR / docTR / EasyOCR) for
+  tables and key-value regions; keep Tesseract as fallback.
+- **A4. Document-type classifier**: infer `doc_type` from content so users can drop an unsorted folder.
+- **A5. Layout/table extraction** to replace brittle regex: a bank-statement transaction-table parser +
+  multi-format Form 16 / EC / valuation extractors.
+- **A6. Extraction confidence + quality gate**: score each field; flag illegible/low-DPI/partial scans
+  and request re-upload instead of silently extracting garbage.
+- **A7. Multi-institution templates**: per-bank/per-employer format detection.
+
+### B. Synthetic data generator v2 (the fuel for the ML models)
+- **B1. Volume & parameterisation**: hundreds–thousands of randomised packets with a held-out
+  **train/val/test** split.
+- **B2. Layout variety**: several bank / Form 16 / EC / valuation templates so extraction and the
+  template-fingerprint stop overfitting one layout (also fixes the 25-packet fingerprint collision).
+- **B3. Scanned & image variants**: rasterise a fraction of docs to JPG/PNG/scanned-PDF with realistic
+  scan noise (skew, JPEG artifacts, shadows, stamps) to actually exercise the OCR pipeline.
+- **B4. Realistic bank statements**: multi-page transaction streams (salary, rent, EMIs, UPI, cash).
+- **B5. Remove leakage artifacts**: give relational-only fraud (double-financing) **normal** submission
+  velocity so it is genuinely per-packet-indistinguishable — forcing the graph (not an artifact) to
+  catch it. Add **hard negatives** (clean-but-risky-looking: high legit LTV, legit repeat applicant).
+- **B6. More fraud types** + labels with **fraud sub-type and affected region (bounding boxes)**:
+  fabricated identity, fake-employer income inflation, circular salary funding, hidden EMIs, address
+  fraud, recycled stamp/seal images, photoshopped scans, valuation collusion.
+
+### C. ML models to train — all local, zero external API
+Each capability maps to a concrete **offline-trainable** model and its training data:
+
+| # | Capability | Local model | Trains on |
+|---|------------|-------------|-----------|
+| C1 | Document-type classification | TF-IDF + LogReg → DistilBERT / LayoutLMv3 (fine-tune) | generator-v2 doc samples |
+| C2 | Key-value & table extraction | LayoutLMv3 / Donut, or a token CRF over OCR tokens | B2/B3 layouts with field labels |
+| C3 | Bank-statement txn categorisation | gradient-boosted / small text classifier | B4 transaction streams |
+| C4 | Image-forgery detection (scans) | CNN on ELA / noise residual; copy-move (keypoint) detector | B3 tampered vs clean scans |
+| C5 | Signature / seal verification | Siamese CNN (same / different) | B6 seal & signature pairs |
+| C6 | Supervised fraud classifier | **XGBoost / LightGBM**, **calibrated** (isotonic/Platt) + **real SHAP** | B1 packets w/ proper splits |
+| C7 | Genuine anomaly detection | IsolationForest / autoencoder on **hundreds** of clean packets | B1 clean set |
+| C8 | Relational / graph ML | node2vec / GNN embeddings + Louvain community detection | the application graph |
+| C9 | Legal-text NLP | local spaCy / transformer NER + clause flagging | B-generated legal text |
+
+Guiding constraint: **models train offline on synthetic data or the bank's own labelled history**; the
+honest production handoff is *"retrain on real labelled outcomes, on-prem."* Replace the current
+importance×value attribution with **real SHAP**, and **learn** the aggregation weights/thresholds rather
+than hand-setting them.
+
+### D. Forensics — deeper, generalisable
+- **D1. Image / pixel forensics** for scans: Error-Level-Analysis, copy-move / splice detection, noise &
+  JPEG-ghost analysis, resampling detection (catches forgeries with no PDF text layer).
+- **D2. Re-OCR vs text-layer cross-check** ✅ *(done — `analyzer._check_reocr_mismatch`)*: render → OCR
+  → compare to the embedded text; a mismatch exposes "visible value ≠ text-layer value" even when
+  residue is cleaned — a strong, layout-independent signal. Evidence-only (excluded from the model
+  feature vector to avoid train/serve skew). See DECISIONS.md (Phase 9).
+- **D3. Tamper localization** ✅ *(done — `regions` on findings + `render_tamper_overlay` + dashboard
+  panel)*: findings return page + bounding boxes of *where* the edit is, rendered as a UI overlay.
+  (A full per-pixel heatmap remains future work, paired with §6.D1.)
+- **D4. Stamp/seal & signature checks** (ties to C4/C5); PDF object-stream & font-subset deep forensics;
+  producer/version-vs-claimed-date validation.
+
+### E. Semantic / underwriting depth
+- **E1. Affordability / FOIR**: detect existing EMIs from statements → compute FOIR/DTI (core underwriting).
+- **E2. Bank-statement analytics**: salary regularity, bounced cheques, pre-application balance inflation,
+  circular / mule patterns, average balance.
+- **E3. Tax reconciliation**: Form 16 ↔ ITR ↔ AIS/26AS (mock), TDS consistency; GST turnover vs declared
+  income for the self-employed.
+- **E4. Identifier validators**: PAN checksum, IFSC, Aadhaar format, address consistency, DOB/age-vs-tenure.
+- **E5. Property / legal depth**: chain-of-title across deeds, EC period-coverage gaps, property-tax
+  receipt, approved plan / RERA; a **local mock credit-bureau (CIBIL-like)** for existing loans / DPD.
+
+### F. Platform & production-readiness
+- **F1. Persistence**: SQLite for applications, decisions, and an **immutable audit log** (graph
+  SQLite-backed/versioned, not a bare pickle).
+- **F2. Real upload & case management**: dashboard multipart upload → forensics → risk; queue, assign,
+  status, reviewer notes (replaces the score-by-id demo flow).
+- **F3. Human-in-the-loop feedback** → label store → **active-learning** retrain loop.
+- **F4. Model ops**: model registry / versioning, drift monitoring, CI metric gates on the v2 test set.
+- **F5. Auth / RBAC + audit**; batch / backlog scoring; config-driven thresholds (no magic numbers).
+- **F6. Container hygiene**: pin scikit-learn to match the pickled models; bundle OCR (tesseract + lang
+  data) in the images (the `./data` mount is already fixed).
+- **F7. Redactor i18n**: extend PII patterns to Aadhaar / Voter-ID / GST / IFSC; field-level config.
+
+### G. Explainability & compliance
+- **G1. Real SHAP** attributions (local) replacing the approximation; confidence intervals on scores.
+- **G2. Tamper-localization heatmaps** surfaced in the UI.
+- **G3. Reason-code → policy mapping; STR/SAR-style regulatory export**; basic bias / fairness checks
+  (no protected-attribute proxies).
+
+### Priority tiers
+- **P0 — makes it real:** A1–A3 (image/scan OCR), A4–A5 (classify + table extract), B1–B3 (data volume +
+  scanned variants), ~~D2 (re-OCR cross-check)~~ ✅, C6 (calibrated classifier + SHAP), F1–F2
+  (persistence + real upload).
+- **P1 — depth & trust:** B4–B6, C1–C4, C7, D1, ~~D3~~ ✅, E1–E3, F3.
+- **P2 — scale & compliance:** C5/C8/C9, D4, E4–E5, F4–F7, G1–G3.

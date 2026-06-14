@@ -215,3 +215,49 @@ The original build was financial-only. Two strategic changes (reflected in `plan
   feature attribution stays auditable. **No deep/black-box models:** in regulated lending an
   unexplainable rejection is a compliance problem, not a feature. Models are trained on *synthetic*
   data to prove the pipeline; the honest production answer is "retrain on the bank's labeled history."
+
+## Phase 9 (2026-06-14) — Forensic/OCR depth (roadmap §6.D2 + §6.D3)
+
+First slice picked off the `plan.md` §6 production roadmap: the re-OCR vs text-layer cross-check (D2)
+and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF; no new heavy deps.
+
+- **D2 makes the never-exercised OCR path real.** Until now every synthetic PDF carried a text layer,
+  so `extractor.py`'s Tesseract fallback never ran. The new `DocumentAnalyzer._check_reocr_mismatch`
+  renders each page, OCRs it, and compares the *visible* currency amounts / PANs against the embedded
+  text layer. A "whiteout" edit leaves the original value in the text layer while the page shows the
+  forged value (or, for the tampered EC, nothing) — so a text-layer value with no visible counterpart
+  is the signal. It reads pixels, not PDF structure, so it is layout-independent and would survive
+  flattening/re-scanning that defeats the structural checks. Fires on PKT-0010/0011 (hidden original
+  income) and PKT-0028 (the EC shows NIL but hides a Rs. 4,200,000 charge); **zero** findings on all
+  10 clean packets.
+- **D2 is EVIDENCE, not a model feature — deliberately.** `features.py` runs the analyzer in-process
+  and feeds `n_forensic_total` etc. into the committed GBC + Isolation Forest. Feeding an OCR-dependent
+  signal would make model inputs nondeterministic across environments (Tesseract present or not) =
+  train/serve skew. So re-OCR findings are tagged `values["check"]="reocr"` and excluded from the
+  model-feature counts; the model-feature pass also calls `analyze_pdf(enable_reocr=False)` so it pays
+  no OCR cost. Result: the 16-feature vectors are byte-identical to before → **no retrain, committed
+  model artifacts unchanged**, and the end-to-end confusion matrix is preserved. D2 still surfaces in
+  the evidence chain and the forensic subscore (via the aggregator's forensic channel). Feeding D2 into
+  the model is a future step, once OCR is bundled everywhere (F6) and generator-v2 supplies
+  flattened-forgery training data.
+- **Precision over recall: OCR misreads must not masquerade as edits.** Two guards make the check
+  honest: (1) **currency-prefixed amounts only** — bare numbers (PIN codes, dates, survey/ref numbers)
+  render inconsistently under OCR (internal spaces, line breaks) and would false-positive; requiring
+  "Rs."/"INR"/"₹" keeps the check on real money. (2) An **"explained-away" guard** (`_is_visible`):
+  a text-layer value is treated as visible if an OCR token is within one edit of it, *unless* that OCR
+  token exactly equals a different real text-layer value. This distinguishes an OCR misread
+  (143,500 rendered, read as 43,500 — 43,500 is not its own value → visible) from a genuine hide
+  (1,450,000 covered; the only near token, 145,000, is the real separate TDS value → still hidden).
+  This is why PKT-0012's OCR digit-drop does **not** false-fire.
+- **D3 localizes the edit.** White-box findings now carry `values.regions = [{page, bbox}]` (the
+  analyzer already computed the overlapping rects — they were just not surfaced), and re-OCR findings
+  carry the hidden value's bbox via `page.search_for`. `render_tamper_overlay()` (pure PyMuPDF, no
+  Tesseract) renders the page with semi-transparent red boxes over the regions. The risk demo-score
+  endpoint returns these as `tamper_overlays:[{doc,page,image_b64}]` **outside** the `decision` payload
+  so exported reports stay lean; the dashboard renders them as a "Tamper localization" panel and shows
+  per-finding region badges in the evidence chain. Overlay rendering uses only PyMuPDF, so it works in
+  every environment even where Tesseract (hence D2) is absent.
+- **Container parity (partial §6.F6).** `pytesseract`/`Pillow` added to both services' requirements and
+  `tesseract-ocr` to both Dockerfiles (the risk image needs it because it runs the analyzer in-process).
+  Everything degrades gracefully: without Tesseract, `ocr.tesseract_available()` is False and the
+  re-OCR check returns `[]` — scoring, the overlay, and all other checks are unaffected.

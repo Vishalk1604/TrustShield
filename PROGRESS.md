@@ -13,6 +13,7 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ☑ | 6 | Investigator Dashboard | 2026-06-14 | `6e5967b` |
 | ☑ | 7 | Privacy & trust layer | 2026-06-14 | `23e3fd2` |
 | ☑ | 8 | Demo script & narrative | 2026-06-14 | `5a9ef2c` |
+| ☑ | 9 | Forensic/OCR depth — re-OCR cross-check + tamper localization (§6.D2/D3) | 2026-06-14 | _pending_ |
 
 ## Phase notes
 
@@ -184,7 +185,40 @@ Delivered:
 - `verify_local_only.py` → **PASS** (52 source files, 0 violations).
 - `pytest tests/` → **135 passed**.
 
+### Phase 9 — Forensic/OCR depth (re-OCR cross-check + tamper localization) ✅ (2026-06-14)
+First slice off the `plan.md` §6 production roadmap (D2 + D3). No new heavy deps; no model retrain.
+Delivered:
+- `services/forensics/app/ocr.py` — shared local-OCR helpers (`tesseract_available`, `render_page_png`,
+  `ocr_page`, `ocr_pdf`); `extractor.py` now reuses them (its previously-dead Tesseract path).
+- `services/forensics/app/analyzer.py` — `_check_reocr_mismatch` (§6.D2): render → OCR → compare visible
+  currency amounts / PANs against the embedded text layer; flags text-layer values not visible on the
+  page (whiteout/overlay edits). Precision guards: currency-prefixed amounts only + an "explained-away"
+  rule that tells an OCR misread apart from a genuine hide. White-box + re-OCR findings now carry
+  `values.regions=[{page,bbox}]` (§6.D3); `render_tamper_overlay()` draws red boxes on the page (pure
+  PyMuPDF). `analyze(enable_reocr=…)` lets the model path skip OCR.
+- `services/risk/app/features.py` — re-OCR excluded from the learned-model feature vector (tagged
+  `check=reocr`; model pass calls `analyze_pdf(enable_reocr=False)`), so model inputs are byte-identical
+  → no retrain.
+- `services/risk/app/main.py` — `POST /risk/demo/score/{id}` now also returns
+  `tamper_overlays:[{doc,page,image_b64}]` (outside the decision payload).
+- `services/dashboard/src/App.jsx` — "Tamper localization" panel (annotated page images) + per-finding
+  region badges in the evidence chain.
+- Deps/containers: `pytesseract`+`Pillow` in both services' requirements; `tesseract-ocr` in both
+  Dockerfiles. Without Tesseract, the re-OCR check no-ops (everything else unaffected).
+- 9 new tests in `tests/test_reocr.py`.
+
+**Verified checks:**
+- Re-OCR fires on PKT-0010/0011 (hidden original income) and PKT-0028 (EC shows NIL, hides a
+  Rs. 4,200,000 charge); **0 findings on all 10 clean packets**; PKT-0012's OCR digit-drop does not
+  false-fire (explained-away guard).
+- White-box findings carry valid `regions`; `render_tamper_overlay` returns a valid PNG.
+- Model feature vectors unchanged (re-OCR excluded) → committed model artifacts untouched, no retrain.
+- `python scripts/seed_demo.py` → "Demo replay OK" (actions unchanged; re-OCR adds corroborating
+  evidence to already-frozen packets).
+- `verify_local_only.py` → **PASS** (54 source files; Tesseract is a local subprocess, not network).
+- `pytest tests/` → **144 passed** (135 + 9).
+
 ---
 
-## All phases complete (0–8). 🎉
+## All phases complete (0–8) + Phase 9 forensic/OCR depth. 🎉
 Run `python scripts/seed_demo.py` then follow `DEMO.md` for the walkthrough.

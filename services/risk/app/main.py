@@ -428,4 +428,58 @@ def demo_score(packet_id: str, use_graph: bool = True) -> dict:
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    return {"decision": decision.model_dump(mode="json"), "subgraph": subgraph}
+    tamper_overlays = _build_tamper_overlays(pkt_dir, decision)
+
+    return {
+        "decision": decision.model_dump(mode="json"),
+        "subgraph": subgraph,
+        "tamper_overlays": tamper_overlays,
+    }
+
+
+def _build_tamper_overlays(pkt_dir, decision) -> list[dict]:
+    """Render annotated page images for forensic findings that localise an edit (§6.D3).
+
+    Returns [{doc, page, image_b64}], one per (doc, page) that has tamper regions.
+    Kept OUT of the decision payload so exported reports stay lean. Never raises.
+    """
+    import base64
+    import json
+
+    from services.forensics.app.analyzer import render_tamper_overlay
+
+    overlays: list[dict] = []
+    try:
+        manifest = json.loads((pkt_dir / "manifest.json").read_text())
+        by_filename = {d["filename"]: d for d in manifest.get("documents", [])}
+
+        # Gather every localized region, grouped by (filename, page), so multiple findings
+        # on the same page (e.g. white-box + re-OCR) render as ONE annotated image.
+        grouped: dict[tuple[str, int], list[dict]] = {}
+        for ev in decision.evidence_chain:
+            regions = (ev.values or {}).get("regions")
+            if not regions:
+                continue
+            # Resolve the document this finding came from via its filename, which the
+            # forensic analyzer embeds in the finding's description / source location.
+            haystack = f"{ev.source_location or ''} {ev.description or ''}"
+            filename = next((fn for fn in by_filename if fn in haystack), None)
+            if filename is None:
+                continue
+            for r in regions:
+                grouped.setdefault((filename, int(r.get("page", 1))), []).append(r)
+
+        for (filename, page), page_regions in sorted(grouped.items()):
+            doc_rec = by_filename[filename]
+            doc_path = doc_rec.get("abspath") or str(pkt_dir / filename)
+            png = render_tamper_overlay(doc_path, page_regions)
+            if not png:
+                continue
+            overlays.append({
+                "doc": filename,
+                "page": page,
+                "image_b64": base64.b64encode(png).decode("ascii"),
+            })
+    except Exception:
+        return overlays
+    return overlays

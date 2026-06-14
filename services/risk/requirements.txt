@@ -9,3 +9,7 @@ numpy>=1.26
 PyMuPDF>=1.23
 # Phase 5: cross-application graph
 networkx>=3.0
+# §6.D2: the risk service runs the forensic analyzer in-process, so it needs the OCR
+# stack for the re-OCR cross-check. Without Tesseract installed the check no-ops.
+pytesseract>=0.3.10
+Pillow>=10

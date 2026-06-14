@@ -178,8 +178,11 @@ def compute_features(pkt_dir: Path, manifest: Optional[dict] = None) -> np.ndarr
         doc_type = doc_rec.get("doc_type", "other")
         if not doc_path.exists():
             continue
-        # Forensic
-        result = analyze_pdf(str(doc_path), doc_type=doc_type, filename=doc_rec["filename"])
+        # Forensic — skip the OCR re-OCR cross-check: it is excluded from the model
+        # feature vector below, so running it here would only waste OCR time.
+        result = analyze_pdf(
+            str(doc_path), doc_type=doc_type, filename=doc_rec["filename"], enable_reocr=False,
+        )
         all_forensic.extend(result.get("findings", []))
         # Entity extraction
         ent = extract_entities(str(doc_path), doc_type=doc_type)
@@ -201,11 +204,18 @@ def compute_features(pkt_dir: Path, manifest: Optional[dict] = None) -> np.ndarr
     semantic_items = run_all_rules(entities_by_doc, loan_amount=loan_amount, applicant_pan=pan)
 
     # ---- Aggregate forensic features ----
-    n_forensic = len(all_forensic)
+    # Exclude the re-OCR cross-check (§6.D2) from the LEARNED model's feature vector:
+    # it depends on Tesseract, so feeding it would make model inputs nondeterministic
+    # across environments (train/serve skew). It still surfaces as evidence + in the
+    # forensic subscore via the aggregator. See DECISIONS.md.
+    model_forensic = [
+        f for f in all_forensic if (f.get("values") or {}).get("check") != "reocr"
+    ]
+    n_forensic = len(model_forensic)
     n_forensic_hc = sum(
-        1 for f in all_forensic if f.get("severity") in ("high", "critical")
+        1 for f in model_forensic if f.get("severity") in ("high", "critical")
     )
-    titles_lower = [f.get("title", "").lower() for f in all_forensic]
+    titles_lower = [f.get("title", "").lower() for f in model_forensic]
 
     has_whitebox = float(any("white" in t or "covered" in t for t in titles_lower))
     has_font = float(any("font" in t for t in titles_lower))

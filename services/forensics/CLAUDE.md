@@ -36,5 +36,16 @@ curl http://localhost:8001/health        # -> {"status":"ok","service":"forensic
 
 ## Status
 - **Done (Phase 0):** health + schema wiring.
-- TODO (Phase 1): `POST /forensics/analyze`, metadata extraction, object-tree fingerprint, tamper
-  signals (font/text-vs-image/incremental-update/copy-paste). TODO (Phase 2): OCR + extraction.
+- **Done (Phase 1):** `POST /forensics/analyze` + `analyze/path`, metadata/date checks, structural
+  template fingerprint, tamper signals (white-box/font/duplicate-image/incremental-update).
+- **Done (Phase 2):** `app/extractor.py` — per-doc-type entity extraction (embedded-text fast path +
+  Tesseract OCR fallback, now via the shared `app/ocr.py`).
+- **Done (Phase 9 — §6.D2/D3):** `app/ocr.py` (shared local-OCR helpers, incl. `tesseract_available`);
+  `analyzer._check_reocr_mismatch` (render→OCR→compare visible amounts/PANs vs the text layer — catches
+  whiteout edits, layout-independent, currency-prefixed + "explained-away" precision guards);
+  `regions` (page+bbox) on white-box & re-OCR findings + `render_tamper_overlay()` (pure PyMuPDF).
+  Re-OCR is evidence-only — **excluded from the risk model's feature vector** (`enable_reocr` flag); see
+  root `DECISIONS.md` (Phase 9). Degrades gracefully when Tesseract is absent.
+- TODO (production hardening — see `plan.md` §6.A/§6.D1): real OCR for **image/scanned uploads** (image
+  intake, scan preprocessing, layout-aware OCR, doc-type classification, table extraction); and true
+  **pixel/image forensics** (ELA, copy-move, noise/JPEG-ghost) for forgeries with no text layer.
