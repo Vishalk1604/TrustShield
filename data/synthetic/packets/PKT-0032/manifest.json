@@ -1,0 +1,109 @@
+{
+  "id": "PKT-0032",
+  "applicant_name": "Vivek Menon",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0032/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "fd41cf209c08e43a361aef2364ce5740613656cd497a572236d720fc1ee9cdae"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0032/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "e125d43a8242047424b0c377538a6f74dc5d4916bd2735ea7e2cab214dabeaac"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0032/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "93a82572dc36fa01b8df6a34cfa9bf85614dce52dcebf375d0f7afd6ff5f043c"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0032/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "d573240dda92c010f51096b1c904f6c761de472e24a9dc66814636db63e8c10d"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0032/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "b2ff0baf19030742f9038c8e60807f166fb497e326e95baa2611673ddb579f8e"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0032/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "3c46a2d78abafb689e5ac5cd65ccfb1dc12e022457ea132f7c0433adf71d22f4"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0032/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "41bf18d9673f91e7decc3c0a714eab6397c3185ec2c347a2ee585dd71ead5d81"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-08-24T10:00:00+00:00",
+  "submitted_at": "2024-08-29T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ZZFPM6666F",
+    "employer": "Menon & Sons",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ZZFPM6666F",
+        "name": "Vivek Menon"
+      },
+      "form16.pdf": {
+        "gross_income": 1250000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 93750
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-911/2C",
+        "owner": "Vivek Menon",
+        "consideration": 7500000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-911/2C",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-911/2C",
+        "valuation": 7500000,
+        "loan_amount": 5000000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-911/2C"
+      }
+    },
+    "property_id": "SY-911/2C",
+    "market_value": 7500000,
+    "loan_amount": 5000000
+  }
+}

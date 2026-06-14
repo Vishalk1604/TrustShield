@@ -1,0 +1,111 @@
+{
+  "id": "PKT-0026",
+  "applicant_name": "Deepak Joshi",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0026/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0371c146c1b88c8535a5323fd91caca57444edb0dbfe6de77d2da5e5672bd740"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0026/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "370a9dd340fbe4d4f84dea42f67d74e780f80349992e6e3ad3e076ec7d84ddcf"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0026/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6bdd0800de5011306934cdd5bbe094abe1de125070a8ebe1b974478714756528"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0026/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "e527eb4c01aa1d387da454dda32f769ffe84d5e3a32079d284d36248bb123529"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0026/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "4ed6f38ce3cdf74516101857d97d7c04c5110e478f08f70fe720098f944b9c0a"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0026/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "ac15a512d0a4db943907e50f459c7d4c79e2f9acd071feeec31b2f7937c259c5"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0026/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "7c160d464ca853d6ae9b832d9bb7642327c4ec74b8c8e3d9575546d0a97f19e0"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-05-06T10:00:00+00:00",
+  "submitted_at": "2024-05-14T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "TUVPJ0123H",
+    "employer": "Accenture",
+    "claims": {
+      "identity.pdf": {
+        "pan": "TUVPJ0123H",
+        "name": "Deepak Joshi"
+      },
+      "form16.pdf": {
+        "gross_income": 1350000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 101250
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-058/1A",
+        "owner": "Deepak Joshi",
+        "consideration": 12000000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-058/1A",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-058/1A",
+        "valuation": 12000000,
+        "loan_amount": 8000000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-058/1A"
+      }
+    },
+    "property_id": "SY-058/1A",
+    "market_value": 12000000,
+    "valuation": 12000000,
+    "loan_amount": 8000000,
+    "ltv": 0.67
+  }
+}

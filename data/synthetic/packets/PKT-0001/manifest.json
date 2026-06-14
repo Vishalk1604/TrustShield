@@ -9,7 +9,7 @@
       "path": "data/synthetic/packets/PKT-0001/identity.pdf",
       "mime_type": "application/pdf",
       "page_count": 1,
-      "sha256": "4a74a54d20027bcc89bc1c7f2e09cd75091ae1a9e2c52c7cf03835fa9e9ae03a"
+      "sha256": "6a212745fec53083a3b5367f61d4f08bf3d96ea8643860a7fcf6415b3da17739"
     },
     {
       "id": "form16",
@@ -18,7 +18,7 @@
       "path": "data/synthetic/packets/PKT-0001/form16.pdf",
       "mime_type": "application/pdf",
       "page_count": 1,
-      "sha256": "e02d9c92df62c75e250eb0a0989ecf195fe1e5252dedf2696dea078d3931d577"
+      "sha256": "4953841b2e578f91a074e47b433a71b5020e567ab8b34accc3fe6b0d78d19163"
     },
     {
       "id": "salary_slip",
@@ -27,7 +27,7 @@
       "path": "data/synthetic/packets/PKT-0001/salary_slip.pdf",
       "mime_type": "application/pdf",
       "page_count": 1,
-      "sha256": "14636045509cbdac1a26b49263a611d8defe37d5ca682f460e8ec92bed67d2bb"
+      "sha256": "50b66c6376904f5140037565bd8e3ac9f48331529a7da78950f9a4e77005ceba"
     },
     {
       "id": "bank_statement",
@@ -36,7 +36,7 @@
       "path": "data/synthetic/packets/PKT-0001/bank_statement.pdf",
       "mime_type": "application/pdf",
       "page_count": 1,
-      "sha256": "31a37ae3ff56abcb96b5f99de428c464141593728889ee2127cb24225887cf7e"
+      "sha256": "355ebe22ee4b78c28fd6e13d6d88747fba0bc101b12e17f5fcd6ddc055e64521"
     }
   ],
   "extracted": null,

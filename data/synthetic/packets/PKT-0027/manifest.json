@@ -1,0 +1,109 @@
+{
+  "id": "PKT-0027",
+  "applicant_name": "Amit Patel",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0027/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "cb4ccf989c942d245606aed8d7e9b61427f70dcc477f648c3b6099a132bbc10a"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0027/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "120376268e11a54441d47c46ad143e3fcf37853d2584445cad579caa1b71ba35"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0027/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "944af9d3677112aceba688f3d673d96a644936b76ac0477826e1b0dcea4e4d3b"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0027/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "8543b7ae94e486bdd7c38afe8bd9c7aac6136bd223d12aa60e6c4f17a163187f"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0027/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0a4dba68d691b095bf074e645180fb7af150145a6d6fea1a653c403053bdb7e7"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0027/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "429cf8fb562cbc88a2e7291bdca4bc58c1f6a3ef92f0e39db4c10dc0079d6503"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0027/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "e1c76823e525d513d1194e541336e53d415aea1925f0f7e1b326e449aae590e6"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-05T10:00:00+00:00",
+  "submitted_at": "2024-07-11T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "EFKPP9012Q",
+    "employer": "Wipro Limited",
+    "claims": {
+      "identity.pdf": {
+        "pan": "EFKPP9012Q",
+        "name": "Amit Patel"
+      },
+      "form16.pdf": {
+        "gross_income": 980000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 73500
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-217/3B",
+        "owner": "Amit Patel",
+        "consideration": 9000000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-217/3B",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-217/3B",
+        "valuation": 9000000,
+        "loan_amount": 6500000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-217/3B"
+      }
+    },
+    "property_id": "SY-217/3B",
+    "deed_owner": "Suresh Iyer",
+    "applicant": "Amit Patel"
+  }
+}

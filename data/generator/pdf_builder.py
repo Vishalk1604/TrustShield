@@ -220,3 +220,121 @@ def make_seal_png() -> bytes:
     pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 72, 72))
     pix.clear_with(180)  # solid gray block; identical bytes every time
     return pix.tobytes("png")
+
+
+# --------------------------------------------------------------------------------------
+# Legal & land-record builders (secured-lending collateral docs)
+# --------------------------------------------------------------------------------------
+def build_sale_deed(
+    owner_name: str, pan: str, property_id: str, address: str, consideration: float,
+    seller_name: str, meta: DocMeta,
+) -> "fitz.Document":
+    """Property title / ownership-transfer deed. `owner_name` is the current owner (the loan
+    applicant for a clean packet). Tampering targets the owner-name or property-id rows."""
+    doc, page = _new_doc()
+    y = _header(page, "SALE DEED", "Office of the Sub-Registrar")
+    _lines(
+        page,
+        y + 6,
+        [
+            f"Document No:     SD/2023/{property_id.replace('/', '')}",
+            f"Property No:     {property_id}",
+            f"Property Addr:   {address}",
+            "",
+            f"Seller (Vendor): {seller_name}",
+            f"Owner (Vendee):  {owner_name}",
+            f"PAN of Vendee:   {pan}",
+            f"Consideration:   {_money(consideration)}",
+            "",
+            "Registered and executed before the Sub-Registrar.",
+        ],
+        leading=20,
+        size=11,
+    )
+    meta.title = "Sale Deed"
+    apply_metadata(doc, meta)
+    return doc
+
+
+def build_encumbrance_certificate(
+    owner_name: str, property_id: str, address: str, charges: list[dict], period: str, meta: DocMeta,
+) -> "fitz.Document":
+    """EC listing registered charges on the property. Empty `charges` => 'NIL ENCUMBRANCES'.
+    A forged EC (tamper) white-boxes a real charge row and stamps NIL on top."""
+    doc, page = _new_doc()
+    y = _header(page, "ENCUMBRANCE CERTIFICATE", f"Property: {property_id}  |  Period: {period}")
+    rows = [
+        f"Owner:           {owner_name}",
+        f"Property Addr:   {address}",
+        "",
+        "Registered transactions / charges:",
+    ]
+    if charges:
+        for c in charges:
+            rows.append(
+                f"  - {c.get('type', 'mortgage')} in favour of {c.get('lender', 'Bank')}, "
+                f"{_money(c.get('amount', 0))}, registered {c.get('registered_on', 'NA')}"
+            )
+    else:
+        rows.append("  NIL ENCUMBRANCES REGISTERED FOR THE PERIOD.")
+    _lines(page, y + 6, rows, leading=19, size=11)
+    meta.title = "Encumbrance Certificate"
+    apply_metadata(doc, meta)
+    return doc
+
+
+def build_property_valuation(
+    owner_name: str, property_id: str, address: str, valued_amount: float, meta: DocMeta,
+) -> "fitz.Document":
+    """Valuer's market-value report. The headline figure is what `valuation_inflation` inflates."""
+    doc, page = _new_doc()
+    y = _header(page, "PROPERTY VALUATION REPORT", "Approved Valuer's Assessment")
+    y = _lines(
+        page,
+        y + 6,
+        [
+            f"Property No:     {property_id}",
+            f"Property Addr:   {address}",
+            f"Owner:           {owner_name}",
+            f"Valuer:          M/s Apex Valuers (Reg. CAT-I/2018/441)",
+            "",
+        ],
+        leading=20,
+        size=11,
+    )
+    page.insert_text((MARGIN_X, y + 8), "Assessed Market Value:", fontname=FONT_BOLD, fontsize=13)
+    page.insert_text((320, y + 8), _money(valued_amount), fontname=FONT_BOLD, fontsize=13)
+    meta.title = "Property Valuation"
+    apply_metadata(doc, meta)
+    return doc
+
+
+def build_legal_opinion(
+    owner_name: str, property_id: str, advocate: str, clear: bool, meta: DocMeta,
+) -> "fitz.Document":
+    """Advocate's title-search opinion. `clear` toggles the conclusion."""
+    doc, page = _new_doc()
+    y = _header(page, "LEGAL OPINION", "Title Search & Search Report")
+    conclusion = (
+        "The title is clear, marketable and free from reasonable doubt; the property can be "
+        "accepted as security."
+        if clear
+        else "The title is NOT clear; defects were observed. Property should not be accepted as security."
+    )
+    _lines(
+        page,
+        y + 6,
+        [
+            f"Property No:     {property_id}",
+            f"Owner examined:  {owner_name}",
+            f"Advocate:        {advocate} (Bar Reg. KAR/2015/3321)",
+            "",
+            "Opinion:",
+            f"  {conclusion}",
+        ],
+        leading=20,
+        size=11,
+    )
+    meta.title = "Legal Opinion"
+    apply_metadata(doc, meta)
+    return doc

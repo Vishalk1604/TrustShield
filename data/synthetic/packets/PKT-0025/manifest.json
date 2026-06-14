@@ -1,0 +1,111 @@
+{
+  "id": "PKT-0025",
+  "applicant_name": "Priya Verma",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0025/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "33826c22ccedd98789f9f721f950be684a095f590278262d6bd2149ea607de51"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0025/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "7c59016ae1048e9c09d407e7f9cc71a53eaaf36844801ef3f4da754810e0e605"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0025/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0d9a89a6e17cc7c5545cf135ba6164381ac10093c46e84ca46eccd465d8e4a49"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0025/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0412d00b201fb5114a1395ff58090482b81723b0a3a680a2f8e101fe6ba7980a"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0025/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "aa75dd5f6746309581e9e061ba291bfc7277a4e031c5de86b5d30e888f9a2176"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0025/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6b19f21336ae9c4d5d9cd75a399f02562e085fcd005ee75b548321eb67a9713f"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0025/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "ca04068c0419f97e4db82ea0de7ee5a08f28cbe01d21ae83cc9945548c394563"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-05-02T10:00:00+00:00",
+  "submitted_at": "2024-05-10T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "CDNPV5678L",
+    "employer": "Tata Consultancy Services",
+    "claims": {
+      "identity.pdf": {
+        "pan": "CDNPV5678L",
+        "name": "Priya Verma"
+      },
+      "form16.pdf": {
+        "gross_income": 1450000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 108750
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-217/3B",
+        "owner": "Priya Verma",
+        "consideration": 9000000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-217/3B",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-217/3B",
+        "valuation": 9000000,
+        "loan_amount": 6000000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-217/3B"
+      }
+    },
+    "property_id": "SY-217/3B",
+    "market_value": 9000000,
+    "valuation": 9000000,
+    "loan_amount": 6000000,
+    "ltv": 0.67
+  }
+}

@@ -37,7 +37,12 @@ class DocType(str, Enum):
     FORM16 = "form16"                # Employer TDS certificate
     BANK_STATEMENT = "bank_statement"
     SALARY_SLIP = "salary_slip"
-    PROPERTY_LEGAL = "property_legal"
+    # Legal & land records (secured-lending collateral docs)
+    SALE_DEED = "sale_deed"                          # property title / ownership transfer
+    ENCUMBRANCE_CERTIFICATE = "encumbrance_certificate"  # existing charges/mortgages on the property
+    PROPERTY_VALUATION = "property_valuation"        # valuer's market-value report
+    LEGAL_OPINION = "legal_opinion"                  # advocate's title-clearance opinion
+    PROPERTY_LEGAL = "property_legal"                # generic legal/land doc (catch-all)
     OTHER = "other"
 
 
@@ -116,6 +121,18 @@ class ExtractedEntities(BaseModel):
     dates: dict[str, str] = Field(
         default_factory=dict, description="Named dates, e.g. {'itr_filing': '2024-07-15'}."
     )
+    # Property / collateral fields (populated from sale deed / EC / valuation in Phase 2).
+    property_id: Optional[str] = Field(
+        default=None, description="Survey/property identifier, e.g. 'SY-217/3B'."
+    )
+    property_address: Optional[str] = None
+    owner_name: Optional[str] = Field(
+        default=None, description="Owner named on the sale deed (should match the applicant)."
+    )
+    valuation_amount: Optional[float] = Field(
+        default=None, description="Valuer's assessed market value of the property (INR)."
+    )
+    loan_amount: Optional[float] = Field(default=None, description="Requested loan amount (INR).")
     raw: dict[str, Any] = Field(
         default_factory=dict, description="Anything extracted but not yet modeled."
     )

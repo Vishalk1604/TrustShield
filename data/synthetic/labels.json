@@ -6,7 +6,9 @@
     "affected_docs": [],
     "applicant_pan": "ABMPS1234F",
     "employer": "Infosys Limited",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0002": {
     "label": "clean",
@@ -15,7 +17,9 @@
     "affected_docs": [],
     "applicant_pan": "CDNPV5678L",
     "employer": "Tata Consultancy Services",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0003": {
     "label": "clean",
@@ -24,7 +28,9 @@
     "affected_docs": [],
     "applicant_pan": "EFKPP9012Q",
     "employer": "Wipro Limited",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0004": {
     "label": "clean",
@@ -33,7 +39,9 @@
     "affected_docs": [],
     "applicant_pan": "GHJPR3456M",
     "employer": "HDFC Bank",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0005": {
     "label": "clean",
@@ -42,7 +50,9 @@
     "affected_docs": [],
     "applicant_pan": "KLMPS7777N",
     "employer": "Singh Traders",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0006": {
     "label": "clean",
@@ -51,7 +61,9 @@
     "affected_docs": [],
     "applicant_pan": "NOPPN2345T",
     "employer": "Tech Mahindra",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0007": {
     "label": "clean",
@@ -60,7 +72,9 @@
     "affected_docs": [],
     "applicant_pan": "QRSPM6789W",
     "employer": "Mehta Exports",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0008": {
     "label": "clean",
@@ -69,7 +83,9 @@
     "affected_docs": [],
     "applicant_pan": "TUVPJ0123H",
     "employer": "Accenture",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0009": {
     "label": "fraud",
@@ -84,7 +100,9 @@
     ],
     "applicant_pan": "ABMPS1234F",
     "employer": "Infosys Limited",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0010": {
     "label": "fraud",
@@ -99,7 +117,9 @@
     ],
     "applicant_pan": "CDNPV5678L",
     "employer": "Tata Consultancy Services",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0011": {
     "label": "fraud",
@@ -115,7 +135,9 @@
     ],
     "applicant_pan": "EFKPP9012Q",
     "employer": "Wipro Limited",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0012": {
     "label": "fraud",
@@ -130,7 +152,9 @@
     ],
     "applicant_pan": "GHJPR3456M",
     "employer": "HDFC Bank",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0013": {
     "label": "fraud",
@@ -145,7 +169,9 @@
     ],
     "applicant_pan": "TUVPJ0123H",
     "employer": "Accenture",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0014": {
     "label": "fraud",
@@ -162,7 +188,9 @@
     ],
     "applicant_pan": "KLMPS7777N",
     "employer": "Singh Traders",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0015": {
     "label": "fraud",
@@ -179,7 +207,9 @@
     ],
     "applicant_pan": "NOPPN2345T",
     "employer": "Tech Mahindra",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0016": {
     "label": "fraud",
@@ -196,7 +226,9 @@
     ],
     "applicant_pan": "QRSPM6789W",
     "employer": "Mehta Exports",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0017": {
     "label": "fraud",
@@ -213,7 +245,9 @@
     ],
     "applicant_pan": "ABMPS1234F",
     "employer": "Infosys Limited",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0018": {
     "label": "fraud",
@@ -232,7 +266,9 @@
     ],
     "applicant_pan": "ZZAPK1111A",
     "employer": "QuickCash Finance Pvt Ltd",
-    "template_group": "ring_quickcash"
+    "template_group": "ring_quickcash",
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0019": {
     "label": "fraud",
@@ -251,7 +287,9 @@
     ],
     "applicant_pan": "ZZBPG2222B",
     "employer": "QuickCash Finance Pvt Ltd",
-    "template_group": "ring_quickcash"
+    "template_group": "ring_quickcash",
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0020": {
     "label": "fraud",
@@ -270,7 +308,9 @@
     ],
     "applicant_pan": "ZZCPK3333C",
     "employer": "QuickCash Finance Pvt Ltd",
-    "template_group": "ring_quickcash"
+    "template_group": "ring_quickcash",
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0021": {
     "label": "fraud",
@@ -289,7 +329,9 @@
     ],
     "applicant_pan": "ZZDPR4444D",
     "employer": "QuickCash Finance Pvt Ltd",
-    "template_group": "ring_quickcash"
+    "template_group": "ring_quickcash",
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0022": {
     "label": "fraud",
@@ -308,7 +350,9 @@
     ],
     "applicant_pan": "EFKPP9012Q",
     "employer": "Wipro Limited",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0023": {
     "label": "fraud",
@@ -324,7 +368,9 @@
     ],
     "applicant_pan": "NOPPN2345T",
     "employer": "Tech Mahindra",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
   },
   "PKT-0024": {
     "label": "fraud",
@@ -339,6 +385,153 @@
     ],
     "applicant_pan": "QRSPM6789W",
     "employer": "Mehta Exports",
-    "template_group": null
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
+  },
+  "PKT-0025": {
+    "label": "clean",
+    "fraud_types": [],
+    "reasons": [],
+    "affected_docs": [],
+    "applicant_pan": "CDNPV5678L",
+    "employer": "Tata Consultancy Services",
+    "template_group": null,
+    "property_group": null,
+    "property_id": "SY-217/3B"
+  },
+  "PKT-0026": {
+    "label": "clean",
+    "fraud_types": [],
+    "reasons": [],
+    "affected_docs": [],
+    "applicant_pan": "TUVPJ0123H",
+    "employer": "Accenture",
+    "template_group": null,
+    "property_group": null,
+    "property_id": "SY-058/1A"
+  },
+  "PKT-0027": {
+    "label": "fraud",
+    "fraud_types": [
+      "forged_title"
+    ],
+    "reasons": [
+      "Sale-deed owner name was altered to 'Suresh Iyer' (\u2260 applicant Amit Patel); the original name remains in the text layer."
+    ],
+    "affected_docs": [
+      "sale_deed.pdf"
+    ],
+    "applicant_pan": "EFKPP9012Q",
+    "employer": "Wipro Limited",
+    "template_group": null,
+    "property_group": null,
+    "property_id": "SY-217/3B"
+  },
+  "PKT-0028": {
+    "label": "fraud",
+    "fraud_types": [
+      "tampered_encumbrance"
+    ],
+    "reasons": [
+      "Encumbrance certificate was doctored to read 'NIL' but CERSAI records an active HDFC Bank mortgage on the property; the original charge row survives in the text layer."
+    ],
+    "affected_docs": [
+      "encumbrance_certificate.pdf"
+    ],
+    "applicant_pan": "GHJPR3456M",
+    "employer": "HDFC Bank",
+    "template_group": null,
+    "property_group": null,
+    "property_id": "SY-058/1A"
+  },
+  "PKT-0029": {
+    "label": "fraud",
+    "fraud_types": [
+      "valuation_inflation"
+    ],
+    "reasons": [
+      "Property valued at 11000000 vs market value 7500000; requested loan 9500000 exceeds the property's market value (abnormal LTV)."
+    ],
+    "affected_docs": [
+      "property_valuation.pdf"
+    ],
+    "applicant_pan": "KLMPS7777N",
+    "employer": "Singh Traders",
+    "template_group": null,
+    "property_group": null,
+    "property_id": "SY-911/2C"
+  },
+  "PKT-0030": {
+    "label": "fraud",
+    "fraud_types": [
+      "property_mismatch"
+    ],
+    "reasons": [
+      "Sale deed describes property SY-330/7 but the valuation report is for SY-331/9 \u2014 the collateral documents reference different properties."
+    ],
+    "affected_docs": [
+      "sale_deed.pdf",
+      "property_valuation.pdf"
+    ],
+    "applicant_pan": "QRSPM6789W",
+    "employer": "Mehta Exports",
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
+  },
+  "PKT-0031": {
+    "label": "fraud",
+    "fraud_types": [
+      "double_financing"
+    ],
+    "reasons": [
+      "Property SY-911/2C (Plot 23 Whitefield, Bengaluru 560066) is pledged as collateral across multiple loan applications \u2014 the same asset financed more than once."
+    ],
+    "affected_docs": [
+      "sale_deed.pdf",
+      "property_valuation.pdf"
+    ],
+    "applicant_pan": "ZZEPS5555E",
+    "employer": "Shaikh Trading Co",
+    "template_group": null,
+    "property_group": "prop_ring_sy911",
+    "property_id": "SY-911/2C"
+  },
+  "PKT-0032": {
+    "label": "fraud",
+    "fraud_types": [
+      "double_financing"
+    ],
+    "reasons": [
+      "Property SY-911/2C (Plot 23 Whitefield, Bengaluru 560066) is pledged as collateral across multiple loan applications \u2014 the same asset financed more than once."
+    ],
+    "affected_docs": [
+      "sale_deed.pdf",
+      "property_valuation.pdf"
+    ],
+    "applicant_pan": "ZZFPM6666F",
+    "employer": "Menon & Sons",
+    "template_group": null,
+    "property_group": "prop_ring_sy911",
+    "property_id": "SY-911/2C"
+  },
+  "PKT-0033": {
+    "label": "fraud",
+    "fraud_types": [
+      "double_financing"
+    ],
+    "reasons": [
+      "Property SY-911/2C (Plot 23 Whitefield, Bengaluru 560066) is pledged as collateral across multiple loan applications \u2014 the same asset financed more than once."
+    ],
+    "affected_docs": [
+      "sale_deed.pdf",
+      "property_valuation.pdf"
+    ],
+    "applicant_pan": "ZZGPD7777G",
+    "employer": "Das Enterprises",
+    "template_group": null,
+    "property_group": "prop_ring_sy911",
+    "property_id": "SY-911/2C"
   }
 }

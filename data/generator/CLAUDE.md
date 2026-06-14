@@ -6,13 +6,15 @@ as real PDFs, plus a ground-truth `labels.json`. This is the test corpus every l
 against. All data is synthetic; there is no real PII.
 
 ## Key files
-- `pdf_builder.py` — builds clean PDFs (PAN/identity, Form 16, salary slip, bank statement) with
-  PyMuPDF; controls fonts and metadata; `make_seal_png()` for the copy-paste signal.
-- `tamper.py` — forges specific, detectable signals into clean PDFs (see its table). Each maps to a
-  Phase 1 forensic detector.
-- `generate.py` — orchestrator. Holds the canonical `ROSTER`, the category builders
-  (`build_clean / build_forensic / build_cross_doc / build_template_reuse / build_behavioral`),
-  realizes packets to disk, and writes `labels.json`. Run: `python -m data.generator.generate`.
+- `pdf_builder.py` — builds clean PDFs (PAN/identity, Form 16, salary slip, bank statement, **sale
+  deed, encumbrance certificate, property valuation, legal opinion**) with PyMuPDF; controls fonts
+  and metadata; `make_seal_png()` for the copy-paste signal.
+- `tamper.py` — forges specific, detectable signals into clean PDFs (see its table). `edit_money_figure`
+  and the generic `edit_text` (used for forged-title / tampered-EC) leave the original value in the
+  text layer as the forensic residue. Each maps to a Phase 1 forensic detector.
+- `generate.py` — orchestrator. Holds the canonical `ROSTER` + property records, the category builders
+  (`build_clean / build_forensic / build_cross_doc / build_template_reuse / build_behavioral /
+  build_property`), realizes packets to disk, and writes `labels.json`. Run: `python -m data.generator.generate`.
 - `requirements.txt` — `PyMuPDF` (the only extra dep needed to generate).
 
 ## How it fits
@@ -30,7 +32,8 @@ python -m data.generator.generate                 # writes ../synthetic/packets/
 pytest tests/test_generator.py
 ```
 
-## Fraud taxonomy produced (24 packets: 8 clean + 16 fraud)
+## Fraud taxonomy produced (33 packets: 10 clean + 23 fraud)
+**Financial / forensic / behavioral**
 - `suspicious_metadata` — producer = editing tool; modDate ≫ creationDate.
 - `edited_income_figure` — white-box redaction; original value remains in the text layer.
 - `font_inconsistency` — edited figure drawn in a serif font unlike the sans body.
@@ -39,6 +42,14 @@ pytest tests/test_generator.py
 - `cross_document_inconsistency` — Form 16 vs bank credits vs salary slip disagree.
 - `template_reuse` — a ring of 4 identities built from one shared template (`template_group: ring_quickcash`).
 - `behavioral_velocity` / `timestamp_anomaly` — identical/ future/ reversed timestamps; tight create→submit.
+
+**Legal / land-record (collateral)** — secured-loan packets carry sale deed + EC + valuation + legal opinion
+- `forged_title` — sale-deed owner name altered (≠ applicant); original name left in the text layer.
+- `tampered_encumbrance` — EC white-boxed to read "NIL" while CERSAI records an active charge; charge residue survives.
+- `valuation_inflation` — valuation ≫ market value; requested loan exceeds market value (abnormal LTV).
+- `property_mismatch` — sale deed and valuation reference different survey numbers.
+- `double_financing` — **3 applicants pledge the SAME property** (`property_group: prop_ring_sy911`,
+  shared `property_id: SY-911/2C`) — the Phase 5 collateral-graph "wow."
 
 ## Gotchas
 - **Deterministic by design:** `SEED` + fixed `BASE_DATE`. Re-running reproduces identical content
@@ -52,5 +63,6 @@ pytest tests/test_generator.py
   `labels.json` / `manifest.json`.
 
 ## Status
-- **Done (Phase 0):** all five category builders; every fraud type present and spot-checked.
-- TODO: add more volume/variety if Phase 3's model needs it.
+- **Done (Phase 0):** all six category builders; every fraud type present and spot-checked,
+  including land/legal collateral docs + the double-financing ring.
+- TODO: add more volume/variety if Phase 3's model needs it; richer/realistic document layouts.

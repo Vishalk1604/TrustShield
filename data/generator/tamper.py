@@ -20,7 +20,15 @@ from typing import Optional
 
 import fitz  # PyMuPDF
 
-from data.generator.pdf_builder import FONT_ALT, FONT_BODY, _money, apply_metadata, DocMeta
+from data.generator.pdf_builder import (
+    FONT_ALT,
+    FONT_BODY,
+    MARGIN_X,
+    PAGE_W,
+    _money,
+    apply_metadata,
+    DocMeta,
+)
 
 WHITE = (1, 1, 1)
 
@@ -77,6 +85,34 @@ def edit_money_figure(
     pad = fitz.Rect(r.x0 - 2, r.y0 - 2, r.x1 + 30, r.y1 + 2)
     page.draw_rect(pad, color=WHITE, fill=WHITE, width=0)
     page.insert_text((r.x0, r.y1 - 1), _money(new_amount), fontname=font, fontsize=12)
+    return True
+
+
+def edit_text(
+    doc: "fitz.Document",
+    find: str,
+    replace: str,
+    *,
+    page_index: int = 0,
+    font: str = FONT_BODY,
+    size: float = 11.0,
+    cover_to_margin: bool = False,
+) -> bool:
+    """White-box the printed `find` text and redraw `replace` on top.
+
+    Used for forged-title (alter the owner name) and tampered-EC (white-box a real charge row and
+    stamp 'NIL'). The original `find` text stays in the content/text layer — that residue is the
+    forensic signal. Set `cover_to_margin` to wipe the whole row to the right margin.
+    """
+    page = doc[page_index]
+    rects = page.search_for(find)
+    if not rects:
+        return False
+    r = rects[0]
+    right = (PAGE_W - MARGIN_X) if cover_to_margin else (r.x1 + 30)
+    page.draw_rect(fitz.Rect(r.x0 - 2, r.y0 - 2, right, r.y1 + 2), color=WHITE, fill=WHITE, width=0)
+    if replace:
+        page.insert_text((r.x0, r.y1 - 1), replace, fontname=font, fontsize=size)
     return True
 
 

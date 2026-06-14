@@ -1,0 +1,63 @@
+{
+  "id": "PKT-0030",
+  "applicant_name": "Karan Mehta",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0030/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "16690bcbbf2420162c497f29cb6bed714c2d0446eed51e4d7e3333dde6cfdb1a"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0030/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "bd70a316d7f77bb6558731e1978f4a92b6026158af2ed0f11c4569b794b62fda"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0030/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "ddea4c4e565c12e53a83f916027f474b1a9a474ab8e514a541ab2f284c87aa8a"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0030/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "9d0e1a982adb53ace5bcd577152bd1c83c2e318c58d47b40650776e015a5da35"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-17T10:00:00+00:00",
+  "submitted_at": "2024-07-23T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "QRSPM6789W",
+    "employer": "Mehta Exports",
+    "claims": {
+      "identity.pdf": {
+        "pan": "QRSPM6789W"
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-330/7"
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-331/9"
+      }
+    },
+    "deed_property_id": "SY-330/7",
+    "valuation_property_id": "SY-331/9"
+  }
+}

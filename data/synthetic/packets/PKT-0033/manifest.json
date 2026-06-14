@@ -1,0 +1,109 @@
+{
+  "id": "PKT-0033",
+  "applicant_name": "Arjun Das",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0033/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "277df6db3668f2df1e14a54525451782c57f2bf7b358dc99b1daf471d7758132"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0033/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "68d2ff847184b50f32071b8e29da35fc0a44b848fb75c2f2a79d03a50cd67d78"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0033/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "aa808fee07179a72b37ce4f3d39746184a7b15edfd9db022cf56b817a87e9c8c"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0033/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "21823b1ca4192be695fcdf3895698ef583764aca1669c568f6f48fa2db32798a"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0033/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "bbfcf9fca3d5935c7a5108b2e7f518f005297021e157abc8cbcb0b32121b5d62"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0033/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "cd92a71742023401c7df299384339edf18a2b5f87e19b82fecc299e3ee81c709"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0033/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "7dc64fb7041526f669978a4f837c26fbd3d94c4693beba4a4456ef5170a9cdf1"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-08-28T10:00:00+00:00",
+  "submitted_at": "2024-09-02T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ZZGPD7777G",
+    "employer": "Das Enterprises",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ZZGPD7777G",
+        "name": "Arjun Das"
+      },
+      "form16.pdf": {
+        "gross_income": 1400000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 105000
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-911/2C",
+        "owner": "Arjun Das",
+        "consideration": 7500000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-911/2C",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-911/2C",
+        "valuation": 7500000,
+        "loan_amount": 5000000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-911/2C"
+      }
+    },
+    "property_id": "SY-911/2C",
+    "market_value": 7500000,
+    "loan_amount": 5000000
+  }
+}

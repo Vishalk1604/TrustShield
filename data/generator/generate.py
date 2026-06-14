@@ -98,6 +98,7 @@ class PacketSpec:
     reasons: list[str] = field(default_factory=list)
     affected_docs: list[str] = field(default_factory=list)
     template_group: Optional[str] = None
+    property_group: Optional[str] = None     # shared property/collateral cluster (double-financing)
     ground_truth: dict[str, Any] = field(default_factory=dict)
 
 
@@ -166,6 +167,8 @@ def realize_packet(spec: PacketSpec) -> dict[str, Any]:
         "applicant_pan": spec.applicant_pan,
         "employer": spec.employer,
         "template_group": spec.template_group,
+        "property_group": spec.property_group,
+        "property_id": spec.ground_truth.get("property_id"),
     }
 
 
@@ -442,6 +445,154 @@ def build_behavioral() -> list[PacketSpec]:
     return specs
 
 
+# --------------------------------------------------------------------------------------
+# Legal & land-record (secured-lending) packets — the collateral-fraud category
+# --------------------------------------------------------------------------------------
+# Properties: (property_id, address, market_value INR)
+PROP_A = ("SY-217/3B", "12 Jayanagar 4th Block, Bengaluru 560011", 9_000_000)
+PROP_B = ("SY-058/1A", "House No 8, Indiranagar, Bengaluru 560038", 12_000_000)
+PROP_RING = ("SY-911/2C", "Plot 23 Whitefield, Bengaluru 560066", 7_500_000)  # double-financed
+
+
+def _secured_docs(
+    app: Applicant, prop: tuple, owner_name: str, valuation: float, loan_amount: float,
+    seller: str, ec_charges: list[dict], created: datetime,
+) -> list[DocSpec]:
+    """A secured-loan document set: income proof + the four land/legal collateral docs."""
+    pid, addr, market = prop
+    tax = _tax(app.income)
+    monthly = _monthly_credit(app.income)
+    m = lambda d: pb.DocMeta(creation_date=created + timedelta(days=d), mod_date=created + timedelta(days=d))
+    return [
+        DocSpec("identity.pdf", "identity", pb.build_identity(app.name, app.pan, app.dob, m(0)),
+                {"pan": app.pan, "name": app.name}),
+        DocSpec("form16.pdf", "form16",
+                pb.build_form16(app.name, app.pan, app.employer, app.income, tax, "2023-24", m(1)),
+                {"gross_income": app.income}),
+        DocSpec("bank_statement.pdf", "bank_statement",
+                pb.build_bank_statement(app.name, app.account, monthly, MONTHS, m(2)),
+                {"monthly_credit": monthly}),
+        DocSpec("sale_deed.pdf", "sale_deed",
+                pb.build_sale_deed(owner_name, app.pan, pid, addr, market, seller, m(3)),
+                {"property_id": pid, "owner": owner_name, "consideration": market}),
+        DocSpec("encumbrance_certificate.pdf", "encumbrance_certificate",
+                pb.build_encumbrance_certificate(owner_name, pid, addr, ec_charges, "2014-2024", m(4)),
+                {"property_id": pid, "charges": ec_charges}),
+        DocSpec("property_valuation.pdf", "property_valuation",
+                pb.build_property_valuation(owner_name, pid, addr, valuation, m(5)),
+                {"property_id": pid, "valuation": valuation, "loan_amount": loan_amount}),
+        DocSpec("legal_opinion.pdf", "legal_opinion",
+                pb.build_legal_opinion(owner_name, pid, "Adv. S. Rao", True, m(6)),
+                {"property_id": pid}),
+    ]
+
+
+def build_property() -> list[PacketSpec]:
+    """Secured-loan packets: 2 clean + 4 collateral-fraud types + a 3-applicant double-financing ring."""
+    specs: list[PacketSpec] = []
+
+    # --- 2 clean secured packets (applicants with a clear CERSAI record) -----------------
+    clean_cases = [
+        (ROSTER[1], PROP_A, 6_000_000, "R. Krishnan", datetime(2024, 5, 2, 10, 0, 0)),   # Priya, LTV 0.67
+        (ROSTER[7], PROP_B, 8_000_000, "M. Fernandes", datetime(2024, 5, 6, 10, 0, 0)),  # Deepak, LTV 0.67
+    ]
+    for app, prop, loan, seller, created in clean_cases:
+        docs = _secured_docs(app, prop, app.name, prop[2], loan, seller, [], created)
+        specs.append(PacketSpec(
+            "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=8),
+            label="clean",
+            ground_truth={"property_id": prop[0], "market_value": prop[2], "valuation": prop[2],
+                          "loan_amount": loan, "ltv": round(loan / prop[2], 2)},
+        ))
+
+    # --- forged_title: sale-deed owner name altered (≠ applicant; edit residue in text) ---
+    app = ROSTER[2]  # Amit Patel
+    created = datetime(2024, 7, 5, 10, 0, 0)
+    docs = _secured_docs(app, PROP_A, app.name, PROP_A[2], 6_500_000, "R. Krishnan", [], created)
+    tp.edit_text(docs[3].doc, app.name, "Suresh Iyer")  # sale_deed is index 3
+    specs.append(PacketSpec(
+        "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=6),
+        label="fraud", fraud_types=["forged_title"],
+        reasons=[f"Sale-deed owner name was altered to 'Suresh Iyer' (≠ applicant {app.name}); the original name remains in the text layer."],
+        affected_docs=["sale_deed.pdf"],
+        ground_truth={"property_id": PROP_A[0], "deed_owner": "Suresh Iyer", "applicant": app.name},
+    ))
+
+    # --- tampered_encumbrance: EC white-boxes a real CERSAI charge and stamps NIL ----------
+    app = ROSTER[3]  # Sneha Reddy — CERSAI fixture shows an active residential charge
+    created = datetime(2024, 7, 9, 10, 0, 0)
+    charge = [{"type": "mortgage", "lender": "HDFC Bank", "amount": 4_200_000, "registered_on": "2021-11-04"}]
+    docs = _secured_docs(app, PROP_B, app.name, PROP_B[2], 7_000_000, "M. Fernandes", charge, created)
+    tp.edit_text(docs[4].doc, "HDFC Bank", "NIL ENCUMBRANCES REGISTERED", cover_to_margin=True)  # EC index 4
+    specs.append(PacketSpec(
+        "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=6),
+        label="fraud", fraud_types=["tampered_encumbrance"],
+        reasons=["Encumbrance certificate was doctored to read 'NIL' but CERSAI records an active HDFC Bank mortgage on the property; the original charge row survives in the text layer."],
+        affected_docs=["encumbrance_certificate.pdf"],
+        ground_truth={"property_id": PROP_B[0], "hidden_charge_lender": "HDFC Bank", "hidden_charge_amount": 4_200_000},
+    ))
+
+    # --- valuation_inflation: valuation >> market; loan exceeds market value --------------
+    app = ROSTER[4]  # Vikram Singh
+    created = datetime(2024, 7, 13, 10, 0, 0)
+    inflated_val = 11_000_000
+    loan = 9_500_000  # > market value of 7.5M → impossible LTV vs market
+    docs = _secured_docs(app, PROP_RING, app.name, inflated_val, loan, "K. Prasad", [], created)
+    specs.append(PacketSpec(
+        "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=6),
+        label="fraud", fraud_types=["valuation_inflation"],
+        reasons=[f"Property valued at {inflated_val} vs market value {PROP_RING[2]}; requested loan {loan} exceeds the property's market value (abnormal LTV)."],
+        affected_docs=["property_valuation.pdf"],
+        ground_truth={"property_id": PROP_RING[0], "market_value": PROP_RING[2], "valuation": inflated_val,
+                      "loan_amount": loan, "ltv_vs_market": round(loan / PROP_RING[2], 2)},
+    ))
+
+    # --- property_mismatch: property id/address differs across sale deed vs valuation ------
+    app = ROSTER[6]  # Karan Mehta
+    created = datetime(2024, 7, 17, 10, 0, 0)
+    deed_prop = ("SY-330/7", "44 HSR Layout, Bengaluru 560102", 8_500_000)
+    val_prop = ("SY-331/9", "44 HSR Layout, Bengaluru 560102", 8_500_000)  # different survey number
+    tax = _tax(app.income); monthly = _monthly_credit(app.income)
+    mm = lambda d: pb.DocMeta(creation_date=created + timedelta(days=d), mod_date=created + timedelta(days=d))
+    docs = [
+        DocSpec("identity.pdf", "identity", pb.build_identity(app.name, app.pan, app.dob, mm(0)), {"pan": app.pan}),
+        DocSpec("sale_deed.pdf", "sale_deed",
+                pb.build_sale_deed(app.name, app.pan, deed_prop[0], deed_prop[1], deed_prop[2], "G. Rao", mm(3)),
+                {"property_id": deed_prop[0]}),
+        DocSpec("property_valuation.pdf", "property_valuation",
+                pb.build_property_valuation(app.name, val_prop[0], val_prop[1], val_prop[2], mm(5)),
+                {"property_id": val_prop[0]}),
+        DocSpec("legal_opinion.pdf", "legal_opinion",
+                pb.build_legal_opinion(app.name, deed_prop[0], "Adv. S. Rao", True, mm(6)), {}),
+    ]
+    specs.append(PacketSpec(
+        "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=6),
+        label="fraud", fraud_types=["property_mismatch"],
+        reasons=[f"Sale deed describes property {deed_prop[0]} but the valuation report is for {val_prop[0]} — the collateral documents reference different properties."],
+        affected_docs=["sale_deed.pdf", "property_valuation.pdf"],
+        ground_truth={"deed_property_id": deed_prop[0], "valuation_property_id": val_prop[0]},
+    ))
+
+    # --- double_financing: 3 applicants pledge the SAME property (the graph 'wow') ---------
+    ring = [
+        Applicant("Imran Shaikh", "ZZEPS5555E", "Shaikh Trading Co", "9101112221", 1_300_000, "1988-02-10"),
+        Applicant("Vivek Menon", "ZZFPM6666F", "Menon & Sons", "9102223332", 1_250_000, "1986-05-22"),
+        Applicant("Arjun Das", "ZZGPD7777G", "Das Enterprises", "9103334443", 1_400_000, "1990-09-15"),
+    ]
+    for k, app in enumerate(ring):
+        created = datetime(2024, 8, 20, 10, 0, 0) + timedelta(days=k * 4)
+        docs = _secured_docs(app, PROP_RING, app.name, PROP_RING[2], 5_000_000, "K. Prasad", [], created)
+        specs.append(PacketSpec(
+            "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=5),
+            label="fraud", fraud_types=["double_financing"],
+            reasons=[f"Property {PROP_RING[0]} ({PROP_RING[1]}) is pledged as collateral across multiple loan applications — the same asset financed more than once."],
+            affected_docs=["sale_deed.pdf", "property_valuation.pdf"],
+            property_group="prop_ring_sy911",
+            ground_truth={"property_id": PROP_RING[0], "market_value": PROP_RING[2], "loan_amount": 5_000_000},
+        ))
+    return specs
+
+
 def main() -> None:
     PACKETS_DIR.mkdir(parents=True, exist_ok=True)
     # Wipe previously generated packets for a clean, deterministic rebuild.
@@ -450,7 +601,8 @@ def main() -> None:
             shutil.rmtree(child)
 
     all_specs: list[PacketSpec] = (
-        build_clean() + build_forensic() + build_cross_doc() + build_template_reuse() + build_behavioral()
+        build_clean() + build_forensic() + build_cross_doc() + build_template_reuse()
+        + build_behavioral() + build_property()
     )
 
     labels: dict[str, Any] = {}

@@ -1,0 +1,116 @@
+{
+  "id": "PKT-0028",
+  "applicant_name": "Sneha Reddy",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0028/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "bc520f3b51c3209c4d2e77f02be1ea6abb55a4d876cd5982c25def8ba94038cd"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0028/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "2b42b75f959144ae6322e049192d23cd8a606454fae1a45557eee3e99ca77f1d"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0028/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "6c2097432ef55d1bdcbb045f695bf8a0e5c74092d9944ed61aac9519671148f6"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0028/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "04ce54b66ea55a6c64e607164d608c20ba2aaefa570fab5b6142d48d1d4d4da9"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0028/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "495bcdf51ab08fb2907c59863008c9f182ec96d26f484dd3dd8191ca26b3a029"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0028/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "70c6db01a921d1a58717644a646f3bbbaeb0736acd82c1de094d88e8590c7c72"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0028/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "5b8362c94a83149f03a2e09793cb7b90b0e95a771b68c7e9396966f1e20fb469"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-09T10:00:00+00:00",
+  "submitted_at": "2024-07-15T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "GHJPR3456M",
+    "employer": "HDFC Bank",
+    "claims": {
+      "identity.pdf": {
+        "pan": "GHJPR3456M",
+        "name": "Sneha Reddy"
+      },
+      "form16.pdf": {
+        "gross_income": 2100000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 143500
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-058/1A",
+        "owner": "Sneha Reddy",
+        "consideration": 12000000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-058/1A",
+        "charges": [
+          {
+            "type": "mortgage",
+            "lender": "HDFC Bank",
+            "amount": 4200000,
+            "registered_on": "2021-11-04"
+          }
+        ]
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-058/1A",
+        "valuation": 12000000,
+        "loan_amount": 7000000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-058/1A"
+      }
+    },
+    "property_id": "SY-058/1A",
+    "hidden_charge_lender": "HDFC Bank",
+    "hidden_charge_amount": 4200000
+  }
+}

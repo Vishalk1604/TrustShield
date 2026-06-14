@@ -14,6 +14,7 @@ LABELS = SYNTH / "labels.json"
 
 # Every fraud category the demo relies on must appear in the corpus.
 EXPECTED_FRAUD_TYPES = {
+    # financial / forensic / behavioral
     "suspicious_metadata",
     "edited_income_figure",
     "font_inconsistency",
@@ -23,6 +24,12 @@ EXPECTED_FRAUD_TYPES = {
     "template_reuse",
     "timestamp_anomaly",
     "behavioral_velocity",
+    # legal / land-record (collateral)
+    "forged_title",
+    "tampered_encumbrance",
+    "valuation_inflation",
+    "property_mismatch",
+    "double_financing",
 }
 
 
@@ -89,3 +96,27 @@ def test_template_reuse_group_present(labels):
     for g in groups:
         members = [k for k, v in labels.items() if v.get("template_group") == g]
         assert len(members) >= 2, f"template group {g} has <2 members"
+
+
+def test_double_financing_shares_one_property(labels):
+    """The double-financing ring must be ≥2 distinct applicants pledging the SAME property —
+    this is what the Phase 5 collateral graph clusters on."""
+    df = {k: v for k, v in labels.items() if "double_financing" in v["fraud_types"]}
+    assert len(df) >= 2, "need ≥2 double-financing packets to form a collateral cluster"
+    property_ids = {v.get("property_id") for v in df.values()}
+    assert len(property_ids) == 1, f"double-financing packets should share ONE property_id, got {property_ids}"
+    pans = {v.get("applicant_pan") for v in df.values()}
+    assert len(pans) == len(df), "double-financing packets should be distinct applicants"
+    groups = {v.get("property_group") for v in df.values()}
+    assert groups == {next(iter(groups))} and None not in groups, "all share one property_group"
+
+
+def test_legal_land_documents_present(labels):
+    """At least one packet carries the four land/legal collateral document types."""
+    needed = {"sale_deed", "encumbrance_certificate", "property_valuation", "legal_opinion"}
+    seen = set()
+    for pid in labels:
+        manifest = json.loads((PACKETS / pid / "manifest.json").read_text(encoding="utf-8"))
+        seen |= {d["doc_type"] for d in manifest["documents"]}
+    missing = needed - seen
+    assert not missing, f"missing land/legal doc types in the corpus: {sorted(missing)}"

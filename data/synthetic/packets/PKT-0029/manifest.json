@@ -1,0 +1,111 @@
+{
+  "id": "PKT-0029",
+  "applicant_name": "Vikram Singh",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0029/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "0b8f7137ea82858674f05a212b3ea350a30d0adfc6436fdff63c4ca31d686e91"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0029/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "34e919c52dcd9c53ed8dd3d88c927d76ec2d19526405fe5a341ce6161ad2e71f"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0029/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "802ba3b60e2cb3eb4a82633c34aced1d2c7078abc6d808cae008e27f3df60df7"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0029/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "16c3cbf6d04c0401c17fdb680046fdbb6049e48511abb5b46a4731af1732ac90"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0029/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "f20ab19044767b64f99d36fd2633d2548b29a81354914c1dc341b6f13454c829"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0029/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "a8f022c3cf4dd4c573ae9e56ef86aab9ea4a6322c5748f4cdcd7144b3dd98d42"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0029/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "aada19f5dabc24ebb22258bbd768adeac545a37ab5ed1ded1e920e3b1c7558b4"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-07-13T10:00:00+00:00",
+  "submitted_at": "2024-07-19T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "KLMPS7777N",
+    "employer": "Singh Traders",
+    "claims": {
+      "identity.pdf": {
+        "pan": "KLMPS7777N",
+        "name": "Vikram Singh"
+      },
+      "form16.pdf": {
+        "gross_income": 1250000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 93750
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-911/2C",
+        "owner": "Vikram Singh",
+        "consideration": 7500000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-911/2C",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-911/2C",
+        "valuation": 11000000,
+        "loan_amount": 9500000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-911/2C"
+      }
+    },
+    "property_id": "SY-911/2C",
+    "market_value": 7500000,
+    "valuation": 11000000,
+    "loan_amount": 9500000,
+    "ltv_vs_market": 1.27
+  }
+}
