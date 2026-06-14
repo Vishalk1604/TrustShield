@@ -33,6 +33,27 @@ dependency, these were pre-installed:
   pulled in). Each service still pins its own scoped `requirements.txt` per phase (the venv is for
   local runs, not the container images).
 
+## Phase 2 (2026-06-14) — Semantic rules design decisions
+
+- **Valuation inflation requires external market comparison.** LTV using the claimed valuation
+  alone cannot detect a fraudulently inflated appraisal (e.g., loan=9.5M vs claimed_val=11M →
+  LTV=86%, which looks fine). Added `PropertyRegistryAdapter` with a `property_registry.json`
+  fixture (keyed by survey number) to compare claimed valuation vs registered market value. This
+  makes the "check valuation against state registry" narrative concrete for the demo.
+- **EC-vs-CERSAI rule detects the tampered EC.** Although the visual EC says "NIL", the Tesseract
+  approach isn't needed: the tampered PDF's text layer contains both the forged "NIL ENCUMBRANCES"
+  text AND the hidden original charge (as forensic residue). The semantic rule checks for "NIL
+  ENCUMBRANCES" in EC text AND active CERSAI charges for the same property/PAN — both are present
+  in the tampered EC, so the rule correctly fires. Phase 1 forensics also fires (whitebox edit),
+  giving double coverage.
+- **Name/owner consistency from embedded text layer.** For forged_title (owner name whitebox-edited),
+  the embedded text still shows the original name in residue. The semantic owner-vs-applicant rule
+  uses embedded text, so it may not flag the edit (forensic covers it). This is an acceptable
+  limitation; Phase 1 forensic detection is the primary signal for whitebox edits.
+- **Extraction uses embedded text fast-path + Tesseract fallback.** All synthetic PDFs have
+  embedded text; Tesseract is only exercised on image-only scans. The Tesseract path is correct
+  for production scanned documents.
+
 ## Phase 1 (2026-06-14) — Forensic analysis design decisions
 
 - **Template fingerprint = producer + font-set + image/drawing counts per page (no text content).**

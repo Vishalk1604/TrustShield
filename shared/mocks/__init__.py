@@ -10,6 +10,7 @@ from shared.mocks.cersai import CersaiAdapter
 from shared.mocks.digilocker import DigiLockerAdapter
 from shared.mocks.gstin import GstinAdapter
 from shared.mocks.mca21 import Mca21Adapter
+from shared.mocks.property_registry import PropertyRegistryAdapter
 
 #: Registry so callers can grab an adapter by name, e.g. ADAPTERS["ais"]().
 ADAPTERS: dict[str, type[ExternalVerificationAdapter]] = {
@@ -18,6 +19,7 @@ ADAPTERS: dict[str, type[ExternalVerificationAdapter]] = {
     "cersai": CersaiAdapter,
     "ais": AisAdapter,
     "digilocker": DigiLockerAdapter,
+    "property_registry": PropertyRegistryAdapter,
 }
 
 __all__ = [
@@ -28,5 +30,6 @@ __all__ = [
     "CersaiAdapter",
     "AisAdapter",
     "DigiLockerAdapter",
+    "PropertyRegistryAdapter",
     "ADAPTERS",
 ]

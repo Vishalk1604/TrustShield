@@ -1,0 +1,37 @@
+{
+  "SY-217/3B": {
+    "property_id": "SY-217/3B",
+    "address": "12 Jayanagar 4th Block, Bengaluru 560011",
+    "registered_market_value": 9000000,
+    "valuation_date": "2024-01-15",
+    "area_sq_ft": 1200
+  },
+  "SY-058/1A": {
+    "property_id": "SY-058/1A",
+    "address": "House No 8, Indiranagar, Bengaluru 560038",
+    "registered_market_value": 12000000,
+    "valuation_date": "2024-01-15",
+    "area_sq_ft": 1500
+  },
+  "SY-911/2C": {
+    "property_id": "SY-911/2C",
+    "address": "Plot 23 Whitefield, Bengaluru 560066",
+    "registered_market_value": 7500000,
+    "valuation_date": "2024-01-15",
+    "area_sq_ft": 1000
+  },
+  "SY-330/7": {
+    "property_id": "SY-330/7",
+    "address": "44 HSR Layout, Bengaluru 560102",
+    "registered_market_value": 8500000,
+    "valuation_date": "2024-01-15",
+    "area_sq_ft": 1100
+  },
+  "SY-331/9": {
+    "property_id": "SY-331/9",
+    "address": "44 HSR Layout, Bengaluru 560102",
+    "registered_market_value": 8500000,
+    "valuation_date": "2024-01-15",
+    "area_sq_ft": 1100
+  }
+}

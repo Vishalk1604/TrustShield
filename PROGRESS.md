@@ -5,8 +5,8 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 | ✓ | Phase | Title | Completed (date) | Commit |
 |---|---|---|---|---|
 | ☑ | 0 | Foundation, scaffolding, synthetic data | 2026-06-13 | `1d1f573` |
-| ☑ | 1 | Document Integrity / Forensics | 2026-06-14 | — |
-| ☐ | 2 | Semantic Consistency / Underwriting | — | — |
+| ☑ | 1 | Document Integrity / Forensics | 2026-06-14 | `8c2f043` |
+| ☑ | 2 | Semantic Consistency / Underwriting | 2026-06-14 | — |
 | ☐ | 3 | Anomaly & Behavioral Scoring | — | — |
 | ☐ | 4 | Trust Score Aggregation & Evidence Chain | — | — |
 | ☐ | 5 | Cross-Application Graph | — | — |
@@ -43,5 +43,28 @@ hash (producer + fonts + image/drawing counts per page). `POST /forensics/analyz
 - `verify_local_only.py` → **PASS** (33 source files, 0 violations).
 - `pytest tests/` → **33 passed**.
 
-### Phase 2 — Semantic Consistency / Underwriting
+### Phase 2 — Semantic Consistency / Underwriting ✅ (2026-06-14)
+Delivered:
+- `services/forensics/app/extractor.py` — per-doc-type entity extraction (embedded text fast path,
+  Tesseract OCR fallback). Extracts income, PAN, employer, property_id, owner_name, valuation, etc.
+- `services/risk/app/rules.py` — cross-document rules engine: income vs bank vs salary slip,
+  name/PAN consistency, owner vs applicant, property ID consistency, LTV sanity, valuation vs
+  property registry, EC vs CERSAI charge cross-check.
+- `services/risk/app/main.py` — `POST /risk/rules/check` orchestration endpoint.
+- `shared/mocks/property_registry.py` + `fixtures/property_registry.json` — state property
+  registry mock for valuation inflation detection.
+- 20 new tests in `tests/test_rules.py`.
+
+**Verified checks:**
+- Entity extraction spot-checked on ≥5 packets per doc type: form16, bank_statement,
+  sale_deed, encumbrance_certificate, property_valuation.
+- Every cross_document_inconsistency packet → ≥1 semantic finding.
+- Every tampered_encumbrance → EC-vs-CERSAI critical finding.
+- Every valuation_inflation → registry cross-check + LTV-vs-market critical findings.
+- Every property_mismatch → property ID inconsistency finding.
+- All 10 clean packets → 0 semantic findings.
+- `verify_local_only.py` → **PASS** (37 source files, 0 violations).
+- `pytest tests/` → **53 passed**.
+
+### Phase 3 — Anomaly + Learned Risk Model
 Next up. See `plan.md` §4.
