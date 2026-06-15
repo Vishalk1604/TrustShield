@@ -311,21 +311,46 @@ plus **2–3 deliberately-`_TAMPERED`** copies for forensics. English-first; Ind
 | Identifier validators | deterministic (no ML) | PAN structure, Aadhaar Verhoeff, IFSC |
 | Fraud/risk model | GradientBoosting/XGBoost (existing) | synthetic generator-v2 (splits + calibration + SHAP) |
 
-### 7.3 Sprint — Person 1 (core, with the AI assistant) ∥ Person 2 (teammate)
-**Person 2 lane (parallel, low-code — start now):**
-- **P2-1 (d1–3):** document collection drive → `data/real/` (passwords noted; 2–3 `_TAMPERED` copies).
-- **P2-2 (d1–4):** gather public layout references (IT-portal Form 16, 2–3 banks' sample statements,
-  PAN/Aadhaar) for generator-v2; download public datasets (DocTamper, RVL-CDIP, FUNSD) locally.
-- **P2-3 (d5–10):** manual validation — run real docs through the M1 demo, log wrong fields per doc type.
-- **P2-4 (d8–14):** demo script + slides (upload order, expected outputs, "synthetic-trained / real-validated" narrative).
+### 7.3 Sprint — Person 1 (pipeline/code, with the AI) ∥ Person 2 (data + GPU training)
+**The 8 GB GPU lives on Person 2's machine, so all dataset work and model training is Person 2's lane;
+Person 1 builds the pipeline + the training scripts + integrates the returned weights.**
 
-**Week 1 (Person 1) — heuristic real-document demo:** `services/forensics/app/ingest/`
-(`loader`/`preprocess`/`ocr_engine`/`classify`/`normalize` + `extract/{form16,salary_slip,bank_statement,
-pan,aadhaar}.py`) → `POST /forensics/ingest` → existing `POST /risk/score`; dashboard drag-drop upload +
-KYC panel + confidence. **Milestone:** upload real Form 16 + salary slip + bank statement + PAN + masked
-Aadhaar → doc-type + fields + KYC validation + trust score, live.
+**Person 2 — data & GPU training (owns the GPU):**
+- **P2-1 (d1–3, start now):** document-collection drive → `data/real/` per the README (passwords noted;
+  2–3 `_TAMPERED` copies). **Request DocTamper access on day 1** — it is gated (email an education
+  address for the password), so allow lead time.
+- **P2-2 (d1–4):** download datasets + weights (see §7.4); gather public layout references (IT-portal
+  Form 16, 2–3 banks' sample statements, PAN/Aadhaar) to inform generator-v2.
+- **P2-3 (d6–11):** run GPU training using Person 1's scripts — (1) image-**forgery CNN** on DocTamper
+  (+ team `_TAMPERED`), (2) **LayoutLMv3-base** doc-type + KV on generator-v2, (3) optional risk-model
+  retrain (calibration + SHAP). Commit/share the resulting weights for Person 1 to wire in.
+- **P2-4 (d5–14):** manual validation of real docs through the demo (log wrong fields per doc type) +
+  demo script/slides ("synthetic-trained / real-validated" narrative).
 
-**Week 2 (Person 1) — go deep behind heuristic fallbacks:** generator-v2 (realistic layouts, scan/photo
-variants, bbox labels, splits) → fine-tune image-**forgery CNN** (DocTamper) for scan forensics, then
-**LayoutLMv3** doc-type + KV; retrain risk model + SQLite persistence if time. **If time slips, priority
-order:** wk1 heuristic demo → forgery CNN → LayoutLMv3 KV (heuristic extraction alone meets the demo bar).
+**Person 1 — pipeline & integration (CPU dev, with the AI):**
+- **Week 1 — heuristic real-document demo:** `services/forensics/app/ingest/`
+  (`loader`/`preprocess`/`ocr_engine`/`classify`/`normalize` + `extract/{form16,salary_slip,bank_statement,
+  pan,aadhaar}.py`) → `POST /forensics/ingest` → existing `POST /risk/score`; dashboard drag-drop upload +
+  KYC panel + confidence. **Milestone:** upload real Form 16 + salary slip + bank statement + PAN + masked
+  Aadhaar → doc-type + fields + KYC validation + trust score, live (pretrained PaddleOCR + heuristics — no
+  GPU needed).
+- **Week 2 — enable deep models:** build **generator-v2** (realistic layouts, scan/photo variants, bbox
+  labels, splits) + write the **training scripts** (`train_forgery_cnn.py`, `train_layoutlm.py`, risk
+  retrain) for Person 2 to run; **integrate** the returned weights behind the heuristic fallbacks; polish.
+- The final live demo can run on Person 2's GPU box (fast) or on CPU (slower, fine for a few docs).
+
+**If time slips, priority:** wk1 heuristic demo → forgery CNN → LayoutLMv3 KV (heuristic extraction alone
+meets the demo-grade bar, so the trained models are upside, not blockers).
+
+### 7.4 Datasets & model weights to download (Person 2)
+| What | Source | Size | Why / note |
+|---|---|---|---|
+| **LayoutLMv3-base** | HF `microsoft/layoutlmv3-base` | ~0.5 GB | base weights to **fine-tune** (doc-type + KV extractor) |
+| **PaddleOCR PP-OCRv4** (det+rec) | auto on first use / PaddleOCR repo | ~tens of MB | **pre-cache for offline** OCR (no runtime download) |
+| **torchvision backbone** (EfficientNet-B0 / ResNet, ImageNet) | torchvision auto | small | forgery-CNN backbone |
+| **DocTamper** (170k tampered images) | [github.com/qcf-568/DocTamper](https://github.com/qcf-568/DocTamper) → Baidu/Kaggle | large (multi-GB) | forgery-CNN training. **GATED — email an education address for the password; request on day 1.** Fallback if unavailable: heuristic **ELA / copy-move** (needs no dataset). |
+| *(optional)* FUNSD | HF `nielsr/funsd` / guillaumejaume.github.io/FUNSD | ~17 MB | tiny KV reference for LayoutLM |
+| *(skip)* RVL-CDIP | HF `aharley/rvl_cdip` | ~37 GB | **not needed** — doc-type trains on generator-v2's own classes |
+
+All weights are pre-downloaded and baked into the local cache/images — **runtime makes no network call**
+(preserves the local-only contract + `verify_local_only.py`).
