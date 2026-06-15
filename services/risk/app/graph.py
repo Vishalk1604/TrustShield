@@ -365,7 +365,12 @@ class ApplicationGraph:
                 if not dp.exists():
                     continue
                 try:
-                    res = analyze_pdf(str(dp), doc_type=d["doc_type"], filename=d["filename"])
+                    # Only the structural template fingerprint is needed here — skip the OCR
+                    # re-OCR cross-check (§6.D2), which would OCR every page of every packet
+                    # (very slow, esp. in-container) for no benefit to graph construction.
+                    res = analyze_pdf(
+                        str(dp), doc_type=d["doc_type"], filename=d["filename"], enable_reocr=False,
+                    )
                     fp = res.get("template_fingerprint")
                     if fp:
                         fingerprints.add(fp)
