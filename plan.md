@@ -266,3 +266,66 @@ than hand-setting them.
   (persistence + real upload).
 - **P1 — depth & trust:** B4–B6, C1–C4, C7, D1, ~~D3~~ ✅, E1–E3, F3.
 - **P2 — scale & compliance:** C5/C8/C9, D4, E4–E5, F4–F7, G1–G3.
+
+---
+
+## 7. Real-document delivery — 2-week sprint (ACTIVE)
+
+**Status:** Phases 0–9 complete (synthetic pipeline + D2/D3 forensics, Dockerised). **M0** done — the
+real-document collection kit (`data/real/`, gitignored; see [data/real/README.md](data/real/README.md)).
+This section is the **active execution plan** to make TrustShield read **real Indian documents**.
+
+**The unlock:** the five analysis layers consume the `ExtractedEntities` contract
+([shared/schemas/models.py](shared/schemas/models.py)), *not* raw documents. Only the
+ingestion/extraction **front-end** is coupled to synthetic data. Rebuild that front-end to emit the same
+`ExtractedEntities` from real docs and the five layers (rules, model, aggregator, graph) work unchanged.
+
+**Locked scope:** real set (team-supplied) + synthetic **generator-v2** + public datasets · heavier local
+models allowed · **financial + KYC first** · local **NVIDIA GPU, 8 GB** · **2 builders** · **~2-week**
+deadline · **demo-grade** bar (reads/classifies/scores the docs brought on stage, live). **Honesty:** real
+fraud *labels* don't exist for us → the **fraud model trains on synthetic data**; real docs **validate
+extraction**, not fraud detection. Production answer = "retrain on the bank's labelled outcomes."
+
+### 7.1 Documents to collect (per [data/real/README.md](data/real/README.md))
+| Document | Format | Fields extracted | Feeds |
+|---|---|---|---|
+| **PAN card** | photo / PDF | name, PAN, DOB | KYC; PAN structure check; name↔PAN cross-match |
+| **Aadhaar (MASKED only)** | photo / PDF | name, masked Aadhaar, DOB, address | KYC; **Aadhaar Verhoeff checksum**; name match |
+| **Form 16** (Part A+B) | PDF (TRACES) | name, PAN, employer, gross income, TDS, FY | income, tax, name/PAN consistency |
+| **Salary slip** | PDF | name, employer, net monthly pay | income corroboration |
+| **Bank statement** (6 mo) | PDF (often password) | holder, account, salary credits, balances | income-vs-credits, FOIR, regularity |
+| *(opt)* **ITR-V / 26AS / AIS** | PDF | declared income, TDS, reported income | tax reconciliation |
+| *(later)* sale deed, EC, valuation, legal opinion | scan/PDF | owner, property-id, charges, valuation | collateral/title (post-sprint) |
+
+Target **5–10 of each Priority-1 type**, mix of clean PDFs + phone photos/scans, ≥2 issuers/banks each;
+plus **2–3 deliberately-`_TAMPERED`** copies for forensics. English-first; Indic OCR deferred with legal docs.
+
+### 7.2 Per-model training (local, 8 GB GPU; weights baked locally — no runtime network)
+| Component | Model | Trains on |
+|---|---|---|
+| OCR + tables | PaddleOCR PP-OCRv4 + PP-Structure | pretrained — no training (Tesseract `app/ocr.py` fallback) |
+| Doc-type classifier | wk1 TF-IDF+LogReg → wk2 LayoutLMv3-base | generator-v2 + real set; bootstrap RVL-CDIP/FUNSD |
+| Key-value extractor | wk1 heuristic label-anchored → wk2 LayoutLMv3-base KV | generator-v2 bbox-labeled fields; real-set validation |
+| Bank-statement tables | PP-Structure + rules | heuristic |
+| Image-forgery detector | EfficientNet/ResNet CNN (ELA + noise) | **DocTamper** (170k) + team `_TAMPERED` docs |
+| Identifier validators | deterministic (no ML) | PAN structure, Aadhaar Verhoeff, IFSC |
+| Fraud/risk model | GradientBoosting/XGBoost (existing) | synthetic generator-v2 (splits + calibration + SHAP) |
+
+### 7.3 Sprint — Person 1 (core, with the AI assistant) ∥ Person 2 (teammate)
+**Person 2 lane (parallel, low-code — start now):**
+- **P2-1 (d1–3):** document collection drive → `data/real/` (passwords noted; 2–3 `_TAMPERED` copies).
+- **P2-2 (d1–4):** gather public layout references (IT-portal Form 16, 2–3 banks' sample statements,
+  PAN/Aadhaar) for generator-v2; download public datasets (DocTamper, RVL-CDIP, FUNSD) locally.
+- **P2-3 (d5–10):** manual validation — run real docs through the M1 demo, log wrong fields per doc type.
+- **P2-4 (d8–14):** demo script + slides (upload order, expected outputs, "synthetic-trained / real-validated" narrative).
+
+**Week 1 (Person 1) — heuristic real-document demo:** `services/forensics/app/ingest/`
+(`loader`/`preprocess`/`ocr_engine`/`classify`/`normalize` + `extract/{form16,salary_slip,bank_statement,
+pan,aadhaar}.py`) → `POST /forensics/ingest` → existing `POST /risk/score`; dashboard drag-drop upload +
+KYC panel + confidence. **Milestone:** upload real Form 16 + salary slip + bank statement + PAN + masked
+Aadhaar → doc-type + fields + KYC validation + trust score, live.
+
+**Week 2 (Person 1) — go deep behind heuristic fallbacks:** generator-v2 (realistic layouts, scan/photo
+variants, bbox labels, splits) → fine-tune image-**forgery CNN** (DocTamper) for scan forensics, then
+**LayoutLMv3** doc-type + KV; retrain risk model + SQLite persistence if time. **If time slips, priority
+order:** wk1 heuristic demo → forgery CNN → LayoutLMv3 KV (heuristic extraction alone meets the demo bar).
