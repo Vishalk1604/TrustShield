@@ -21,9 +21,12 @@ from pydantic import BaseModel
 from shared.privacy import install_log_redaction
 from shared.schemas import EvidenceCategory
 from services.forensics.app.analyzer import analyze_pdf
+from services.forensics.app.ingest.pipeline import ingest_document
 
 SERVICE_NAME = "forensics"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
+
+_PDF_SUFFIXES = {".pdf"}
 
 # Phase 7: scrub PII (PAN, account numbers, property IDs) from any log output.
 install_log_redaction()
@@ -55,7 +58,10 @@ def root() -> dict:
         "service": SERVICE_NAME,
         "version": VERSION,
         "evidence_category": EvidenceCategory.FORENSIC.value,
-        "endpoints": {"analyze": "POST /forensics/analyze"},
+        "endpoints": {
+            "analyze": "POST /forensics/analyze",
+            "ingest": "POST /forensics/ingest",
+        },
         "docs": "/docs",
     }
 
@@ -113,3 +119,62 @@ async def analyze_upload(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
         Path(tmp_path).unlink(missing_ok=True)
+
+
+# --------------------------------------------------------------------------
+# §7 — Real-document ingestion endpoint (multi-format intake → entities + KYC + forensics)
+# --------------------------------------------------------------------------
+
+def _ingest_one(content: bytes, filename: str, password: Optional[str]) -> dict:
+    """Run the full ingestion (load → classify → extract → KYC) + forensics on one file."""
+    suffix = Path(filename).suffix.lower() or ".pdf"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(content)
+        tmp_path = tmp.name
+    try:
+        result = ingest_document(tmp_path, password=password)
+        result["filename"] = filename
+        # Structural/tamper forensics run on PDFs (image-level forensics is a later milestone).
+        if result.get("ok") and suffix in _PDF_SUFFIXES:
+            try:
+                fa = analyze_pdf(tmp_path, doc_type=result.get("doc_type", "other"),
+                                 filename=filename)
+                result["forensic"] = {
+                    "template_fingerprint": fa.get("template_fingerprint"),
+                    "findings": fa.get("findings", []),
+                }
+            except Exception as exc:  # forensics failure must not sink the whole ingest
+                result["forensic"] = {"findings": [], "error": str(exc)}
+        else:
+            result["forensic"] = {"findings": []}
+        return result
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+@app.post("/forensics/ingest")
+async def ingest_upload(
+    files: list[UploadFile] = File(...),
+    password: Optional[str] = Form(default=None),
+) -> dict:
+    """Ingest one or more REAL documents (PDF text/scan, or image).
+
+    Per file: detect format → OCR if needed → infer doc_type → extract fields → validate
+    identifiers (PAN/Aadhaar/IFSC) → run structural forensics (PDFs). Returns per-document
+    entities + KYC + forensic findings — the input the dashboard renders and the risk
+    service scores. `password` (optional) is applied to any encrypted PDF.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="at least one file is required")
+
+    documents: list[dict] = []
+    for f in files:
+        if not f.filename:
+            continue
+        content = await f.read()
+        if not content:
+            documents.append({"filename": f.filename, "ok": False, "error": "empty file"})
+            continue
+        documents.append(_ingest_one(content, f.filename, password))
+
+    return {"documents": documents, "count": len(documents)}
