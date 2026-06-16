@@ -89,3 +89,18 @@ def ocr_pdf(path: str, dpi: int = 200) -> str:
             return "\n".join(ocr_page(page, dpi=dpi) for page in doc)
     except Exception:
         return ""
+
+
+def ocr_image_file(path: str) -> str:
+    """OCR an image file (JPG/PNG/TIFF/...). Returns '' if OCR is unavailable or fails."""
+    if not tesseract_available():
+        return ""
+    try:
+        import pytesseract
+        from PIL import Image
+
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+        with Image.open(path) as img:
+            return pytesseract.image_to_string(img)
+    except Exception:
+        return ""
