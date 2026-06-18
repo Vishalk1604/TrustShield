@@ -32,6 +32,11 @@ Thumbs.db
 # so the persisted pickle is not committed.
 services/risk/graph_store/
 
+# Web app (plan §A): SQLite user/case store + uploaded case files are runtime state with
+# real user data — never commit them.
+services/risk/app_data/
+services/risk/case_store/
+
 # NOTE: data/synthetic/packets/*.pdf ARE committed on purpose (tiny, synthetic, zero PII) so a
 # fresh clone demos with no setup. The generator is deterministic, so they can also be regenerated.
 

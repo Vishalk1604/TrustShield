@@ -21,12 +21,18 @@ from pydantic import BaseModel
 
 from shared.privacy import install_log_redaction
 from shared.schemas import Action
+from services.risk.app import auth as auth_module
+from services.risk.app import cases as cases_module
+from services.risk.app import db as db_module
 
 SERVICE_NAME = "risk"
-VERSION = "6.0.0"
+VERSION = "7.0.0"
 
 # Phase 7: scrub PII (PAN, account numbers, property IDs) from any log output.
 install_log_redaction()
+
+# Web app (plan §A): initialise the SQLite store for users + cases.
+db_module.init_db()
 
 
 def _graph_store_path() -> Path:
@@ -42,6 +48,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Web app routers: auth (register/login) + cases (user submissions / admin review).
+app.include_router(auth_module.router)
+app.include_router(cases_module.router)
 
 
 # --------------------------------------------------------------------------
