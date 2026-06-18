@@ -52,17 +52,17 @@ Python 3.11+ · FastAPI · PyMuPDF (fitz) · Tesseract (pytesseract) · **scikit
 
 Each phase is self-contained: ends with its checks green, updates PROGRESS.md + any touched CLAUDE.md, and commits. **`scripts/verify_local_only.py` must pass at the end of every phase.**
 
-| # | Phase | Where | Headline deliverable |
-|---|---|---|---|
-| 0 | Foundation, scaffolding, synthetic data | repo-wide | ✅ Bootable skeleton + schemas + synthetic packets + mocks + verify guard |
-| 1 | Document Integrity / Forensics | `services/forensics/` | `POST /forensics/analyze` → EvidenceItem[]; metadata + template fingerprint + tamper signals (any doc type) |
-| 2 | Semantic Consistency / Underwriting | `forensics/` (OCR) + `risk/` (rules) | OCR + extraction + cross-document rules across **financial AND legal/land** docs (+ extend generator with land/legal packets) |
-| 3 | Anomaly + **Learned Risk Model** | `services/risk/` | Isolation Forest **+ supervised, explainable classifier** + `train.py` + metrics (AUC / PR / confusion / feature importance) |
-| 4 | Trust Score Aggregation & Evidence Chain | `services/risk/` | `POST /risk/score` → blended TrustScore (rule weights ⊕ model probability) + evidence chain + recommendation |
-| 5 | Cross-Application Graph (differentiator) | `services/risk/` | NetworkX graph incl. **property/title nodes** → fraud rings **and double-financed collateral**; persisted |
-| 6 | Investigator Dashboard | `services/dashboard/` | Real-time upload → score + evidence chain + tampered-vs-clean + **model-metrics view** + collateral/cluster graph + exportable report |
-| 7 | Privacy & trust layer | repo-wide | PII redaction in logs; on-premise statement in UI; `PRIVACY.md` |
-| 8 | Demo script & narrative | repo-wide | `DEMO.md` 3-min story + staged packets (incl. a double-financing graph reveal) + `seed_demo.py` |
+| # | Phase                                     | Where                                 | Headline deliverable                                                                                                     |
+|---|-------------------------------------------|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| 0 | Foundation, scaffolding, synthetic data   | repo-wide                             | ✅ Bootable skeleton + schemas + synthetic packets + mocks + verify guard                                                |
+| 1 | Document Integrity / Forensics            | `services/forensics/`                 | `POST /forensics/analyze` → EvidenceItem[]; metadata + template fingerprint + tamper signals (any doc type)             |
+| 2 | Semantic Consistency / Underwriting       | `forensics/` (OCR) + `risk/` (rules)  | OCR + extraction + cross-document rules across **financial AND legal/land** docs (+ extend generator with land/legal packets) |
+| 3 | Anomaly + **Learned Risk Model**          | `services/risk/`                      | Isolation Forest **+ supervised, explainable classifier** + `train.py` + metrics (AUC / PR / confusion / feature importance) |
+| 4 | Trust Score Aggregation & Evidence Chain  | `services/risk/`                      | `POST /risk/score` → blended TrustScore (rule weights ⊕ model probability) + evidence chain + recommendation             |
+| 5 | Cross-Application Graph (differentiator)  | `services/risk/`                      | NetworkX graph incl. **property/title nodes** → fraud rings **and double-financed collateral**; persisted                  |
+| 6 | Investigator Dashboard                    | `services/dashboard/`                 | Real-time upload → score + evidence chain + tampered-vs-clean + **model-metrics view** + collateral/cluster graph + exportable report |
+| 7 | Privacy & trust layer                     | repo-wide                             | PII redaction in logs; on-premise statement in UI; `PRIVACY.md`                                                          |
+| 8 | Demo script & narrative                   | repo-wide                             | `DEMO.md` 3-min story + staged packets (incl. a double-financing graph reveal) + `seed_demo.py`                          |
 
 Per-phase deliverables and exact checks are detailed in §4.
 
@@ -202,17 +202,17 @@ production-shaped adapter seam.
 ### C. ML models to train — all local, zero external API
 Each capability maps to a concrete **offline-trainable** model and its training data:
 
-| # | Capability | Local model | Trains on |
-|---|------------|-------------|-----------|
-| C1 | Document-type classification | TF-IDF + LogReg → DistilBERT / LayoutLMv3 (fine-tune) | generator-v2 doc samples |
-| C2 | Key-value & table extraction | LayoutLMv3 / Donut, or a token CRF over OCR tokens | B2/B3 layouts with field labels |
-| C3 | Bank-statement txn categorisation | gradient-boosted / small text classifier | B4 transaction streams |
-| C4 | Image-forgery detection (scans) | CNN on ELA / noise residual; copy-move (keypoint) detector | B3 tampered vs clean scans |
-| C5 | Signature / seal verification | Siamese CNN (same / different) | B6 seal & signature pairs |
-| C6 | Supervised fraud classifier | **XGBoost / LightGBM**, **calibrated** (isotonic/Platt) + **real SHAP** | B1 packets w/ proper splits |
-| C7 | Genuine anomaly detection | IsolationForest / autoencoder on **hundreds** of clean packets | B1 clean set |
-| C8 | Relational / graph ML | node2vec / GNN embeddings + Louvain community detection | the application graph |
-| C9 | Legal-text NLP | local spaCy / transformer NER + clause flagging | B-generated legal text |
+| #  | Capability                       | Local model                                                  | Trains on                                           |
+|----|----------------------------------|--------------------------------------------------------------|-----------------------------------------------------|
+| C1 | Document-type classification     | TF-IDF + LogReg → DistilBERT / LayoutLMv3 (fine-tune)        | generator-v2 doc samples                            |
+| C2 | Key-value & table extraction     | LayoutLMv3 / Donut, or a token CRF over OCR tokens           | B2/B3 layouts with field labels                     |
+| C3 | Bank-statement txn categorisation| gradient-boosted / small text classifier                     | B4 transaction streams                              |
+| C4 | Image-forgery detection (scans)  | CNN on ELA / noise residual; copy-move (keypoint) detector   | B3 tampered vs clean scans                          |
+| C5 | Signature / seal verification    | Siamese CNN (same / different)                               | B6 seal & signature pairs                           |
+| C6 | Supervised fraud classifier      | **XGBoost / LightGBM**, **calibrated** (isotonic/Platt) + **real SHAP** | B1 packets w/ proper splits                         |
+| C7 | Genuine anomaly detection        | IsolationForest / autoencoder on **hundreds** of clean packets | B1 clean set                                        |
+| C8 | Relational / graph ML            | node2vec / GNN embeddings + Louvain community detection      | the application graph                               |
+| C9 | Legal-text NLP                   | local spaCy / transformer NER + clause flagging              | B-generated legal text                              |
 
 Guiding constraint: **models train offline on synthetic data or the bank's own labelled history**; the
 honest production handoff is *"retrain on real labelled outcomes, on-prem."* Replace the current
@@ -354,3 +354,27 @@ meets the demo-grade bar, so the trained models are upside, not blockers).
 
 All weights are pre-downloaded and baked into the local cache/images — **runtime makes no network call**
 (preserves the local-only contract + `verify_local_only.py`).
+
+---
+
+## 8. Web app & roles (DONE — multi-page product with auth)
+
+Turned the single-page investigator console into a routed product with **real auth** and **two roles**.
+
+- **Backend (risk service, v7.0.0):** `app/db.py` (stdlib SQLite — users / cases / case_docs; gitignored;
+  the audit trail = roadmap F1), `app/auth.py` (PBKDF2 password hashing + JWT; `/auth/register|login|me`;
+  `current_user` + `require_admin` guards), `app/cases.py` (`POST /cases`: user uploads files + purpose →
+  `ingest_document` per doc → synthesize a manifest with **neutral timestamps** → score via
+  `aggregator.score_packet_dir` → persist; `GET /cases` user-own/admin-all; `GET /cases/{id}` owner/admin),
+  `app/overlays.py` (shared §6.D3 tamper-overlay builder). Deps: PyJWT + python-multipart.
+- **Frontend (react-router):** Home (project + 5-layer explainer), About/Team, Sign in/up,
+  UserDashboard (purpose + upload → result + "My submissions"), AdminDashboard (review queue),
+  CaseDetail (full analysis). `auth.jsx` (JWT context) + `ProtectedRoute`; reusable `DecisionView`
+  refactored out of the old console.
+- **Honesty:** real-upload scoring leans on forensic + semantic + KYC; the synthetic-only
+  behavioural/velocity features are neutralized for uploads (the fraud model stays synthetic-trained).
+- **Verified:** 165 tests pass (auth + cases + ingestion + existing); live HTTP smoke (register/login/
+  guard/upload→score/admin-list); `npm run build` clean; `verify_local_only` passes (SQLite/JWT local).
+- **Auth/case data is gitignored** (`services/risk/app_data/`, `services/risk/case_store/`).
+
+> Order: web app first (done); **resume §7 Part B (generator-v2 + Person-2 GPU training)** next.

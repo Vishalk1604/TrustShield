@@ -1,14 +1,19 @@
 # CLAUDE.md — services/dashboard (Service C)
 
 ## Purpose
-The investigator UI (React + Vite). **Phase 0:** a placeholder that pings both backend services'
-`/health` and surfaces the on-premise privacy statement. Phase 6 turns it into the real product:
-upload a packet → live processing → trust score + evidence chain + tampered-vs-clean comparison +
-exportable report.
+The web app (React + Vite + **react-router-dom**). A multi-page product with real auth and two roles
+(plan §8): public **Home/About**, **Sign in/up**, a **User** dashboard (upload KYC/loan documents → trust
+result + "My submissions"), and an **Admin** review queue → **Case detail** (full evidence chain, KYC,
+tamper overlays, graph). Talks only to the LOCAL forensics (8001) + risk (8002) services.
 
 ## Key files
-- `index.html` — entry HTML + base styles. `src/main.jsx` — React bootstrap.
-- `src/App.jsx` — the page: service-health cards, privacy banner, build-progress list.
+- `src/main.jsx` — bootstraps `<BrowserRouter><AuthProvider><App/>`. `src/App.jsx` — router/layout shell.
+- `src/auth.jsx` — JWT auth context (localStorage); `src/components/ProtectedRoute.jsx` — route guards.
+- `src/pages/*` — Home, About, SignIn, SignUp, UserDashboard, AdminDashboard, CaseDetail.
+- `src/components/{Nav,DecisionView}.jsx` — nav (+ health dots) and the reusable decision renderer
+  (trust gauge, evidence chain, tamper overlays, graph). `src/GraphView.jsx` — cross-application graph SVG.
+- `src/api.js` — token + auth + cases calls (Bearer header) and the retained synthetic-demo calls.
+- `src/theme.js` — shared palette + style tokens. `src/config.js` — local service URLs.
 - `src/config.js` — local service URLs (`FORENSICS_URL`, `RISK_URL`), defaulting to localhost; override
   via `VITE_FORENSICS_URL` / `VITE_RISK_URL`.
 - `vite.config.js` — dev server on `0.0.0.0:5173` (strict port). `Dockerfile` — `node:20-slim`, runs

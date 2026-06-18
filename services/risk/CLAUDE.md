@@ -46,7 +46,13 @@ curl http://localhost:8002/health        # -> {"status":"ok","service":"risk",..
   hub suppression, pickle persistence) + `POST /risk/graph/upsert`, `GET /risk/graph/clusters`,
   `GET /risk/graph/subgraph/{id}`, and `use_graph` on `POST /risk/score`. Graph evidence folds into the
   score as an additive risk overlay (see DECISIONS.md). Graph store under `graph_store/` is gitignored.
-- TODO: Phase 6 dashboard (React/Vite), Phase 7 privacy/redaction, Phase 8 demo.
+- **Done (Phase 6–9):** dashboard demo endpoints, PII redaction, demo script, re-OCR/D3 overlays.
+- **Done (Web app §8, v7.0.0):** `app/db.py` (SQLite users/cases — gitignored `app_data/`),
+  `app/auth.py` (PBKDF2 + JWT; `/auth/register|login|me`; `current_user`/`require_admin`),
+  `app/cases.py` (`POST /cases` upload→ingest→score→persist; `GET /cases`, `GET /cases/{id}`),
+  `app/overlays.py` (shared tamper-overlay builder). Real uploads reuse `aggregator.score_packet_dir`
+  with **neutralized velocity** features. Case files under `case_store/` are gitignored. Deps: PyJWT +
+  python-multipart.
 
 ## Scoring weights (Phase 4 — documented, never magic constants)
 `aggregator.WEIGHTS`: model 0.55 / forensic 0.25 / semantic 0.15 / IF-anomaly 0.05 (sum 1.0).

@@ -218,7 +218,22 @@ Delivered:
 - `verify_local_only.py` → **PASS** (54 source files; Tesseract is a local subprocess, not network).
 - `pytest tests/` → **144 passed** (135 + 9).
 
+### Real-document pipeline (plan §7 M1, Person 1) — in progress
+- `services/forensics/app/ingest/` — multi-format loader (PDF text/scan, images, password PDFs),
+  OCR engine (Tesseract; PaddleOCR later), heuristic doc-type classifier, Indian normalizer + KYC
+  validators (PAN structure, Aadhaar Verhoeff, IFSC), per-doc extractors (financial + PAN/Aadhaar),
+  `ingest_document` orchestrator. `POST /forensics/ingest` upload endpoint. 18 tests.
+
+### Web app (plan §8) — multi-page product with auth + two roles ✅
+- Backend (risk v7.0.0): SQLite users/cases store + JWT auth (`app/db.py`, `app/auth.py`,
+  `app/cases.py`, `app/overlays.py`); `POST /cases` ingests→scores→persists user uploads; admin review.
+- Frontend (react-router): Home/About/Sign-in/Sign-up + User upload dashboard + Admin review queue +
+  Case detail (reusable `DecisionView`); JWT auth context + route guards.
+- **Verified:** `pytest tests/` → **165 passed**; live HTTP smoke (register/login/upload→score/admin);
+  `npm run build` clean; `verify_local_only` passes. Auth/case data gitignored.
+
 ---
 
-## All phases complete (0–8) + Phase 9 forensic/OCR depth. 🎉
-Run `python scripts/seed_demo.py` then follow `DEMO.md` for the walkthrough.
+## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app. 🎉
+Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Web app: `docker compose up -d --build`
+(or run risk + forensics + dashboard locally) → http://localhost:5173.

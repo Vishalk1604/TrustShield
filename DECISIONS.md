@@ -261,3 +261,24 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   `tesseract-ocr` to both Dockerfiles (the risk image needs it because it runs the analyzer in-process).
   Everything degrades gracefully: without Tesseract, `ocr.tesseract_available()` is False and the
   re-OCR check returns `[]` — scoring, the overlay, and all other checks are unaffected.
+
+## Web app & roles (2026-06-18) — plan §8
+
+- **Auth + case store live on the risk service, not a new gateway.** The SPA already talks to risk, and
+  risk imports the forensics ingest/analyze code in-process, so it can own the whole user flow with no
+  extra service. A dedicated BFF/gateway is a future refactor (noted in the plan). Kept the build simple.
+- **Real auth, low-dep:** passwords hashed with stdlib **PBKDF2-HMAC-SHA256** (per-user salt) — no bcrypt
+  dependency; bearer tokens are **JWTs** (PyJWT, one light dep). SQLite is stdlib. Two roles: user/admin.
+- **Real-upload scoring neutralizes the synthetic-only velocity feature.** The case flow synthesizes a
+  manifest with a normal ~1-week create→submit gap so the GBC's top feature (`submit_velocity_hours`,
+  a synthetic-data artifact) doesn't false-flag genuine uploads. Real-upload trust leans on the
+  deterministic **forensic + semantic + KYC** signals; the fraud model stays synthetic-trained
+  (documented honesty line — real docs validate extraction, not fraud detection).
+- **Reused the full pipeline for uploads:** `POST /cases` saves files to a per-case dir + a synthesized
+  manifest, then calls `aggregator.score_packet_dir` — so forensic + semantic + model + evidence-chain
+  assembly are identical to the synthetic path. Tamper overlays via the shared `app/overlays.py`.
+- **Privacy:** the SQLite DB (`services/risk/app_data/`) + uploaded files (`services/risk/case_store/`)
+  are runtime state with real user data — **gitignored, never committed**; log PII redaction already on.
+- **Frontend stays simple now (per ask):** `react-router-dom` + existing inline dark theme; a polished
+  design pass is deferred. The old single-page console's decision UI was refactored into a reusable
+  `DecisionView` shared by the user result + admin case detail.
