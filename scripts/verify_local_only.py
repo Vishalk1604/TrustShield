@@ -30,6 +30,10 @@ SCAN_EXTENSIONS = {".py", ".js", ".jsx", ".ts", ".tsx"}
 EXCLUDE_DIRS = {
     ".git", "node_modules", ".venv", "venv", "dist", "build",
     "__pycache__", ".vite", ".pytest_cache", ".mypy_cache", ".idea", ".vscode",
+    # Vendored upstream model/dataset code (gitignored, not part of the runtime). It legitimately
+    # references networks for *training* — never imported by the services at request time. The seam
+    # in services/forensics/app/ingest/model_registry.py loads only local paths.
+    "models", "download",
 }
 
 # Paths (relative to repo root, POSIX style) exempt from BOTH checks.

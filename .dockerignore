@@ -1,0 +1,29 @@
+# The forensics/risk build context is the repo root (compose `context: .`). Keep it small:
+# none of these are COPYed into the images, and data/ is provided at runtime via a bind mount.
+
+# Large local model/dataset store (plan §9) — 20+ GB; loaded from local disk via the seam, never baked.
+models/
+download/
+
+# Real applicant documents (PII) + reference datasets — never in an image.
+data/real/
+data/reference/
+
+# Runtime state / secrets — never in an image.
+services/risk/app_data/
+services/risk/case_store/
+services/risk/graph_store/
+
+# Dev / VCS / caches
+.git/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+node_modules/
+dist/
+.vite/
+.idea/
+.vscode/

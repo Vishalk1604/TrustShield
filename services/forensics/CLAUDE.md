@@ -46,6 +46,10 @@ curl http://localhost:8001/health        # -> {"status":"ok","service":"forensic
   `regions` (page+bbox) on white-box & re-OCR findings + `render_tamper_overlay()` (pure PyMuPDF).
   Re-OCR is evidence-only — **excluded from the risk model's feature vector** (`enable_reocr` flag); see
   root `DECISIONS.md` (Phase 9). Degrades gracefully when Tesseract is absent.
+- **Done (Real-doc KYC §9):** `app/ingest/model_registry.py` — the **seam** to the gitignored `models/`
+  store (`resolve_model`/`model_available`, env `TRUSTSHIELD_MODEL_DIR`); deep models load from local
+  disk when present, else heuristics run (no torch at runtime). New **`address_proof`** doc type
+  (classifier keywords + `_extract_address_proof`) for KYC proof-of-address; schema `DocType.ADDRESS_PROOF`.
 - TODO (production hardening — see `plan.md` §6.A/§6.D1): real OCR for **image/scanned uploads** (image
   intake, scan preprocessing, layout-aware OCR, doc-type classification, table extraction); and true
   **pixel/image forensics** (ELA, copy-move, noise/JPEG-ghost) for forgeries with no text layer.

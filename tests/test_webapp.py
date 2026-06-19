@@ -107,6 +107,48 @@ def test_submit_score_and_review_flow():
     assert len(dj["documents"]) >= 1
 
 
+def test_profiles_endpoint():
+    payload = client.get("/cases/profiles").json()
+    keys = {p["key"] for p in payload["purposes"]}
+    assert {"kyc", "salaried_loan"} <= keys
+
+
+def test_salaried_loan_flow_returns_verification():
+    user = client.post("/auth/login",
+                       json={"email": "user@demo.com", "password": "secret1"}).json()
+    f16, pan = _find_doc("form16"), _find_doc("identity")
+    bank = _find_doc("bank_statement")
+    if not (f16 and pan and bank):
+        pytest.skip("synthetic docs not found")
+
+    # Upload with per-file slot hints (parallel doc_types) + loan terms.
+    files = [
+        ("files", ("pan.pdf", pan.read_bytes(), "application/pdf")),
+        ("files", ("form16.pdf", f16.read_bytes(), "application/pdf")),
+        ("files", ("bank.pdf", bank.read_bytes(), "application/pdf")),
+    ]
+    data = {
+        "purpose": "salaried_loan",
+        "loan_amount": "1500000",
+        "tenure_months": "60",
+        # repeated form field (parallel to files) → list value
+        "doc_types": ["pan", "form16", "bank_statement"],
+    }
+    r = client.post("/cases", data=data, files=files, headers=_hdr(user["token"]))
+    assert r.status_code == 200, r.text
+    body = r.json()
+    v = body["verification"]
+    assert v["purpose"] == "salaried_loan"
+    # completeness applies and flags the missing aadhaar + address_proof (accept + flag)
+    assert v["completeness"]["applicable"] is True
+    assert set(v["completeness"]["missing"]) >= {"aadhaar", "address_proof"}
+    # eligibility verdict is present and on its own axis
+    assert v["eligibility"]["verdict"] in ("ELIGIBLE", "REFER", "DECLINE", "INFO")
+    # detail endpoint round-trips the stored verification block
+    det = client.get(f"/cases/{body['case_id']}", headers=_hdr(user["token"])).json()
+    assert det["verification"]["completeness"]["applicable"] is True
+
+
 def test_user_cannot_see_others_cases():
     # a second user must not access the first user's case
     client.post("/auth/register", json={"email": "user2@demo.com", "password": "secret1"})

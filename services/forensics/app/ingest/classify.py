@@ -39,6 +39,15 @@ _KEYWORDS: dict[str, list[tuple[str, int]]] = {
         ("indian income tax return", 4), ("itr-v", 4), ("itr v", 3),
         ("acknowledgement number", 2), ("assessment year", 1),
     ],
+    "address_proof": [
+        ("electricity bill", 4), ("utility bill", 4), ("gas bill", 3),
+        ("water bill", 3), ("telephone bill", 3), ("broadband", 2),
+        ("passport", 4), ("republic of india", 2), ("voter", 3),
+        ("elector", 3), ("electoral photo identity", 4),
+        ("driving licence", 4), ("driving license", 4),
+        ("bill date", 1), ("billing period", 1), ("consumer no", 1),
+        ("service address", 1), ("permanent address", 1),
+    ],
     "sale_deed": [
         ("sale deed", 4), ("sub-registrar", 2), ("vendee", 1), ("vendor", 1),
         ("consideration", 1),

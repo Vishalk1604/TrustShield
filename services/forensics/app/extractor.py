@@ -236,6 +236,36 @@ def _extract_legal_opinion(text: str) -> dict:
     return result
 
 
+def _extract_address_proof(text: str) -> dict:
+    """Light extraction for a proof-of-address doc (utility bill / passport / voter / DL).
+
+    Real address proofs vary wildly, so this is intentionally forgiving: capture a holder
+    name, an address block, and an issue/bill date when present. Used for KYC POA presence
+    + name-consistency, not for any monetary check.
+    """
+    result: dict[str, Any] = {"doc_type": "address_proof"}
+    m = re.search(
+        r"(?:Consumer Name|Customer Name|Name of Consumer|Holder|Name)\s*[:\-]?\s*([A-Za-z][A-Za-z .]{2,})",
+        text, re.IGNORECASE,
+    )
+    if m:
+        result["name"] = m.group(1).strip()
+    m = re.search(
+        r"(?:Service Address|Billing Address|Permanent Address|Address)\s*[:\-]?\s*(.+)",
+        text, re.IGNORECASE,
+    )
+    if m:
+        result["address"] = m.group(1).strip()[:200]
+    m = re.search(
+        r"(?:Bill Date|Date of Issue|Issue Date|Date)\s*[:\-]?\s*"
+        r"([0-3]?\d[/\-.][0-3A-Za-z]{1,9}[/\-.]\d{2,4})",
+        text, re.IGNORECASE,
+    )
+    if m:
+        result["issue_date"] = m.group(1).strip()
+    return result
+
+
 def _extract_generic(text: str) -> dict:
     return {"doc_type": "other"}
 
@@ -246,6 +276,7 @@ def _extract_generic(text: str) -> dict:
 
 _EXTRACTORS = {
     "identity": _extract_identity,
+    "address_proof": _extract_address_proof,
     "form16": _extract_form16,
     "salary_slip": _extract_salary_slip,
     "bank_statement": _extract_bank_statement,

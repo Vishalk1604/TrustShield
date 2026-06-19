@@ -53,6 +53,9 @@ def init_db() -> None:
                 action        TEXT,
                 decision_json TEXT,
                 overlays_json TEXT,
+                verification_json TEXT,
+                loan_amount   REAL,
+                tenure_months INTEGER,
                 created_at    REAL NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
@@ -67,6 +70,17 @@ def init_db() -> None:
             );
             """
         )
+        _migrate(c)
+
+
+def _migrate(c: sqlite3.Connection) -> None:
+    """Additively add columns introduced after the first release (plan §9). Idempotent."""
+    have = {r["name"] for r in c.execute("PRAGMA table_info(cases)").fetchall()}
+    for col, decl in (("verification_json", "TEXT"),
+                      ("loan_amount", "REAL"),
+                      ("tenure_months", "INTEGER")):
+        if col not in have:
+            c.execute(f"ALTER TABLE cases ADD COLUMN {col} {decl}")
 
 
 # ----------------------------------------------------------------- users
@@ -97,13 +111,18 @@ def create_case(
     case_id: str, user_id: str, user_email: str, purpose: str, status: str,
     trust_score: Optional[float], action: Optional[str],
     decision_json: Optional[str], overlays_json: Optional[str],
+    verification_json: Optional[str] = None,
+    loan_amount: Optional[float] = None,
+    tenure_months: Optional[int] = None,
 ) -> str:
     with _conn() as c:
         c.execute(
             "INSERT INTO cases (id, user_id, user_email, purpose, status, trust_score, action, "
-            "decision_json, overlays_json, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "decision_json, overlays_json, verification_json, loan_amount, tenure_months, "
+            "created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (case_id, user_id, user_email, purpose, status, trust_score, action,
-             decision_json, overlays_json, time.time()),
+             decision_json, overlays_json, verification_json, loan_amount, tenure_months,
+             time.time()),
         )
     return case_id
 

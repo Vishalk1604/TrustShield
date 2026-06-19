@@ -32,7 +32,8 @@ def _new_id(prefix: str) -> str:
 class DocType(str, Enum):
     """Type of a document inside a loan application packet."""
 
-    IDENTITY = "identity"            # PAN card, Aadhaar, etc.
+    IDENTITY = "identity"            # PAN card, Aadhaar, etc. (proof of identity)
+    ADDRESS_PROOF = "address_proof"  # utility bill / passport / voter ID / DL (proof of address)
     ITR = "itr"                      # Income Tax Return
     FORM16 = "form16"                # Employer TDS certificate
     BANK_STATEMENT = "bank_statement"

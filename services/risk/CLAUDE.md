@@ -53,6 +53,14 @@ curl http://localhost:8002/health        # -> {"status":"ok","service":"risk",..
   `app/overlays.py` (shared tamper-overlay builder). Real uploads reuse `aggregator.score_packet_dir`
   with **neutralized velocity** features. Case files under `case_store/` are gitignored. Deps: PyJWT +
   python-multipart.
+- **Done (Real-doc KYC + underwriting §9):** `app/profiles.py` (purpose → required document slots; one
+  source of truth for completeness + the upload form, served at `GET /cases/profiles`),
+  `app/underwriting.py` (completeness, KYC identity/address/name-consistency, income reconciliation,
+  FOIR/affordability/LTV → ELIGIBLE/REFER/DECLINE — **documented constants**, no magic numbers),
+  `aggregator.apply_verification` (folds completeness/KYC/income findings into the trust score by a
+  **capped** penalty; eligibility stays OFF the trust axis). `POST /cases` now takes per-file
+  `doc_types` slot hints + `tenure_months`/`existing_emi` and persists a `verification` block
+  (`db._migrate` adds the columns). Authenticity (trust) and eligibility are **separate axes**.
 
 ## Scoring weights (Phase 4 — documented, never magic constants)
 `aggregator.WEIGHTS`: model 0.55 / forensic 0.25 / semantic 0.15 / IF-anomaly 0.05 (sum 1.0).

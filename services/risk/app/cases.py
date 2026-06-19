@@ -19,14 +19,22 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
-from services.risk.app import db
+from services.risk.app import db, profiles
 from services.risk.app.auth import current_user
 from services.risk.app.overlays import build_tamper_overlays
 
 _DEFAULT_CASE_STORE = Path(__file__).resolve().parent.parent / "case_store"
-_PURPOSES = {"kyc", "loan", "other"}
+# Accepted purposes. "loan" is kept as a back-compat alias for "salaried_loan".
+_PURPOSES = {"kyc", "salaried_loan", "other"}
+_PURPOSE_ALIASES = {"loan": "salaried_loan"}
 
 router = APIRouter(tags=["cases"])
+
+
+@router.get("/cases/profiles")
+def get_profiles() -> dict:
+    """Purpose → document-slot catalogue that drives the dynamic upload form (one source of truth)."""
+    return profiles.profiles_payload()
 
 
 def _case_store() -> Path:
@@ -56,17 +64,28 @@ def _build_manifest(case_id: str, applicant_name, ground_truth, doc_records) -> 
 def submit_case(
     purpose: str = Form(default="other"),
     loan_amount: Optional[float] = Form(default=None),
+    tenure_months: Optional[int] = Form(default=None),
+    existing_emi: Optional[float] = Form(default=None),
+    doc_types: list[str] = Form(default=[]),  # per-file slot hint, parallel to `files`
     files: list[UploadFile] = File(...),
     user: dict = Depends(current_user),
 ) -> dict:
-    """User submits a packet: save → ingest each doc → score → persist → return summary."""
-    from services.forensics.app.ingest.pipeline import ingest_document
-    from services.risk.app.aggregator import score_packet_dir
+    """User submits a packet: save → ingest each doc → score → verify → persist → return summary.
 
+    `doc_types[i]` is the slot the user dropped `files[i]` into (e.g. "pan", "form16"); it becomes
+    the ingest hint so we don't depend on the classifier for a user-asserted document. When absent
+    the classifier infers the type (back-compat / API callers).
+    """
+    from services.forensics.app.ingest.pipeline import ingest_document
+    from services.risk.app.aggregator import apply_verification, score_packet_dir
+    from services.risk.app.underwriting import build_verification
+
+    purpose = _PURPOSE_ALIASES.get(purpose, purpose)
     if purpose not in _PURPOSES:
         purpose = "other"
     if not files:
         raise HTTPException(status_code=400, detail="at least one file is required")
+    hints = list(doc_types) if doc_types else []
 
     case_id = f"case_{uuid.uuid4().hex[:12]}"
     case_dir = _case_store() / case_id
@@ -78,7 +97,7 @@ def submit_case(
     applicant_pan = None
     employer = None
 
-    for f in files:
+    for i, f in enumerate(files):
         if not f.filename:
             continue
         content = f.file.read()
@@ -87,8 +106,9 @@ def submit_case(
         fname = _safe_name(f.filename)
         (case_dir / fname).write_bytes(content)
 
-        ing = ingest_document(str(case_dir / fname))
-        ingested.append({"filename": fname, **ing})
+        hint = hints[i].strip() if i < len(hints) and hints[i] else None
+        ing = ingest_document(str(case_dir / fname), doc_type=hint)
+        ingested.append({"filename": fname, "slot": hint, **ing})
         if not ing.get("ok"):
             continue
         fields = ing.get("fields", {})
@@ -105,11 +125,22 @@ def submit_case(
     manifest = _build_manifest(case_id, applicant_name, ground_truth, doc_records)
     (case_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
 
-    # Score (reuses Phase 1→4 pipeline). Graph omitted for single real uploads.
+    # Authenticity score (reuses Phase 1→4 pipeline). Graph omitted for single real uploads.
     try:
         decision = score_packet_dir(case_dir, case_id, graph=None)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"scoring failed: {exc}") from exc
+
+    # KYC + underwriting verification (separate eligibility axis; consistency findings fold in).
+    verification = build_verification(
+        purpose, ingested, loan_amount=loan_amount,
+        tenure_months=tenure_months, existing_emi=existing_emi,
+    )
+    decision = apply_verification(
+        decision, verification["findings"], verification["trust_penalty"]
+    )
+    # Serialize the verification block (drop the EvidenceItem objects — they're now in the chain).
+    verification_out = {k: v for k, v in verification.items() if k != "findings"}
 
     overlays = build_tamper_overlays(case_dir, decision)
     decision_dump = decision.model_dump(mode="json")
@@ -120,6 +151,8 @@ def submit_case(
         case_id=case_id, user_id=user["uid"], user_email=user["email"], purpose=purpose,
         status="scored", trust_score=trust, action=action,
         decision_json=json.dumps(decision_dump), overlays_json=json.dumps(overlays),
+        verification_json=json.dumps(verification_out),
+        loan_amount=loan_amount, tenure_months=tenure_months,
     )
     for d in ingested:
         if d.get("ok"):
@@ -129,10 +162,11 @@ def submit_case(
         "ok": True, "case_id": case_id, "purpose": purpose,
         "trust_score": trust, "action": action,
         "documents": [
-            {"filename": d["filename"], "doc_type": d.get("doc_type"),
+            {"filename": d["filename"], "slot": d.get("slot"), "doc_type": d.get("doc_type"),
              "fields": d.get("fields", {}), "kyc": d.get("kyc", {})}
             for d in ingested
         ],
+        "verification": verification_out,
         "decision": decision_dump,
         "tamper_overlays": overlays,
     }
@@ -154,4 +188,5 @@ def get_case(case_id: str, user: dict = Depends(current_user)) -> dict:
         raise HTTPException(status_code=403, detail="not your case")
     case["decision"] = json.loads(case.pop("decision_json")) if case.get("decision_json") else None
     case["tamper_overlays"] = json.loads(case.pop("overlays_json")) if case.get("overlays_json") else []
+    case["verification"] = json.loads(case.pop("verification_json")) if case.get("verification_json") else None
     return case

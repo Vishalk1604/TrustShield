@@ -336,6 +336,45 @@ def aggregate(
     )
 
 
+def apply_verification(
+    decision: PacketDecision,
+    findings: list[EvidenceItem],
+    penalty_points: float,
+) -> PacketDecision:
+    """Fold KYC/underwriting *consistency* findings into an existing authenticity decision.
+
+    Completeness, identity/name-consistency and income-reconciliation gaps are consistency
+    concerns, so they (a) join the evidence chain and (b) nudge the trust score down by an
+    already-capped `penalty_points` (see underwriting.VERIFICATION_PENALTY_CAP) — never a tank.
+    The recommendation is re-derived from the adjusted score. Eligibility (FOIR/LTV) is a
+    business-rule outcome and is deliberately NOT passed in here — it must not move the trust score.
+    """
+    if not findings:
+        return decision
+
+    chain = _dedupe([*decision.evidence_chain, *findings])
+    chain.sort(key=lambda e: (e.severity.rank, e.confidence), reverse=True)
+
+    new_overall = decision.trust_score.overall - max(0.0, penalty_points)
+    has_critical = any(it.severity == Severity.CRITICAL for it in chain)
+    if has_critical:
+        new_overall = min(new_overall, CRITICAL_TRUST_CEILING)
+    new_overall = round(max(0.0, min(100.0, new_overall)), 1)
+
+    # Concrete doc evidence now includes any non-INFO verification finding.
+    has_doc_evidence = any(
+        it.category in (EvidenceCategory.FORENSIC, EvidenceCategory.SEMANTIC)
+        and it.severity != Severity.INFO
+        for it in chain
+    )
+    recommendation = _recommend(new_overall, has_doc_evidence, has_critical)
+    trust_score = decision.trust_score.model_copy(update={"overall": new_overall})
+    return decision.model_copy(
+        update={"trust_score": trust_score, "evidence_chain": chain,
+                "recommendation": recommendation}
+    )
+
+
 def score_packet_dir(
     pkt_dir: Path,
     packet_id: Optional[str] = None,

@@ -27,6 +27,16 @@ Thumbs.db
 # Local model artifacts that may grow large (Phase 3 logs choice in DECISIONS.md)
 # models/*.joblib
 
+# Model & dataset store (plan §9): large binaries (LayoutLMv3, DocTamper, PaddleOCR, LMDB data).
+# NEVER committed. Only the registry (REGISTRY.md + registry.json) is tracked so the team knows
+# what should be there and how to get it; code falls back to heuristics when assets are absent.
+models/**
+!models/REGISTRY.md
+!models/registry.json
+
+# Public reference datasets pulled for model bootstrapping (FUNSD parquet, etc.) — local only.
+data/reference/
+
 # Phase 5: the cross-application graph is runtime state that accumulates across uploads.
 # It is rebuilt deterministically from the packets (ApplicationGraph.build_from_packets),
 # so the persisted pickle is not committed.

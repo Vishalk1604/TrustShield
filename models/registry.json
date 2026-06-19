@@ -1,0 +1,88 @@
+{
+  "_comment": "Local model/asset registry for TrustShield. Binaries live under models/ (gitignored); ONLY this file and REGISTRY.md are committed. Code resolves assets via services/forensics/app/ingest/model_registry.py (env TRUSTSHIELD_MODEL_DIR, default repo models/). Every consumer MUST fall back to a heuristic when status != 'present' — no runtime network fetches, ever.",
+  "model_dir_env": "TRUSTSHIELD_MODEL_DIR",
+  "assets": [
+    {
+      "name": "layoutlmv3-base",
+      "path": "layoutlmv3-base",
+      "kind": "hf-model",
+      "use": "doc-type classifier + key-value extractor (Person-2 fine-tune target)",
+      "source_url": "https://huggingface.co/microsoft/layoutlmv3-base",
+      "license": "CC-BY-NC-SA-4.0",
+      "size_approx": "1.9GB",
+      "status": "present",
+      "live": false,
+      "fallback": "heuristic keyword doc-type classifier (ingest/classify.py) + regex extractors (extractor.py)"
+    },
+    {
+      "name": "doctamper-code",
+      "path": "doctamper/code",
+      "kind": "repo+checkpoints",
+      "use": "image-forgery detector (DTD/Swin) — ships its own backbone + trained .pk checkpoints in pks/",
+      "source_url": "https://github.com/qcf-568/DocTamper",
+      "license": "non-commercial (research)",
+      "size_approx": "8MB",
+      "status": "present",
+      "live": false,
+      "fallback": "PDF-structure forensics + re-OCR cross-check (forensics analyzer.py)"
+    },
+    {
+      "name": "doctamper-data",
+      "path": "doctamper/data",
+      "kind": "lmdb-dataset",
+      "use": "training data for the forgery CNN (DocTamperV1 Train/Test/SCD/FCD)",
+      "source_url": "https://github.com/qcf-568/DocTamper (gated; password via education email)",
+      "license": "non-commercial (research)",
+      "size_approx": "22GB",
+      "status": "present",
+      "live": false,
+      "fallback": "not used at runtime — training only (Person-2 GPU step)"
+    },
+    {
+      "name": "paddleocr-src",
+      "path": "paddleocr/src",
+      "kind": "repo",
+      "use": "optional OCR upgrade over Tesseract (PP-OCRv4 + PP-Structure)",
+      "source_url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "license": "Apache-2.0",
+      "size_approx": "147MB",
+      "status": "present",
+      "live": false,
+      "fallback": "Tesseract (bundled in both Docker images) via forensics ocr.py"
+    },
+    {
+      "name": "paddleocr-weights",
+      "path": "paddleocr/weights",
+      "kind": "weights",
+      "use": "PP-OCRv4 det+rec weights — must be pre-cached at dev time (NEVER auto-fetched at runtime)",
+      "source_url": "https://github.com/PaddlePaddle/PaddleOCR (release assets)",
+      "license": "Apache-2.0",
+      "size_approx": "tens of MB",
+      "status": "absent",
+      "live": false,
+      "fallback": "Tesseract"
+    },
+    {
+      "name": "funsd",
+      "path": "../data/reference/funsd",
+      "kind": "parquet-dataset",
+      "use": "tiny key-value reference set (LayoutLM bootstrap/validation)",
+      "source_url": "https://huggingface.co/datasets/nielsr/funsd",
+      "license": "see source",
+      "size_approx": "16MB",
+      "status": "present",
+      "live": false,
+      "fallback": "n/a — reference only"
+    }
+  ],
+  "not_required": [
+    {
+      "name": "torchvision-backbone",
+      "reason": "DocTamper ships its own Swin backbone + pretrained checkpoints; a separate torchvision EfficientNet/ResNet is unnecessary. If ever needed it is a dev-time torchvision.models(weights=...) fetch on the GPU machine, not at runtime."
+    },
+    {
+      "name": "rvl-cdip",
+      "reason": "~37GB; doc-type classifier trains on generator-v2 instead."
+    }
+  ]
+}
