@@ -21,12 +21,15 @@ from pydantic import BaseModel
 from shared.privacy import install_log_redaction
 from shared.schemas import EvidenceCategory
 from services.forensics.app.analyzer import analyze_pdf
+from services.forensics.app.image_forensics import analyze_image
+from services.forensics.app.ingest.loader import _IMAGE_EXTS
 from services.forensics.app.ingest.pipeline import ingest_document
 
 SERVICE_NAME = "forensics"
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 _PDF_SUFFIXES = {".pdf"}
+_IMAGE_SUFFIXES = set(_IMAGE_EXTS)
 
 # Phase 7: scrub PII (PAN, account numbers, property IDs) from any log output.
 install_log_redaction()
@@ -60,6 +63,7 @@ def root() -> dict:
         "evidence_category": EvidenceCategory.FORENSIC.value,
         "endpoints": {
             "analyze": "POST /forensics/analyze",
+            "analyze_image": "POST /forensics/analyze-image",
             "ingest": "POST /forensics/ingest",
         },
         "docs": "/docs",
@@ -122,6 +126,40 @@ async def analyze_upload(
 
 
 # --------------------------------------------------------------------------
+# §10 / §6.D1 — Image-pixel forensics (scanned / photographed document edits)
+# --------------------------------------------------------------------------
+
+@app.post("/forensics/analyze-image")
+async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
+    """Analyze an uploaded raster image (JPG/PNG/TIFF…) for pixel-level tampering.
+
+    Runs ELA + noise-residual + copy-move + JPEG-ghost + EXIF/software-trace and returns the
+    forensic findings (each with bounding boxes), an annotated overlay + ELA heatmap (base64
+    PNG), the raw per-detector signals, and a 0–100 image-trust + verdict. All local, no network.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="filename is required")
+    suffix = Path(file.filename).suffix.lower()
+    if suffix and suffix not in _IMAGE_SUFFIXES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"not an image ({suffix}); use /forensics/analyze for PDFs")
+    content = await file.read()
+    if len(content) == 0:
+        raise HTTPException(status_code=400, detail="Empty file uploaded")
+
+    with tempfile.NamedTemporaryFile(suffix=suffix or ".png", delete=False) as tmp:
+        tmp.write(content)
+        tmp_path = tmp.name
+    try:
+        result = analyze_image(tmp_path)
+        result["filename"] = file.filename
+        return result
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+# --------------------------------------------------------------------------
 # §7 — Real-document ingestion endpoint (multi-format intake → entities + KYC + forensics)
 # --------------------------------------------------------------------------
 
@@ -134,7 +172,7 @@ def _ingest_one(content: bytes, filename: str, password: Optional[str]) -> dict:
     try:
         result = ingest_document(tmp_path, password=password)
         result["filename"] = filename
-        # Structural/tamper forensics run on PDFs (image-level forensics is a later milestone).
+        # PDFs → structural/text-layer forensics; images → pixel forensics (§6.D1/§10).
         if result.get("ok") and suffix in _PDF_SUFFIXES:
             try:
                 fa = analyze_pdf(tmp_path, doc_type=result.get("doc_type", "other"),
@@ -144,6 +182,18 @@ def _ingest_one(content: bytes, filename: str, password: Optional[str]) -> dict:
                     "findings": fa.get("findings", []),
                 }
             except Exception as exc:  # forensics failure must not sink the whole ingest
+                result["forensic"] = {"findings": [], "error": str(exc)}
+        elif suffix in _IMAGE_SUFFIXES:
+            try:
+                ia = analyze_image(tmp_path)
+                result["forensic"] = {"findings": ia.get("findings", [])}
+                # The pixel-level detail (overlay, heatmap, verdict) rides alongside.
+                result["image_forensics"] = {
+                    k: ia.get(k) for k in
+                    ("ok", "verdict", "image_trust", "signals", "annotated_b64", "ela_b64",
+                     "width", "height")
+                }
+            except Exception as exc:
                 result["forensic"] = {"findings": [], "error": str(exc)}
         else:
             result["forensic"] = {"findings": []}

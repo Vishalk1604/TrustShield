@@ -232,8 +232,54 @@ Delivered:
 - **Verified:** `pytest tests/` → **165 passed**; live HTTP smoke (register/login/upload→score/admin);
   `npm run build` clean; `verify_local_only` passes. Auth/case data gitignored.
 
+### Real-document KYC + underwriting (plan §9) — verify the applicant, not just the file ✅
+- **Backend (risk):** `app/profiles.py` (purpose → required document slots; one source of truth for
+  completeness + the upload form via `GET /cases/profiles`); `app/underwriting.py` (completeness, KYC
+  identity/address/name-consistency, income reconciliation across Form 16 ↔ bank ↔ salary slip,
+  affordability = FOIR + max-eligible + LTV → ELIGIBLE/REFER/DECLINE — all constants documented);
+  `aggregator.apply_verification` folds completeness/KYC/income findings into the trust score by a
+  **capped** penalty (eligibility kept off the trust axis). `POST /cases` takes per-file `doc_types`
+  hints + `tenure_months`/`existing_emi`, persists a `verification` block. `db.py` migrated additively.
+- **Forensics:** new `address_proof` doc type (classifier + extractor); `DocType.ADDRESS_PROOF`.
+- **Frontend:** purpose-driven **named upload slots** + loan terms; **Verification panel** (completeness
+  / KYC / income / eligibility-FOIR) in `DecisionView`, on the user result + admin CaseDetail.
+- **Model store + seam:** downloads organized under gitignored `models/` (LayoutLMv3, DocTamper code+
+  data, PaddleOCR src) + committed `models/{REGISTRY.md,registry.json}`; `ingest/model_registry.py`
+  resolves local assets and **falls back to heuristics** when absent (no torch in the runtime).
+- **Real-data kit** reorganized by purpose (`data/real/kyc/*`, `data/real/salaried_loan/*`, `_tampered/`)
+  + address-proof slot (`data/real/README.md`).
+- **Verified:** `pytest` → **177 passed** (165 + 12 new: underwriting/profiles/affordability/
+  address-proof + salaried-loan flow + verification round-trip); `npm run build` clean;
+  `verify_local_only` passes (`models/` excluded — vendored upstream code, gitignored).
+
+### Hackathon sprint (plan §10) — Day 1: image / pixel forensics ✅
+The hero capability for the judges' problem (edits in scanned/photographed documents — no text layer).
+- **`services/forensics/app/image_forensics.py`** (NEW) — `analyze_image()` runs the standard toolkit:
+  **ELA** (error-level analysis), **noise-residual** inconsistency, **copy-move/clone** (ORB keypoints
+  + consistent-offset clustering **verified by pixel NCC** so repeated glyphs don't false-fire),
+  **JPEG-ghost** (corroboration only), and **EXIF/software-trace** (editor in metadata). Robust
+  thresholds (median + k·MAD), contiguous-cluster regions, and corroboration logic → EvidenceItem-shaped
+  findings with `values.regions` boxes + an **annotated overlay** and **ELA heatmap** (base64 PNG) +
+  a graduated 0–100 `image_trust` and `EDITED/SUSPICIOUS/CLEAN` verdict. Degrades gracefully (cv2 absent
+  → copy-move skipped; any detector error is isolated).
+- **`services/forensics/app/main.py`** (v1.3.0) — `POST /forensics/analyze-image` (single image →
+  findings + overlay + signals + verdict); `/forensics/ingest` now routes **image** uploads to pixel
+  forensics (PDFs still get structural/text-layer forensics). Deps: `numpy` + `opencv-python-headless`.
+- **Frontend reverted** to the simple single-page investigator console (plan §10 decision; the §8/§9
+  multi-page app retired to git history `66d9165`). The §9 KYC/underwriting **backend** remains.
+- 4 new tests in `tests/test_image_forensics.py`.
+
+**Verified checks:**
+- Clean textured JPEG → no high-severity finding (`verdict != EDITED`); spliced patch → HIGH noise +
+  JPEG-ghost corroboration **localized to the edit box**; exact clone → copy-move HIGH localized; garbage
+  input → graceful `ok:false`.
+- **Live container smoke** (`POST :8001/forensics/analyze-image`, forensics v1.3.0, cv2 active in image):
+  spliced image → `verdict EDITED`, annotated overlay + ELA heatmap returned.
+- `pytest` → **182 passed** (178 + 4); `verify_local_only` passes; `npm run build` clean (console, 34 modules).
+
 ---
 
-## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app. 🎉
-Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Web app: `docker compose up -d --build`
-(or run risk + forensics + dashboard locally) → http://localhost:5173.
+## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app
+## + real-document KYC & underwriting (§9) + §10 Day 1 image-pixel forensics. 🎉
+Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Run: `docker compose up -d --build`
+→ console at http://localhost:5173; image edit-detection at `POST :8001/forensics/analyze-image`.

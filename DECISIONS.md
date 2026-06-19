@@ -282,3 +282,67 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
 - **Frontend stays simple now (per ask):** `react-router-dom` + existing inline dark theme; a polished
   design pass is deferred. The old single-page console's decision UI was refactored into a reusable
   `DecisionView` shared by the user result + admin case detail.
+
+## Real-document KYC + underwriting (2026-06-18) — plan §9
+
+- **Two separate axes: authenticity vs eligibility.** The trust score stays an *authenticity/
+  consistency* measure (forensics + semantics + model + KYC/completeness). Loan **eligibility**
+  (FOIR/affordability/LTV) is a *business-rule* outcome and **never** moves the trust score — a
+  genuine-but-ineligible applicant must read as "REFER/DECLINE on affordability," not as fraud.
+  *Why:* conflating the two would either tank authentic packets or hide real forgeries behind a
+  passing eligibility verdict.
+- **KYC/completeness/income findings fold into trust by a CAPPED penalty** (`underwriting.
+  VERIFICATION_PENALTY_CAP = 25`, applied in `aggregator.apply_verification`). *Why:* a missing
+  document or a name typo is a genuine consistency gap worth reflecting, but it must not tank an
+  otherwise-authentic packet. Missing docs are **accept + flag** (LOW), not blocking (per interview).
+- **Deterministic underwriting (no ML)** for completeness, identity/address established, name
+  consistency, income reconciliation, FOIR/affordability. *Why:* there are no real fraud labels, so
+  the *forgery* model stays synthetic-trained; the rules work on real documents on day one and are
+  fully explainable. Documented constants (no magic numbers): FOIR cap 0.50, REFER ≤ 0.60, assumed
+  rate 10.5% p.a., default tenure 60 mo, LTV cap 0.80, income-reconciliation tolerance ±15%,
+  net-to-gross band [0.55, 1.05].
+- **Purpose → document profile is one source of truth** (`profiles.py`) for both the completeness
+  check and the upload form (served at `GET /cases/profiles`). *Why:* avoids the UI and the backend
+  drifting on "what does a salaried loan need." Slot keys double as the per-file `doc_type` ingest
+  hints, so we don't depend on the classifier for user-asserted documents.
+- **New `address_proof` doc type.** Real KYC needs proof of address (POA), which the financial-first
+  ingestion lacked. Added classifier keywords + a light `_extract_address_proof` + `DocType.
+  ADDRESS_PROOF`. POI = {pan, aadhaar}; POA = {aadhaar, address_proof}.
+- **Model store + seam, heuristics stay live.** Large assets live under gitignored `models/` with a
+  committed registry (`REGISTRY.md` + `registry.json`); `ingest/model_registry.py` resolves a local
+  path or returns `None`, and every consumer falls back to its heuristic. *Why:* keeps the runtime
+  images light (no torch/transformers), makes a fresh clone run on heuristics, and lets Person 2 drop
+  in fine-tuned weights later by flipping `live:true` — no code change. `verify_local_only.py` excludes
+  `models/` (vendored upstream repos legitimately reference networks for *training*, never at runtime).
+- **torchvision backbone not downloaded.** DocTamper ships its own Swin backbone + pretrained `.pk`
+  checkpoints, so a separate torchvision CNN backbone is unnecessary. PaddleOCR weights deliberately
+  not bundled — Tesseract remains the live OCR; PP-OCRv4 is an optional dev-time pre-cache.
+- **DB migration is additive + guarded** (`db._migrate`: `ALTER TABLE cases ADD COLUMN` for
+  `verification_json`, `loan_amount`, `tenure_months` when missing) so existing case stores upgrade in
+  place. `pytest.ini` scopes collection to `tests/` (keeps pytest out of the vendored `models/` tree).
+
+## Hackathon sprint §10 — Day 1: image / pixel forensics (2026-06-19)
+
+- **New `image_forensics.py` for raster (scan/photo) edits — the judges' core problem.** The §6.D2/D3
+  forensics only catch PDF *text-layer* edits; an edited scan/photo has no text layer. This module adds
+  the standard pixel-forensics toolkit (ELA, noise-residual, copy-move, JPEG-ghost, EXIF/software-trace).
+  *Why these:* they are the established, explainable, CPU-local techniques for tamper localization —
+  no training data or GPU needed, so they work on day one and on documents the judge edits live.
+- **Robust thresholds (median + k·MAD), contiguous clusters, and corroboration** — not raw mean/std and
+  not single-block hits. *Why:* real scans have heavy-tailed ELA/noise; naive thresholds light up clean
+  documents. A finding requires a coherent region, and two pixel detectors agreeing on an area escalate
+  the severity while a lone weak signal stays low. This keeps clean documents clean (the acceptance bar).
+- **Copy-move is verified by pixel NCC**, not keypoint matches alone. *Why:* documents are full of
+  repeated glyphs (every "0" matches every other "0"); ORB offset-clustering alone false-positives.
+  Requiring normalized cross-correlation ≥ 0.90 on the actual patches admits only true clones.
+- **Graduated trust, not binary.** `image_trust` uses a per-severity base risk (low .15 / medium .45 /
+  high .85 / critical 1.0) + a small per-extra-region bump — so a lone HIGH lands in the freeze band
+  (~15) without a hard 0, and corroboration/multiple regions push it to 0. *Why:* a defensible score
+  with gradation beats an all-or-nothing flag.
+- **`opencv-python-headless` (not full opencv)** added to the forensics image. *Why:* headless drops the
+  GUI/X11 libs — correct for a server and smaller. Copy-move **degrades gracefully** if cv2 is missing;
+  ELA/noise/EXIF need only numpy + Pillow, so the core still runs. Image-level forensics lives in the
+  forensics service (v1.3.0): `POST /forensics/analyze-image` + image routing in `/forensics/ingest`.
+- **Frontend reverted to the single-page investigator console** (§10 decision; the §8/§9 multi-page app
+  is retired to git `66d9165`, recoverable). *Why:* the judges want a simple "upload → see what's edited"
+  view, not an auth/role product; the §9 KYC/underwriting **backend** stays for depth.

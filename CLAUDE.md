@@ -44,8 +44,18 @@ Run Python from the **repo root** so `from shared.schemas.models import ...` res
 - Synthetic PDFs under `data/synthetic/packets/` are committed on purpose (tiny, synthetic, zero PII).
 
 ## Status
-- **All phases complete (0–8).** Forensics + semantic rules + learned model (Isolation Forest + GBC,
-  ROC-AUC 0.97) + trust-score aggregation + cross-application graph (fraud rings + double-financed
-  collateral) + investigator dashboard + PII-redaction/privacy layer + demo. See `PROGRESS.md` for the
-  per-phase log and `DECISIONS.md` for the why. **135 tests pass; `verify_local_only.py` passes.**
+- **All phases complete (0–8)** + **§9 real-document KYC + underwriting**. Forensics + semantic rules +
+  learned model (Isolation Forest + GBC, ROC-AUC 0.97) + trust-score aggregation + cross-application
+  graph + investigator dashboard + PII-redaction + demo + real-doc ingestion + web app (auth/two roles)
+  + **KYC/underwriting verification** (purpose-driven upload, completeness, identity/address established,
+  income reconciliation, FOIR/affordability — see `plan.md` §9). See `PROGRESS.md`/`DECISIONS.md`.
+  **177 tests pass; `verify_local_only.py` passes.**
 - Run the demo: `python -m services.risk.train` (once) → `python scripts/seed_demo.py` → follow `DEMO.md`.
+  Web app: `docker compose up -d --build` → http://localhost:5173.
+
+## Model store (plan §9)
+- Large ML assets live under gitignored **`models/`** (LayoutLMv3, DocTamper code+data, PaddleOCR src);
+  only `models/REGISTRY.md` + `models/registry.json` are committed. Code resolves them via
+  `services/forensics/app/ingest/model_registry.py` and **falls back to heuristics** when absent — the
+  runtime images carry no torch/transformers. Real applicant docs go under gitignored `data/real/`
+  (organized by upload slot; see `data/real/README.md`).

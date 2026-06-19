@@ -269,7 +269,11 @@ than hand-setting them.
 
 ---
 
-## 7. Real-document delivery — 2-week sprint (ACTIVE)
+## 7. Real-document delivery — 2-week sprint (SUPERSEDED by §10 for now; content still valid backlog)
+
+> **Note:** the timeline/staffing here (2 weeks, 2 builders) is **superseded by §10** (solo, 7-day
+> hackathon sprint focused on edit-detection). The *content* below — real-doc collection, generator-v2,
+> the per-model training table, dataset downloads — remains the **post-hackathon backlog**, not dropped.
 
 **Status:** Phases 0–9 complete (synthetic pipeline + D2/D3 forensics, Dockerised). **M0** done — the
 real-document collection kit (`data/real/`, gitignored; see [data/real/README.md](data/real/README.md)).
@@ -378,3 +382,198 @@ Turned the single-page investigator console into a routed product with **real au
 - **Auth/case data is gitignored** (`services/risk/app_data/`, `services/risk/case_store/`).
 
 > Order: web app first (done); **resume §7 Part B (generator-v2 + Person-2 GPU training)** next.
+
+## 9. Real-document KYC + underwriting (DONE — verify the applicant, not just the file)
+
+The pivot that makes TrustShield work like a bank: it now verifies **the applicant against the
+process** (is the right document set present, is identity & address established, does income
+reconcile, can the applicant afford the loan), not only "was this PDF edited." Two axes are kept
+**separate**: *authenticity* (the trust score) and *eligibility* (FOIR/affordability). Genuine
+documents can still be REFER/DECLINE on affordability — and that reads as such, never as "fraud."
+
+**Final-product vision.** Given an applicant's documents for a stated purpose, return: (1) a
+**completeness** verdict, (2) an **authenticity/trust** score (forensics, existing), (3) a **KYC**
+verdict (identity & address established, names/PAN/Aadhaar consistent, no fraud-ring via the graph),
+and for loans (4) an **underwriting** verdict (income reconciled, FOIR, max-eligible amount, LTV →
+ELIGIBLE / REFER / DECLINE) — each with an evidence chain + recommended action.
+
+### 9.1 Scope (locked)
+KYC verification + **salaried** personal loan. Home-loan/LAP collateral (LTV is wired but its docs
+aren't collected) and self-employed/business income are documented as **later tiers**.
+
+### 9.2 Indian KYC / loan reference (what a bank actually requires)
+- **KYC — Officially Valid Documents.** *POI* (proof of identity): PAN (mandatory for financial txns),
+  Aadhaar, passport, voter ID, driving licence. *POA* (proof of address): Aadhaar, passport, voter ID,
+  DL, utility bill ≤2 months, bank statement. KYC is **established** when a valid POI **and** a POA are
+  present, the **name is consistent** across them, identifiers validate (PAN structure + holder-type;
+  Aadhaar Verhoeff/masked-format), and there is no duplicate-identity signal (cross-application graph).
+- **Salaried personal loan.** KYC set + **3 months salary slips** + **Form 16** + **6-month bank
+  statement** (optional ITR/26AS/AIS). Underwriting we replicate deterministically:
+  - **Income reconciliation:** Form 16 gross ↔ banked salary (×12) ↔ salary-slip — flag material
+    divergence (inflated income / forged slip).
+  - **Affordability / FOIR:** (existing + proposed EMI) / net monthly income ≤ 0.50 → ELIGIBLE;
+    (0.50, 0.60] → REFER; > 0.60 → DECLINE. **Max-eligible** amount from net income, assumed rate
+    (10.5% p.a.) and tenure (default 60 mo). **LTV** ≤ 0.80 only when collateral is present.
+- **Honesty:** these KYC/underwriting verdicts are **deterministic rules (no ML)**, so they work on
+  real documents on day one; the *forgery* model stays synthetic-trained (no real fraud labels exist).
+
+### 9.3 What was built
+- **Backend (risk):** `app/profiles.py` (purpose → required/optional slots; one source of truth for
+  completeness **and** the upload form, served at `GET /cases/profiles`); `app/underwriting.py`
+  (`check_completeness`, `verify_kyc`, `reconcile_income`, `assess_affordability`, `build_verification`
+  — all constants documented); `aggregator.apply_verification` (folds completeness/KYC/income findings
+  into the trust score by a **capped** penalty — never a tank; eligibility excluded). `POST /cases` now
+  takes per-file `doc_types` slot hints + `tenure_months`/`existing_emi`, runs verification, persists a
+  `verification_json` block, and returns it alongside the decision. `db.py` migrated additively.
+- **Forensics ingest:** new `address_proof` doc type (classifier keywords + `_extract_address_proof`);
+  schema gains `DocType.ADDRESS_PROOF`.
+- **Frontend:** purpose-driven **named upload slots** (dynamic from `GET /cases/profiles`) + loan
+  amount/tenure/existing-EMI; a **Verification panel** in `DecisionView` (completeness checklist, KYC
+  card, income, eligibility/FOIR) shown on the user result and the admin CaseDetail.
+- **Model store + seam:** downloads organized under gitignored **`models/`** with a committed registry
+  (`REGISTRY.md` + `registry.json`); `ingest/model_registry.py` resolves local assets and **falls back
+  to heuristics** when absent (no torch/transformers in the runtime; Docker unchanged).
+
+### 9.4 Model & data file structure
+```
+models/   (gitignored; only REGISTRY.md + registry.json committed)
+  layoutlmv3-base/         doc-type + KV extractor (Person-2 fine-tune)
+  doctamper/{code,data}    forgery CNN: Swin + trained .pk checkpoints; 22 GB LMDB training data
+  paddleocr/{src,weights}  optional OCR upgrade (weights absent → Tesseract is live)
+data/reference/funsd/      tiny KV reference (parquet)
+data/real/                 real applicant docs (gitignored) — see data/real/README.md, organized by
+                           slot: kyc/{pan,aadhaar,address_proof}, salaried_loan/{salary_slip,form16,
+                           bank_statement,itr}, _tampered/
+```
+> **torchvision backbone not needed** — DocTamper ships its own Swin backbone + checkpoints.
+> **PaddleOCR weights** absent (Tesseract is the live OCR). **DocTamper dataset** already on disk
+> (LMDB); its gated password was only needed to obtain it.
+
+### 9.5 Improvements ledger
+- **Done:** real-document ingestion (M1); web app + roles (§8); re-OCR + tamper localization (§6.D2/D3);
+  **this** KYC + underwriting verification layer + purpose-driven upload + model registry/seams.
+- **To-do (behind the seams / later tiers):** Person-2 GPU models wired behind the fallbacks
+  (DocTamper forgery CNN, LayoutLMv3 doc-type + KV) — flips `live:true` in `registry.json`;
+  PaddleOCR PP-OCRv4 weights pre-cache; scan/photo preprocessing (deskew/contrast) for phone photos;
+  home-loan/LAP (collateral + LTV) and self-employed/business tiers; mock CIBIL/credit-bureau + richer
+  dedup; generator-v2 (realistic layouts, bbox labels, splits, calibration + SHAP).
+
+## 10. Hackathon sprint (7 days, SOLO) — edit-detection is the hero (ACTIVE)
+
+After a Q&A with the organizers, the judges' problem is explicit and narrow: **users edit documents —
+digital and scanned/photographed — and it's hard to tell IF a document was edited and WHAT was
+edited.** Local LLMs are allowed; synthetic data is allowed. This section is the **single source of
+truth for the remaining 7 days**, run by one person. It reprioritises the project around that problem.
+
+### 10.0 Win condition (what the demo must do)
+Upload a document (PDF **or** a phone photo/scan of, e.g., an Aadhaar/PAN), **edit a number yourself**
+in any image editor, and TrustShield: (1) flags it as **edited**, (2) **localizes** the change (box/
+heatmap on the exact region), (3) **explains** it in plain English — all **100% local**. Stretch:
+a learned model corroborates. Floor (still a win per the judges): "at least a good idea" with a
+working baseline on a doc the judge edits live.
+
+### 10.1 Positioning / reframe
+- **Hero = detect + localize + explain edits**, including scans/photos with no text layer. This is the
+  defensible moat (forensics + cross-application graph), not the commodity layer.
+- The existing **5 analysis layers stay as depth**; the demo *opens* with edit-detection.
+- **De-emphasise underwriting (FOIR/KYC completeness)** — keep the §9 backend, but it is *not* the
+  story. The **frontend was reverted** to the simple single-page investigator console (packets list +
+  full result panel; commit `66d9165`'s multi-page app retired — recoverable from git). The live
+  "upload & edit" panel is added to that simple console on Day 5.
+
+### 10.2 How this maps to the existing plan (not new scope — the missing piece)
+- This completes **§6.D1 (image/pixel forensics for scans)** + **§6.C4 (image-forgery model)** — the
+  one forensic gap left. **§6.D2 (re-OCR cross-check)** and **§6.D3 (tamper localization)** are already
+  done, but they only catch **PDF text-layer** edits. §10 adds the **image/photo** path (no text layer).
+
+### 10.3 Decisions on the open questions
+- **DocTamper models without the dataset → YES.** The dataset is only for *training*; inference needs
+  just the model code + a pretrained checkpoint (`models/doctamper/code/` + `pks/*.pk`) + torch. We run
+  **DTD inference** to produce a learned tamper mask. It lives **behind the `model_registry` seam**
+  (no torch in the slim runtime images; runs on the 8 GB GPU or CPU). **Fallback:** classic image
+  forensics (10.4) if it won't load in its time-box. *Risk:* JPEG-only input + a quantization table
+  (`qt_table.pk`) need wrangling — budget ≤1 day, else ship the baseline.
+- **Synthetic + hand-edited tamper dataset → YES, and it removes the DocTamper-access blocker.**
+  *Programmatic* tampering (rasterise clean synthetic docs → edit pixels in code: digit-swap, copy-move,
+  splice) yields a **ground-truth mask** → a measurable localization accuracy and hundreds of examples.
+  *Hand-edited* (Photoshop/Paint) — a handful — proves generalisation and powers the **live demo**.
+- **Local LLM → explainer/reader, NEVER the verdict.** Use a local model (Ollama) to (a) turn forensic
+  findings into a plain-English "what changed & why we think so" narrative + investigator Q&A, and
+  optionally (b) a local **VLM** (Qwen2-VL / MiniCPM-V / LLaVA) as a second reader for messy scans. The
+  detector stays deterministic; the LLM explains and reads — it cannot produce the fraud verdict
+  (LLMs hallucinate). *Local-only caveat:* Ollama is `localhost:11434` (allowed host), but
+  `verify_local_only.py` flags any `httpx/requests/fetch` call pattern regardless of host — so either
+  load the model **in-process** (llama-cpp/transformers) or add a **documented localhost allowance** to
+  the scanner on Day 4 (decide then; default to in-process to keep the guard strict).
+
+### 10.4 Architecture additions (where the code lands)
+- **`services/forensics/app/image_forensics.py`** (NEW, pure-local, the always-works baseline):
+  Error-Level Analysis (ELA), noise/variance residual map, **copy-move** (ORB/SIFT keypoint match),
+  JPEG double-quantisation / ghost, resampling, and **EXIF/software-trace** ("Adobe Photoshop" in
+  metadata). Output: a **per-region score + heatmap + bounding boxes** → emitted as `forensic`
+  `EvidenceItem`s with `regions` (reuses the §6.D3 overlay renderer in `analyzer.render_tamper_overlay`
+  / `overlays.py`). Deps: Pillow + numpy + opencv (CPU, fast).
+- **Image intake (§6.A1):** accept `JPG/PNG/TIFF` + image-only PDFs in `ingest/loader.py`; route
+  image-only pages to OCR (`app/ocr.py`, Tesseract) **and** to `image_forensics`. Light preprocessing
+  (deskew/contrast/auto-crop) for phone photos.
+- **DocTamper DTD adapter** (NEW, behind `ingest/model_registry.py`): `resolve_model("doctamper-code")`
+  + a checkpoint → run DTD → tamper mask → same `EvidenceItem`/overlay shape. Absent/torch-missing →
+  the baseline runs (the seam already degrades to heuristics).
+- **`data/generator/` extension** (`tamper_image.py` + an eval harness): rasterise clean docs to images;
+  programmatic pixel tampers with ground-truth masks; a small clean/tampered split + an IoU/detection
+  metric in `tests/`.
+- **Local LLM explainer** (NEW module, optional): findings → narrative + Q&A. In-process or localhost
+  (see 10.3 caveat). Strictly explanation; verdict stays deterministic.
+- **Frontend (simple console):** Day 5 adds an **"Upload & analyze" panel** to `App.jsx` — drop a file →
+  POST to a forensics endpoint → render the **annotated heatmap/box image** + evidence + LLM
+  explanation. No routing, no auth (keep it the simple console the judges see).
+
+### 10.5 The 7-day plan (day-by-day; each day ends demoable)
+| Day | Deliverable | Acceptance check |
+|----|-------------|------------------|
+| **1** | `image_forensics.py` baseline (ELA + copy-move + noise + JPEG-ghost + EXIF) → score + heatmap + boxes; accept JPG/PNG uploads through ingestion. | On a hand-edited JPG, the edited region is boxed; a clean JPG yields no high-severity region. |
+| **2** | Synthetic **tamper-image dataset** (rasterise + programmatic edits + masks) + eval harness; clean/tampered split. | A printed **localization accuracy** number (detection rate / IoU) over the synthetic set. |
+| **3** | **DocTamper DTD inference** behind the `model_registry` seam (primary localizer if it loads; baseline fallback). | DTD produces a mask on a sample image **or** the seam cleanly falls back to the baseline (no crash). |
+| **4** | **Local LLM explainer** (Ollama or in-process) over findings + investigator Q&A; optional VLM reader; resolve the `verify_local_only` localhost decision. | Findings render as a plain-English paragraph; `verify_local_only.py` still passes. |
+| **5** | **"Upload & analyze" panel** on the single-page console: upload → detect → **annotated overlay** + evidence + explanation. | End-to-end in the browser: upload an edited image → boxed region + explanation appear. |
+| **6** | **Your real docs:** run your own (self-edited) Aadhaar/PAN; tune preprocessing for phone photos; reduce false positives (JPEG-recompression). | A digit you edit in your own Aadhaar is detected + localized; a clean copy passes. |
+| **7** | **Story + slides + buffer:** problem → local multi-signal detection + localization + explanation → live demo → "and 4 more layers underneath (semantic / model / cross-application graph)." | A rehearsed 3–5 min demo + slide deck; fallbacks ready if a laptop/model misbehaves. |
+
+**Priority if time slips:** Day 1–2 (baseline + accuracy) > Day 5 (upload UI) > Day 6 (own docs) >
+Day 4 (LLM) > Day 3 (DTD). The first two days alone give a real, working, judge-facing prototype.
+
+### 10.6 Degradation order (nothing is all-or-nothing)
+`image_forensics` baseline (guaranteed, pure-Python) → re-OCR/D3 text-layer check (done) → DocTamper
+DTD (if it loads) → LLM explanation (if Ollama/in-process model present). Each higher layer is additive
+and optional; the demo stands on the baseline alone.
+
+### 10.7 Honesty / risks to state in the pitch
+- Image forensics has **false positives** on heavily recompressed/screenshotted images — the synthetic
+  eval set is used to tune thresholds, and the LLM explanation hedges ("consistent with editing"
+  vs "edited"). Be candid that production needs the labelled DocTamper training + on-prem retrain.
+- The LLM **explains, never decides** — the verdict is the deterministic forensic score.
+- Everything stays **100% local** — the entire pitch ("no document leaves the building") depends on it;
+  any LLM runs on `localhost`/in-process and `verify_local_only.py` must keep passing.
+
+### 10.8 Reconciliation with the earlier backlog (nothing is dropped — just resequenced)
+§10 is a **focused slice** of the existing §6/§7/§9.5 roadmap, not a replacement. Mapping:
+
+**Pulled INTO the 7 days (the judge-relevant subset):**
+- **§6.D1** image/pixel forensics (ELA/copy-move/noise/JPEG-ghost) → Day 1.
+- **§6.C4** image-forgery model (DocTamper DTD inference) → Day 3.
+- **§6.A1/A2** image/scan intake + scan preprocessing → Days 1 & 6.
+- **§6.B3/B6** scanned/tampered synthetic variants + region/mask labels → Day 2.
+- **New (not previously planned):** local-LLM explainer/reader → Day 4.
+
+**Deferred but STILL TRACKED (remain in §6/§7/§9.5; resume after the hackathon):**
+- **§6.A3/A5** layout-aware OCR (PaddleOCR weights) + table extraction; **§6.C1/C2** LayoutLMv3
+  doc-type + key-value extraction; **§6.C6** calibrated classifier + real SHAP; **§6.B1/B2**
+  generator-v2 volume/layout variety + train/val/test splits.
+- **§7** full real-document **collection drive** + the per-model training table + the 2-builder/GPU lane.
+- **§9** later tiers: **home-loan/LAP** (collateral + LTV), **self-employed/business** income, **mock
+  CIBIL/credit-bureau** + richer dedup. The §9 KYC/underwriting layer that *is* built stays in the
+  backend (just not the demo's focus).
+
+**Already DONE earlier (kept, used as depth in the demo):** §6.D2 re-OCR cross-check, §6.D3 tamper
+localization + overlays, the 5-layer pipeline (forensic/semantic/model/aggregator/graph), §9 KYC +
+underwriting backend. The §10 demo opens on edit-detection and shows these as the layers underneath.
