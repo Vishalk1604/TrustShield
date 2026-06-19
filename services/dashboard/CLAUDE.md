@@ -1,21 +1,24 @@
 # CLAUDE.md — services/dashboard (Service C)
 
 ## Purpose
-The web app (React + Vite + **react-router-dom**). A multi-page product with real auth and two roles
-(plan §8): public **Home/About**, **Sign in/up**, a **User** dashboard (upload KYC/loan documents → trust
-result + "My submissions"), and an **Admin** review queue → **Case detail** (full evidence chain, KYC,
-tamper overlays, graph). Talks only to the LOCAL forensics (8001) + risk (8002) services.
+The investigator console (React + Vite, **single page, no routing, no auth** — plain `react`/
+`react-dom`). Lists the synthetic loan packets on the left; selecting one runs the full
+forensic → semantic → model → graph pipeline and shows the **trust gauge + recommendation,
+sub-scores, severity-colored evidence chain, tamper-localization overlays, and the cross-application
+graph** on the right, with JSON report export. Talks only to the LOCAL forensics (8001) + risk (8002).
+
+> **History:** a multi-page routed app with auth + two roles + purpose-driven upload existed briefly
+> (plan §8/§9, commit `66d9165`) but was **reverted** to this simpler console for the hackathon
+> edit-detection pivot (plan §10). The §8/§9 **backend** (auth/cases/underwriting) still exists and is
+> just unused by this frontend; the routed UI is recoverable from git if ever wanted.
 
 ## Key files
-- `src/main.jsx` — bootstraps `<BrowserRouter><AuthProvider><App/>`. `src/App.jsx` — router/layout shell.
-- `src/auth.jsx` — JWT auth context (localStorage); `src/components/ProtectedRoute.jsx` — route guards.
-- `src/pages/*` — Home, About, SignIn, SignUp, UserDashboard, AdminDashboard, CaseDetail.
-- `src/components/{Nav,DecisionView}.jsx` — nav (+ health dots) and the reusable decision renderer
-  (trust gauge, evidence chain, tamper overlays, graph). `src/GraphView.jsx` — cross-application graph SVG.
-- `src/api.js` — token + auth + cases calls (Bearer header) and the retained synthetic-demo calls.
-- `src/theme.js` — shared palette + style tokens. `src/config.js` — local service URLs.
-- `src/config.js` — local service URLs (`FORENSICS_URL`, `RISK_URL`), defaulting to localhost; override
-  via `VITE_FORENSICS_URL` / `VITE_RISK_URL`.
+- `src/main.jsx` — renders `<App/>` (no router). `src/App.jsx` — the whole single-page console
+  (palette + health polling + trust gauge + sub-scores + evidence cards + tamper-localization + export).
+- `src/GraphView.jsx` — cross-application graph SVG. `src/api.js` — thin fetch wrappers around the
+  LOCAL `/risk/demo/*` + `/health` endpoints (no auth headers).
+- `src/config.js` — local service URLs (`FORENSICS_URL`, `RISK_URL`) + `SERVICES` list; override via
+  `VITE_FORENSICS_URL` / `VITE_RISK_URL`.
 - `vite.config.js` — dev server on `0.0.0.0:5173` (strict port). `Dockerfile` — `node:20-slim`, runs
   the Vite dev server.
 
