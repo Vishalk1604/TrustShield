@@ -14,3 +14,7 @@ Pillow>=10
 # Copy-move degrades gracefully if cv2 is unavailable; ELA/noise/EXIF need only numpy + Pillow.
 numpy>=1.26
 opencv-python-headless>=4.8
+# §10 QR cross-verification: decode the card's QR and compare to the printed/OCR'd value. Needs the
+# system `libzbar0` (installed in the Dockerfile). Degrades gracefully if absent (no QR finding).
+# pyaadhaar (Aadhaar Secure-QR parse + UIDAI signature verify) is OPTIONAL — see requirements-models.txt.
+pyzbar>=0.1.9

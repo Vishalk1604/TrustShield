@@ -168,6 +168,18 @@ def _identifier_check(tmp_path: str) -> tuple[list[dict], dict]:
                             f"({aad_res.get('reason')}) — the digits may have been altered."),
             "source_location": "document identifier validation (OCR + Aadhaar/Verhoeff check)",
             "values": {"reason": aad_res.get("reason")}, "confidence": 0.8})
+
+    # QR cross-verification: the card's QR encodes the real values; mismatch vs the printed/OCR'd text
+    # (or an invalid Aadhaar UIDAI signature) is a strong tamper signal pixels can't see. Graceful:
+    # if the QR is unreadable (dense code in a low-res photo) → no finding, never a false positive.
+    try:
+        from services.forensics.app.ingest.extract import qr_codes
+
+        qr_findings, qr_info = qr_codes.qr_check(tmp_path, fields)
+        info["qr"] = qr_info
+        findings.extend(qr_findings)
+    except Exception as exc:  # pragma: no cover
+        info["qr"] = {"error": str(exc)}
     return findings, info
 
 

@@ -1,0 +1,19 @@
+# Optional "model-enabled" dependencies for the forensics service — NOT installed in the slim runtime
+# image. Install on a machine that runs the learned models or Aadhaar QR signature verification:
+#
+#     pip install -r services/forensics/requirements-models.txt
+#
+# Everything here is loaded behind a graceful seam: when absent, the heuristics + base checks stay live.
+
+# Aadhaar Secure-QR parse + UIDAI RSA signature verification (§10 QR cross-check, strongest case).
+pyaadhaar>=1.0.1
+
+# Deep forgery-localization model (§10 Phase 4/5) — TruFor / CAT-Net / our own DTD inference + training.
+# torch/torchvision versions are dictated by the chosen model + your CUDA; install per
+# scripts/setup_forgery_model.py rather than pinning here.
+# torch
+# torchvision
+
+# Optional face-match across documents (§10 Phase 6).
+# insightface ; onnxruntime        # ArcFace (higher accuracy)
+# face_recognition                 # dlib-based (lighter)
