@@ -402,3 +402,13 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
 - **No torch in the runtime.** The DTD seam keeps torch out of the slim forensics image; the learned
   model would run on the Person-2 GPU machine once weights are obtained. Heuristics remain the
   guaranteed local path.
+
+## §10 Day 3 follow-up: flat-fill gated to white-paper docs (2026-06-20)
+
+- **Real feedback:** two photographed PAN cards both came back SUSPICIOUS with boxes on the card
+  BACKGROUND, not the edit. Cause: the flat-fill detector mistook the PAN card's smooth COLOURED
+  security background for a 'fill'. Fix: flat-fill now applies only when the page is predominantly
+  white paper (`>30%` near-white pixels) + a region-size cap; colored ID cards (PAN/Aadhaar) gate it
+  off and rely on noise-loss (real photos carry sensor noise an edit destroys) + the learned model.
+  Validated: colored card → CLEAN; white-paper digital paint still caught; synthetic eval precision
+  stays 1.0. Honest scope: flat-fill = white-paper documents; ID-card edits = noise-loss / DocTamper.

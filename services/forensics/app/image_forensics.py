@@ -83,6 +83,9 @@ FILL_MEAN_LO = 70          # exclude near-black blocks (text / lines / dark seal
 FILL_MEAN_HI = 242         # exclude near-white blocks (paper background)
 FILL_BG_DELTA = 12         # a fill's mean must differ from the page background by this much
 FILL_MIN_BLOCKS = 6        # min contiguous solid-fill blocks to flag
+FILL_MIN_WHITE_FRAC = 0.30 # flat-fill only applies to white-PAPER docs; gated off for colored ID
+                           # cards (PAN/Aadhaar security backgrounds), which it can't tell from a fill
+FILL_MAX_FRAC = 0.05       # a candidate larger than this fraction of the page is background, not a patch
 JPEG_GHOST_QUALITIES = (55, 65, 75, 85, 95)
 MAX_DIM = 2000             # downscale very large uploads before analysis (speed; px on long side)
 
@@ -253,6 +256,12 @@ def _flat_fill_regions(img: Image.Image) -> list[Region]:
     ignored too. Reported at MEDIUM (a flat fill *can* be a legitimate field, so it's a flag, not a
     verdict)."""
     gray = np.asarray(img.convert("L"), dtype=np.float32)
+    # Gate: flat-fill is a WHITE-PAPER-document heuristic. A colored ID card (PAN/Aadhaar) has large
+    # smooth coloured security backgrounds + photo + QR that are indistinguishable from a 'fill' by
+    # colour alone, so we apply this detector only when the page is predominantly white paper. Colored
+    # cards rely on noise-loss (real photos carry sensor noise an edit destroys) + the learned model.
+    if float((gray > 225).mean()) < FILL_MIN_WHITE_FRAC:
+        return []
     h, w = gray.shape
     gh, gw = h // BLOCK, w // BLOCK
     if gh == 0 or gw == 0:
@@ -266,8 +275,11 @@ def _flat_fill_regions(img: Image.Image) -> list[Region]:
     bg = float(np.median(mean[flatish]))                 # dominant flat colour = paper background
     suspicious = (flatish & (mean > FILL_MEAN_LO) & (mean < FILL_MEAN_HI)
                   & (np.abs(mean - bg) > FILL_BG_DELTA))
+    max_blocks = FILL_MAX_FRAC * gh * gw
     regions: list[Region] = []
     for cells in _components(suspicious, FILL_MIN_BLOCKS):
+        if len(cells) > max_blocks:                      # too big → a background area, not a patch
+            continue
         region_mean = float(np.mean([mean[y, x] for y, x in cells]))
         strength = max(0.0, min(1.0, abs(region_mean - bg) / 60.0))
         regions.append(Region(_cells_to_bbox(cells), "flat_fill", round(strength, 3)))
