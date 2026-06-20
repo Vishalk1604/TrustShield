@@ -41,7 +41,7 @@ import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 from services.forensics.app import recapture
-from services.forensics.app.ingest import doctamper
+from services.forensics.app.ingest import forgery_model
 
 try:
     from PIL.ExifTags import TAGS as _EXIF_TAGS
@@ -503,14 +503,15 @@ def analyze_image(path: str) -> dict:
     findings: list[dict] = []
     signals: dict = {"format": fmt, "cv2": _CV2}
 
-    # Learned model (DocTamper) — the primary localizer WHEN its gated weights are present locally;
-    # otherwise None and the heuristics below are the live path. Status is always surfaced for honesty.
-    signals["learned_model"] = doctamper.status()
+    # Learned forgery-localization model (dtd / trufor / catnet) — the primary localizer WHEN its
+    # weights + torch are present locally; otherwise None and the heuristics below are the live path.
+    # Status is always surfaced for honesty.
+    signals["learned_model"] = forgery_model.status()
     dt_regions: list[Region] = []
     try:
-        dt = doctamper.localize(path)
+        dt = forgery_model.localize(path)
         if dt and dt.get("regions"):
-            dt_regions = [Region(tuple(b), "doctamper", 0.9) for b in dt["regions"]]
+            dt_regions = [Region(tuple(b), "forgery_model", 0.9) for b in dt["regions"]]
     except Exception as exc:  # pragma: no cover
         signals["learned_model_error"] = str(exc)
 
@@ -571,14 +572,13 @@ def analyze_image(path: str) -> dict:
 
     drawn: list[tuple[tuple, str]] = []  # (bbox, severity) for the overlay
 
-    # LEARNED MODEL (DocTamper) — strongest signal when available; localizes tampered text directly.
+    # LEARNED FORGERY MODEL — strongest signal when available; localizes tampered regions directly.
     for r in dt_regions:
         findings.append(_finding(
-            "high", "Tampered text (learned model)",
-            "The DocTamper model — trained on 170k tampered documents — localizes this region as "
-            "edited text. The learned detector catches digital edits that leave no noise/compression "
-            "trace.",
-            {"detector": "doctamper", "strength": r.strength}, confidence=0.85, regions=[r.bbox]))
+            "high", "Tampered region (learned forgery model)",
+            "A learned forgery-localization model flags this region as edited. The learned detector "
+            "catches edits that leave no noise/compression trace for the heuristics to find.",
+            {"detector": "forgery_model", "strength": r.strength}, confidence=0.85, regions=[r.bbox]))
         drawn.append((r.bbox, "high"))
 
     # NOISE-LOSS is the primary, reliable detector on documents: a painted/pasted/recompressed

@@ -37,6 +37,7 @@ data/reference/funsd/                 tiny FUNSD parquet (KV reference)   ← no
 | `layoutlmv3-base` | present | no (seam) | heuristic classifier + regex extractors |
 | `doctamper/code` (model source + quant tables) | present | no (seam) | heuristic image forensics |
 | `doctamper/weights` (trained DTD `.pth`) | **absent (gated)** | no | heuristic image forensics — drop a checkpoint here + torch to enable |
+| `forgery/trufor`, `forgery/catnet` (pretrained forgery-localization) | **absent** | no | heuristic image forensics — `python scripts/setup_forgery_model.py trufor` (+ torch) to enable |
 | `doctamper/data` (LMDB) | present | n/a (training only) | — |
 | `paddleocr/src` | present | no | Tesseract |
 | `paddleocr/weights` | **absent** | no | Tesseract |

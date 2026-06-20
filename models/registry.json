@@ -42,13 +42,37 @@
       "name": "doctamper-data",
       "path": "doctamper/data",
       "kind": "lmdb-dataset",
-      "use": "training data for the forgery CNN (DocTamperV1 Train/Test/SCD/FCD)",
+      "use": "training data for the forgery CNN (DocTamperV1 Train/Test/SCD/FCD) — we TRAIN our own DTD weights on this (Phase 5), filling the gated-checkpoint gap",
       "source_url": "https://github.com/qcf-568/DocTamper (gated; password via education email)",
       "license": "non-commercial (research)",
       "size_approx": "22GB",
       "status": "present",
       "live": false,
-      "fallback": "not used at runtime — training only (Person-2 GPU step)"
+      "fallback": "not used at runtime — training only"
+    },
+    {
+      "name": "forgery-trufor",
+      "path": "forgery/trufor",
+      "kind": "repo+weights",
+      "use": "TruFor forgery-localization model (public weights + reliability map). Pretrained drop-in for ingest/forgery_model.py backend 'trufor'.",
+      "source_url": "https://github.com/grip-unina/TruFor",
+      "license": "research (see repo)",
+      "size_approx": "~250MB",
+      "status": "absent",
+      "live": false,
+      "fallback": "heuristic image forensics; run `python scripts/setup_forgery_model.py trufor` to enable (+ torch)"
+    },
+    {
+      "name": "forgery-catnet",
+      "path": "forgery/catnet",
+      "kind": "repo+weights",
+      "use": "CAT-Net forgery-localization model (JPEG-compression-aware — good for ID-card JPEGs). Backend 'catnet'.",
+      "source_url": "https://github.com/mjkwon2021/CAT-Net",
+      "license": "research (see repo)",
+      "size_approx": "~200MB",
+      "status": "absent",
+      "live": false,
+      "fallback": "heuristic image forensics; run `python scripts/setup_forgery_model.py catnet` to enable (+ torch)"
     },
     {
       "name": "paddleocr-src",
