@@ -79,12 +79,16 @@ def test_spliced_patch_is_localized(tmp_path):
 
 def _digital_doc() -> Image.Image:
     """A pristine, noise-free digital render (e.g. an e-PAN / PDF screenshot) — the case where the
-    noise/ELA detectors can't fire and only the flat-fill detector can."""
+    noise/ELA detectors can't fire and only the flat-fill detector can. Uses VARIED text (not a
+    repeated glyph lattice) so it doesn't look like a periodic screen grid to the recapture detector."""
     a = np.full((360, 520), 250, dtype=np.uint8)         # clean white 'paper', no sensor noise
     img = Image.fromarray(a, mode="L").convert("RGB")
     d = ImageDraw.Draw(img)
-    for y in range(40, 320, 38):                          # crisp 'printed' text rows
-        d.text((50, y), "FIELD: " + "X" * 30, fill=(15, 15, 15))
+    rows = ["PAN: ABCDE1234F", "Name: Rahul Sharma", "Date of Birth: 16/08/1990",
+            "Father's Name: Vikas Kumar", "Address: 12 MG Road, Bengaluru 560001",
+            "Issued on: 02/07/2024", "Acknowledgement: 9087-6543-2100"]
+    for i, t in enumerate(rows):                          # crisp 'printed' text, varied per row
+        d.text((50, 40 + i * 40), t, fill=(15, 15, 15))
     return img
 
 

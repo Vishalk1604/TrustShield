@@ -340,9 +340,24 @@ Driven by two **real** photographed PAN cards (one with the trailing PAN letter 
 **Verified:** live smoke on the real PAN images (original CLEAN, edited EDITED); image tests pass; build
 clean. `pytest` → **188 passed**.
 
+### §10 pivot — cut LLM-explainer; deepen detection. Phase 1–2 ✅
+- **plan.md §10 scrubbed of the LLM explainer** (convenient, not impactful); reframed Days 4–7 around the
+  detection roadmap: recapture/synthetic → QR cross-check → learned forgery model (pretrained + **own DTD
+  trained on the DocTamper data we hold**) → face-match. No role split; single GPU, no clustering.
+- **`services/forensics/app/recapture.py`** (NEW, CPU) — detects a **photo-of-a-screen / halftone copy**
+  via 2-D **off-axis** high-frequency FFT peaks (≥44 dB, ≥4 peaks). Off-axis rejects 1-D text periodicity;
+  high prominence rejects the JPEG block grid + text edges. Validated **silent on all clean/real/tampered
+  docs** (incl. the real PAN photos), fires on screen grids. MEDIUM finding, merged into `analyze_image`.
+- 5 new tests (`tests/test_recapture.py`); `_digital_doc` test helper de-latticed (varied text).
+  `pytest` (image+recapture) green; **eval precision stays 1.0**.
+
+### Remaining §10 phases (in progress)
+- Phase 3 QR cross-verification · Phase 4 generalized forgery-model seam · Phase 5 train DTD weights ·
+  Phase 6 face-match · Phase 7 dashboard + verification.
+
 ---
 
-## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app
-## + real-document KYC & underwriting (§9) + §10 Day 1–3 image-pixel forensics + eval. 🎉
+## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app + §9 KYC/
+## underwriting + §10 image-pixel forensics (Days 1–3) + recapture detector. 🎉
 Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Run: `docker compose up -d --build`
 → console at http://localhost:5173; image edit-detection at `POST :8001/forensics/analyze-image`.

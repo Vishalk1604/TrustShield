@@ -497,14 +497,14 @@ working baseline on a doc the judge edits live.
   *Programmatic* tampering (rasterise clean synthetic docs → edit pixels in code: digit-swap, copy-move,
   splice) yields a **ground-truth mask** → a measurable localization accuracy and hundreds of examples.
   *Hand-edited* (Photoshop/Paint) — a handful — proves generalisation and powers the **live demo**.
-- **Local LLM → explainer/reader, NEVER the verdict.** Use a local model (Ollama) to (a) turn forensic
-  findings into a plain-English "what changed & why we think so" narrative + investigator Q&A, and
-  optionally (b) a local **VLM** (Qwen2-VL / MiniCPM-V / LLaVA) as a second reader for messy scans. The
-  detector stays deterministic; the LLM explains and reads — it cannot produce the fraud verdict
-  (LLMs hallucinate). *Local-only caveat:* Ollama is `localhost:11434` (allowed host), but
-  `verify_local_only.py` flags any `httpx/requests/fetch` call pattern regardless of host — so either
-  load the model **in-process** (llama-cpp/transformers) or add a **documented localhost allowance** to
-  the scanner on Day 4 (decide then; default to in-process to keep the guard strict).
+- **No LLM for explanation (CUT).** An LLM purely to phrase findings is convenient, not impactful — the
+  evidence chain already reads in plain English. We reinvest that effort in **detection power**:
+  - a learned **forgery-localization** model behind the seam (pretrained TruFor/CAT-Net, then **our own
+    DTD trained on the DocTamper dataset we already hold**);
+  - a **recapture / synthetic** detector (photo-of-a-screen, photocopy, AI-generated docs);
+  - **QR cross-verification** (the card's signed/encoded QR vs the printed text — catches value edits the
+    pixels can't see, e.g. a digit changed but still format-valid);
+  - **face-match** across documents (identity-swap). See §10.5.
 
 ### 10.4 Architecture additions (where the code lands)
 - **`services/forensics/app/image_forensics.py`** (NEW, pure-local, the always-works baseline):
@@ -522,11 +522,15 @@ working baseline on a doc the judge edits live.
 - **`data/generator/` extension** (`tamper_image.py` + an eval harness): rasterise clean docs to images;
   programmatic pixel tampers with ground-truth masks; a small clean/tampered split + an IoU/detection
   metric in `tests/`.
-- **Local LLM explainer** (NEW module, optional): findings → narrative + Q&A. In-process or localhost
-  (see 10.3 caveat). Strictly explanation; verdict stays deterministic.
-- **Frontend (simple console):** Day 5 adds an **"Upload & analyze" panel** to `App.jsx` — drop a file →
-  POST to a forensics endpoint → render the **annotated heatmap/box image** + evidence + LLM
-  explanation. No routing, no auth (keep it the simple console the judges see).
+- **Recapture / synthetic detector** (`recapture.py`, NEW, CPU): FFT moiré (photo-of-a-screen) +
+  photocopy / double-JPEG signals; a pretrained AI-generated-image classifier behind the seam for
+  whole-doc fakes. MEDIUM-severity findings.
+- **QR cross-verification** (`ingest/extract/qr_codes.py`, NEW): decode the PAN/Aadhaar QR (verify the
+  UIDAI RSA signature for Aadhaar, offline) and cross-check vs the OCR'd printed values → HIGH on mismatch.
+- **Generalized forgery-model seam** (`ingest/forgery_model.py`, NEW): backends `trufor|catnet|dtd` behind
+  `model_registry`; torch optional; heuristics stay the fallback. Plus `face_match.py` across case docs.
+- **Frontend (simple console):** the **"Upload & analyze" panel** (done) renders the annotated heatmap/box
+  image + evidence; add the **learned-model status** + **QR-vs-printed** comparison line. No routing/auth.
 
 ### 10.5 The 7-day plan (day-by-day; each day ends demoable)
 | Day | Deliverable | Acceptance check |
@@ -534,26 +538,31 @@ working baseline on a doc the judge edits live.
 | **1 ✅** | `image_forensics.py` baseline (ELA + copy-move + noise + JPEG-ghost + EXIF) → score + heatmap + boxes; accept JPG/PNG uploads through ingestion. | DONE — `POST /forensics/analyze-image` (v1.3.0); clean → CLEAN, edited → EDITED + boxed; 4 tests. |
 | **2 ✅** | Synthetic **tamper-image dataset** (rasterise + scan-sim + programmatic edits + masks) + eval harness; results stored. | DONE — `results/image_forensics/`: **detection precision 1.0 (0 FP on clean)**, localization IoU 0.84–0.86 on paint/splice; dashboard image panel + examples; bind-mounted dashboard. |
 | **3 ✅** | **DocTamper DTD seam** + **digital paint-over detector**. (DocTamper ships code + quant tables but **no weights** — gated; the seam `ingest/doctamper.py` enables it when a checkpoint is dropped in.) Added `_flat_fill_regions` for the pristine-digital edit case the noise/ELA detectors miss. | DONE — clean digital PAN + flat paint → **EDITED + localized** (PNG & JPG); clean → CLEAN; eval precision stays **1.0**; learned-model status surfaced. **Note for demo:** photo/scan edits are caught by noise-loss; pristine-digital edits by flat-fill (or the learned model once weights arrive). |
-| **4** | **Local LLM explainer** (Ollama or in-process) over findings + investigator Q&A; optional VLM reader; resolve the `verify_local_only` localhost decision. | Findings render as a plain-English paragraph; `verify_local_only.py` still passes. |
-| **5** | **"Upload & analyze" panel** on the single-page console: upload → detect → **annotated overlay** + evidence + explanation. | End-to-end in the browser: upload an edited image → boxed region + explanation appear. |
-| **6** | **Your real docs:** run your own (self-edited) Aadhaar/PAN; tune preprocessing for phone photos; reduce false positives (JPEG-recompression). | A digit you edit in your own Aadhaar is detected + localized; a clean copy passes. |
-| **7** | **Story + slides + buffer:** problem → local multi-signal detection + localization + explanation → live demo → "and 4 more layers underneath (semantic / model / cross-application graph)." | A rehearsed 3–5 min demo + slide deck; fallbacks ready if a laptop/model misbehaves. |
+| **3.5 ✅** | **Real-PAN follow-up:** flat-fill gated to white-paper (no false boxes on colored ID cards) + **semantic identifier check** on `/analyze-image` (OCR → validate PAN/Aadhaar). | DONE (forensics v1.4.0) — real edited PAN `PATPK4316` (9 chars) → EDITED; original → CLEAN. |
+| **4** | **Recapture / synthetic** detector (FFT moiré + double-JPEG) — CPU; **QR cross-verification** (Aadhaar signed-QR + PAN QR vs OCR'd text). | Screen-recapture image → flagged; QR ≠ printed PAN → HIGH mismatch; clean card → clean; unreadable QR → no false positive. |
+| **5** | **Deep forgery-localization model** behind a generalized seam (pretrained TruFor / CAT-Net; torch optional; heuristics fallback). | Seam falls back cleanly with no weights; with weights, deep-model regions on a tampered sample. |
+| **6** | **Train our own DTD weights** on the DocTamper LMDB we hold + fine-tune on the synthetic + real `_TAMPERED` sets → drop behind the seam; **face-match** across case docs. | `eval_image_forensics.py` shows recall/IoU **uplift vs heuristics** (stored in `results/`); face mismatch flagged. |
+| **7** | **Story + slides + buffer:** problem → multi-layer LOCAL detection (pixels + semantic + QR + learned model + cross-application graph) → live demo. | A rehearsed 3–5 min demo + slide deck; every layer degrades gracefully if a laptop/model misbehaves. |
 
-**Priority if time slips:** Day 1–2 (baseline + accuracy) > Day 5 (upload UI) > Day 6 (own docs) >
-Day 4 (LLM) > Day 3 (DTD). The first two days alone give a real, working, judge-facing prototype.
+**Priority if time slips:** Days 1–3.5 (done — heuristics + flat-fill + semantic identifier check) >
+Day 4 (QR cross-check — highest ROI, catches value edits) > Day 5 (deep-model seam) > Day 6 (train DTD +
+face-match). The done work alone is already a real, working, judge-facing prototype.
 
 ### 10.6 Degradation order (nothing is all-or-nothing)
-`image_forensics` baseline (guaranteed, pure-Python) → re-OCR/D3 text-layer check (done) → DocTamper
-DTD (if it loads) → LLM explanation (if Ollama/in-process model present). Each higher layer is additive
-and optional; the demo stands on the baseline alone.
+`image_forensics` heuristics + **semantic identifier check** (guaranteed, pure-Python) → recapture + **QR
+cross-check** (CPU) → learned **forgery-localization model** (when weights + torch present) → **face-match**
+(when the face lib is present). Each higher layer is additive and optional; the demo stands on the
+heuristics + semantic + QR baseline alone.
 
 ### 10.7 Honesty / risks to state in the pitch
-- Image forensics has **false positives** on heavily recompressed/screenshotted images — the synthetic
-  eval set is used to tune thresholds, and the LLM explanation hedges ("consistent with editing"
-  vs "edited"). Be candid that production needs the labelled DocTamper training + on-prem retrain.
-- The LLM **explains, never decides** — the verdict is the deterministic forensic score.
-- Everything stays **100% local** — the entire pitch ("no document leaves the building") depends on it;
-  any LLM runs on `localhost`/in-process and `verify_local_only.py` must keep passing.
+- Heuristic pixel forensics can't see edits on **denoised, colored ID-card photos** (correctly silent →
+  no false positives) — those are caught by the **semantic identifier check** + **QR cross-check**. The
+  learned model needs **threshold tuning / fine-tuning** on documents (DocForge-Bench) to be reliable;
+  the **fine-tune on the DocTamper data we hold** is what delivers that.
+- The verdict is **deterministic** — heuristics + semantic + QR + (optional) learned model. No prose
+  layer invents certainty (this is why the LLM explainer was cut).
+- Everything stays **100% local** — `verify_local_only.py` must keep passing; deep models + face libs load
+  from local disk only, and Aadhaar QR verification uses a **locally-bundled UIDAI certificate**.
 
 ### 10.8 Reconciliation with the earlier backlog (nothing is dropped — just resequenced)
 §10 is a **focused slice** of the existing §6/§7/§9.5 roadmap, not a replacement. Mapping:
@@ -563,7 +572,9 @@ and optional; the demo stands on the baseline alone.
 - **§6.C4** image-forgery model (DocTamper DTD inference) → Day 3.
 - **§6.A1/A2** image/scan intake + scan preprocessing → Days 1 & 6.
 - **§6.B3/B6** scanned/tampered synthetic variants + region/mask labels → Day 2.
-- **New (not previously planned):** local-LLM explainer/reader → Day 4.
+- **New (not previously planned):** semantic identifier check, recapture/synthetic detector, **QR
+  cross-verification**, generalized forgery-model seam + **own-trained DTD weights**, face-match.
+  *(The local-LLM explainer originally slated for Day 4 is **cut** — convenient, not impactful.)*
 
 **Deferred but STILL TRACKED (remain in §6/§7/§9.5; resume after the hackathon):**
 - **§6.A3/A5** layout-aware OCR (PaddleOCR weights) + table extraction; **§6.C1/C2** LayoutLMv3

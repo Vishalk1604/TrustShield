@@ -40,6 +40,7 @@ from typing import Optional
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
+from services.forensics.app import recapture
 from services.forensics.app.ingest import doctamper
 
 try:
@@ -559,6 +560,14 @@ def analyze_image(path: str) -> dict:
     except Exception as exc:  # pragma: no cover
         signals["exif_error"] = str(exc)
     findings.extend(exif_findings)
+
+    # Recapture / rescreen (image-level): photo-of-a-screen or halftone copy (no bbox).
+    try:
+        rc_findings, rc_sig = recapture.recapture_finding(img)
+        signals["recapture"] = rc_sig
+        findings.extend(rc_findings)
+    except Exception as exc:  # pragma: no cover
+        signals["recapture_error"] = str(exc)
 
     drawn: list[tuple[tuple, str]] = []  # (bbox, severity) for the overlay
 

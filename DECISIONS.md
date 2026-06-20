@@ -431,3 +431,18 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
 - **Honest scope, stated for the demo:** photo/scan edits that disturb sensor noise -> noise-loss;
   white-paper digital paint -> flat-fill; ID-number value edits -> semantic identifier check; subtle
   pristine-pixel edits -> the learned DocTamper model (gated weights). No single layer is sufficient.
+
+## §10 pivot — cut the LLM-explainer; deepen detection (2026-06-21)
+
+- **LLM-for-explanation cut.** Convenient, not impactful — the evidence chain already reads in plain
+  English. Reinvest in detection: recapture/synthetic detector, QR cross-verification, a learned
+  forgery-localization model (pretrained + **our own DTD trained on the DocTamper dataset we already
+  hold**), and face-match. No Person-1/Person-2 split (one team). Single GPU, **no clustering** — the
+  forgery models are 2-4 GB and fit one 8 GB GPU; extra VRAM is only for fine-tuning. plan.md §10 updated.
+- **Recapture detector (`recapture.py`).** A photo of a screen / a halftone copy imposes a periodic grid
+  → sharp high-frequency FFT peaks; a genuine paper scan/photo has a smooth spectrum. Two guards make it
+  not false-fire on documents: (1) **off-axis** peaks only — a screen grid is a 2-D lattice, while
+  repeated text/lines are 1-D periodicity on an axis; (2) **high prominence** (≥44 dB above the band
+  median, ≥4 peaks) — real docs' text edges + JPEG 8x8 block grid sit at ~30-37 dB. Conservative by
+  design: validated silent on all clean/real/tampered docs (incl. the real PAN photos), fires on screen
+  grids. MEDIUM severity. Subtle real-screen recapture is best left to the learned model (honest limit).
