@@ -18,6 +18,18 @@ async function postJSON(url, body) {
   return res.json();
 }
 
+async function postFile(url, file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch(url, { method: "POST", body: fd, cache: "no-store" });
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try { detail = (await res.json()).detail || detail; } catch { /* ignore */ }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
 export const api = {
   health: (base) => getJSON(`${base}/health`),
   listPackets: () => getJSON(`${RISK_URL}/risk/demo/packets`),
@@ -25,6 +37,8 @@ export const api = {
   scorePacket: (packetId, useGraph = true) =>
     postJSON(`${RISK_URL}/risk/demo/score/${packetId}?use_graph=${useGraph}`, {}),
   clusters: () => getJSON(`${RISK_URL}/risk/graph/clusters`),
+  // §10 image/pixel forensics — detect & localize edits in a scanned/photo document.
+  analyzeImage: (file) => postFile(`${FORENSICS_URL}/forensics/analyze-image`, file),
 };
 
 export { RISK_URL, FORENSICS_URL };

@@ -147,6 +147,92 @@ function GroundTruthChip({ label, fraudTypes }) {
   );
 }
 
+// ── image edit detection (§10 — pixel forensics on scanned/photo documents) ─────
+const VERDICT_C = { EDITED: "#ef4444", SUSPICIOUS: "#eab308", CLEAN: "#22c55e" };
+const IMG_EXAMPLES = [
+  { label: "Clean Form 16", path: "examples/clean_form16.jpg" },
+  { label: "Edited number", path: "examples/edited_number_form16.jpg" },
+  { label: "Spliced patch", path: "examples/spliced_form16.jpg" },
+];
+const panelCard = { background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12, padding: 18 };
+const exampleBtn = { cursor: "pointer", background: "#1e293b", border: "1px solid #334155", color: "#cbd5e1", borderRadius: 8, padding: "7px 12px", fontSize: 13 };
+const figS = { margin: 0, background: "#0b1220", border: "1px solid #1e293b", borderRadius: 10, padding: 8 };
+const imgS = { width: "100%", borderRadius: 6, border: "1px solid #334155", display: "block" };
+const capS = { fontSize: 11, color: "#94a3b8", marginTop: 6 };
+
+function ImageForensicsPanel() {
+  const [busy, setBusy] = useState(false);
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState(null);
+  const [name, setName] = useState(null);
+
+  const analyze = async (file, label) => {
+    setBusy(true); setErr(null); setRes(null); setName(label);
+    try { setRes(await api.analyzeImage(file)); }
+    catch (e) { setErr(e.message); }
+    finally { setBusy(false); }
+  };
+  const runExample = async (ex) => {
+    try {
+      const r = await fetch(ex.path, { cache: "no-store" });
+      if (!r.ok) throw new Error(`example not found (${r.status})`);
+      const b = await r.blob();
+      await analyze(new File([b], ex.label, { type: b.type || "image/jpeg" }), ex.label);
+    } catch (e) { setErr(e.message); }
+  };
+  const onUpload = (e) => { const f = e.target.files?.[0]; if (f) analyze(f, f.name); };
+
+  const vc = res ? (VERDICT_C[res.verdict] || "#64748b") : "#64748b";
+  return (
+    <section style={{ ...panelCard, marginTop: 16 }}>
+      <h2 style={{ ...sectionTitle, marginBottom: 6 }}>🖼️ Image edit detection — scanned / photo documents</h2>
+      <p style={{ color: "#94a3b8", fontSize: 13, margin: "0 0 12px" }}>
+        Detect &amp; localize edits in a document image (painted numbers, splices, clones) using pixel
+        forensics — ELA, sensor-noise loss, copy-move — 100% local. Try an example, or edit a number in
+        your own scan/photo and upload it.
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        {IMG_EXAMPLES.map((ex) => (
+          <button key={ex.path} onClick={() => runExample(ex)} disabled={busy} style={exampleBtn}>{ex.label}</button>
+        ))}
+        <label style={{ ...exampleBtn, cursor: "pointer" }}>
+          Upload image…
+          <input type="file" accept="image/*" onChange={onUpload} style={{ display: "none" }} />
+        </label>
+      </div>
+
+      {err && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 14px", color: "#fca5a5", fontSize: 14, marginTop: 10 }}>{err}</div>}
+      {busy && <div style={{ color: "#94a3b8", marginTop: 12 }}>Analyzing {name}…</div>}
+
+      {res && res.ok && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: vc, background: vc + "22", border: `1px solid ${vc}`, borderRadius: 8, padding: "4px 12px" }}>{res.verdict}</span>
+            <span style={{ color: "#94a3b8", fontSize: 13 }}>image trust {Math.round(res.image_trust)}/100 · {name}</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+            <figure style={figS}>
+              <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={imgS} />
+              <figcaption style={capS}><span style={{ color: "#fca5a5" }}>◼</span> detected edit region(s)</figcaption>
+            </figure>
+            {res.ela_b64 && (
+              <figure style={figS}>
+                <img src={`data:image/png;base64,${res.ela_b64}`} alt="ELA heatmap" style={imgS} />
+                <figcaption style={capS}>ELA heatmap — compression-error energy</figcaption>
+              </figure>
+            )}
+          </div>
+          <h3 style={{ ...sectionTitle, marginTop: 14 }}>Findings ({res.findings.length})</h3>
+          {res.findings.length === 0
+            ? <div style={{ color: "#86efac", fontSize: 13 }}>No edit signals detected — looks clean.</div>
+            : <div style={{ display: "grid", gap: 6 }}>{res.findings.map((f, i) => <EvidenceCard key={i} item={{ ...f, id: i }} />)}</div>}
+        </div>
+      )}
+      {res && !res.ok && <div style={{ color: "#fca5a5", fontSize: 13, marginTop: 10 }}>Could not analyze: {res.error}</div>}
+    </section>
+  );
+}
+
 // ── main ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [packets, setPackets] = useState([]);
@@ -217,6 +303,8 @@ export default function App() {
         🔒 <strong>All processing on-premise.</strong> No customer data leaves this machine — every analysis is local.
         {seedInfo && <span style={{ color: "#86efac", marginLeft: 8 }}>· graph: {seedInfo.n_applications} apps, {seedInfo.employer_rings} ring(s), {seedInfo.collateral_clusters} collateral cluster(s)</span>}
       </div>
+
+      <ImageForensicsPanel />
 
       {error && (
         <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 14px", margin: "12px 0", color: "#fca5a5", fontSize: 14 }}>

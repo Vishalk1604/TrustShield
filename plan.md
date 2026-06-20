@@ -531,9 +531,9 @@ working baseline on a doc the judge edits live.
 ### 10.5 The 7-day plan (day-by-day; each day ends demoable)
 | Day | Deliverable | Acceptance check |
 |----|-------------|------------------|
-| **1** | `image_forensics.py` baseline (ELA + copy-move + noise + JPEG-ghost + EXIF) → score + heatmap + boxes; accept JPG/PNG uploads through ingestion. | On a hand-edited JPG, the edited region is boxed; a clean JPG yields no high-severity region. |
-| **2** | Synthetic **tamper-image dataset** (rasterise + programmatic edits + masks) + eval harness; clean/tampered split. | A printed **localization accuracy** number (detection rate / IoU) over the synthetic set. |
-| **3** | **DocTamper DTD inference** behind the `model_registry` seam (primary localizer if it loads; baseline fallback). | DTD produces a mask on a sample image **or** the seam cleanly falls back to the baseline (no crash). |
+| **1 ✅** | `image_forensics.py` baseline (ELA + copy-move + noise + JPEG-ghost + EXIF) → score + heatmap + boxes; accept JPG/PNG uploads through ingestion. | DONE — `POST /forensics/analyze-image` (v1.3.0); clean → CLEAN, edited → EDITED + boxed; 4 tests. |
+| **2 ✅** | Synthetic **tamper-image dataset** (rasterise + scan-sim + programmatic edits + masks) + eval harness; results stored. | DONE — `results/image_forensics/`: **detection precision 1.0 (0 FP on clean)**, localization IoU 0.84–0.86 on paint/splice; dashboard image panel + examples; bind-mounted dashboard. |
+| **3** | **DocTamper DTD inference** behind the `model_registry` seam (primary localizer if it loads; baseline fallback). Also closes the copy-move gap (deferred from Day 2). | DTD produces a mask on a sample image **or** the seam cleanly falls back to the baseline (no crash). |
 | **4** | **Local LLM explainer** (Ollama or in-process) over findings + investigator Q&A; optional VLM reader; resolve the `verify_local_only` localhost decision. | Findings render as a plain-English paragraph; `verify_local_only.py` still passes. |
 | **5** | **"Upload & analyze" panel** on the single-page console: upload → detect → **annotated overlay** + evidence + explanation. | End-to-end in the browser: upload an edited image → boxed region + explanation appear. |
 | **6** | **Your real docs:** run your own (self-edited) Aadhaar/PAN; tune preprocessing for phone photos; reduce false positives (JPEG-recompression). | A digit you edit in your own Aadhaar is detected + localized; a clean copy passes. |

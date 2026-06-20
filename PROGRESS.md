@@ -277,9 +277,34 @@ The hero capability for the judges' problem (edits in scanned/photographed docum
   spliced image → `verdict EDITED`, annotated overlay + ELA heatmap returned.
 - `pytest` → **182 passed** (178 + 4); `verify_local_only` passes; `npm run build` clean (console, 34 modules).
 
+### Hackathon sprint (plan §10) — Day 2: tamper-image dataset + eval + dashboard panel ✅
+Turned the detectors into a *measured* capability and made them robust on real documents.
+- **`data/generator/tamper_image.py` + `build_image_dataset.py`** (NEW) — rasterize the synthetic PDFs,
+  add a realistic **scan simulation** (lighting gradient + optical blur + sensor-noise floor), then forge
+  pixel edits with **ground-truth masks**: `copy_move`, `splice`, `recompress`, `number_edit`.
+  Deterministic; output under gitignored `data/synthetic/images/`.
+- **`scripts/eval_image_forensics.py`** (NEW) — runs `analyze_image` over the dataset and scores
+  detection (P/R/F1) + localization (hit-rate / IoU) per tamper type; writes committed
+  **`results/image_forensics/{metrics.json,summary.md,samples/*.png}`** (the showcase artifact).
+- **Detector redesign for documents** (the hard part — documents are mostly white paper + sparse ink):
+  noise is now estimated on **flat (non-text) pixels**, flagging regions that **lost the page's
+  sensor-noise floor** (paint/splice/recompress); copy-move is **corroboration-only** (repeated
+  glyphs/amounts make standalone clone detection unreliable → deferred to the Day-3 learned model).
+- **Dashboard image panel** — the single-page console gains an **"Image edit detection"** section:
+  example images + upload → `POST /forensics/analyze-image` → **annotated overlay + ELA heatmap +
+  verdict + findings**. Curated examples in `services/dashboard/public/examples/`. Dashboard source is
+  now **bind-mounted** (compose) with Vite polling, so frontend edits hot-reload without a rebuild.
+- 2 new tests in `tests/test_image_dataset.py` (+ the 4 image-forensics tests rewritten for noisy scans).
+
+**Results (committed → `results/image_forensics/`):** on 12 clean + 48 tampered synthetic documents —
+**Detection precision 1.0 (ZERO false positives on clean), recall 0.73, F1 0.84**; localization
+**number_edit hit 1.0 / IoU 0.84**, **splice hit 1.0 / IoU 0.86**, recompress hit 0.92; copy_move
+deferred (0, by design). **Live container smoke:** clean example → CLEAN/100, edited-number → EDITED/0
+localized, splice → EDITED/15. `pytest` → **184 passed**; `verify_local_only` passes; build clean.
+
 ---
 
 ## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app
-## + real-document KYC & underwriting (§9) + §10 Day 1 image-pixel forensics. 🎉
+## + real-document KYC & underwriting (§9) + §10 Day 1–2 image-pixel forensics + eval. 🎉
 Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Run: `docker compose up -d --build`
 → console at http://localhost:5173; image edit-detection at `POST :8001/forensics/analyze-image`.

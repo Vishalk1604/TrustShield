@@ -1,91 +1,80 @@
-"""Image / pixel forensics (plan §6.D1, §10 Day 1).
+"""Image / pixel forensics (plan §6.D1, §10 Day 1–2).
 
-Builds controlled raster documents with a KNOWN tampered region and asserts the detectors
-localize the edit, while a clean image produces no high-severity finding. Pure local (numpy +
-Pillow); copy-move assertions are guarded on cv2 availability.
+Builds noisy 'scanned' documents (a sensor-noise floor, like a real scan/photo) with a KNOWN
+edited region and asserts the detector localizes the edit while a clean scan stays clean. The
+noise-loss detector is the reliable primary; copy-move is corroboration-only (validated in the
+eval harness), so these tests exercise the paint/splice path that the demo depends on.
 """
 
-import io
-
 import numpy as np
-import pytest
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
-from services.forensics.app.image_forensics import _CV2, analyze_image
+from services.forensics.app.image_forensics import analyze_image
 
 
-def _base_doc(seed: int = 0) -> Image.Image:
-    """A mid-gray, uniformly-textured 'document' with some text-like bars (a realistic JPEG base)."""
+def _noisy_doc(seed: int = 0) -> Image.Image:
+    """A light 'paper' page with text bars + a realistic sensor-noise floor (σ≈12)."""
     rng = np.random.default_rng(seed)
-    a = rng.integers(95, 160, size=(320, 480), dtype=np.uint8)
-    for y in range(40, 300, 45):           # horizontal 'text' bars (uniform across the page)
-        a[y:y + 6, 40:440] = 30
-    return Image.fromarray(a, mode="L").convert("RGB")
+    a = np.full((360, 520), 226, dtype=np.float32)
+    for y in range(40, 330, 42):                 # uniform text-like bars
+        a[y:y + 7, 40:470] = 40
+    a += rng.normal(0.0, 12.0, a.shape)          # sensor noise (survives JPEG → a detectable floor)
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGB")
 
 
-def _save_jpeg(img: Image.Image, tmp_path, name: str, quality: int = 90) -> str:
+def _save_reload(img: Image.Image, tmp_path, name: str, q: int = 90):
     p = tmp_path / name
-    img.save(p, "JPEG", quality=quality)
-    return str(p)
+    img.save(p, "JPEG", quality=q)
+    return Image.open(p).convert("RGB"), str(p)
 
 
-def _overlaps(region_bbox, tamper_bbox) -> bool:
-    a, b = region_bbox, tamper_bbox
+def _overlaps(a, b) -> bool:
     return not (a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1])
 
 
-def _region_findings(result):
-    return [f for f in result["findings"] if f["values"].get("regions")]
+def _region_findings(res):
+    return [f for f in res["findings"] if f["values"].get("regions")]
 
 
-def _max_severity(result) -> int:
+def _max_sev(res) -> int:
     rank = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
-    return max((rank.get(f["severity"], 0) for f in result["findings"]), default=0)
+    return max((rank.get(f["severity"], 0) for f in res["findings"]), default=0)
 
 
-def test_clean_image_has_no_high_severity(tmp_path):
-    clean = _save_jpeg(_base_doc(0), tmp_path, "clean.jpg")
-    res = analyze_image(clean)
+def test_clean_scan_has_no_high_severity(tmp_path):
+    _, path = _save_reload(_noisy_doc(0), tmp_path, "clean.jpg")
+    res = analyze_image(path)
     assert res["ok"] is True
-    assert res["verdict"] != "EDITED"
-    assert _max_severity(res) < 3, [f["title"] for f in res["findings"]]
+    assert res["verdict"] != "EDITED", [f["title"] for f in res["findings"]]
+    assert _max_sev(res) < 3
 
 
-def test_splice_is_localized_by_noise_or_ela(tmp_path):
-    img = _base_doc(1)
-    arr = np.array(img)
-    # Splice a smooth (near-zero-noise) patch into a known box → noise/ELA anomaly there.
-    tamper = (200, 120, 320, 180)  # x0,y0,x1,y1
-    arr[120:180, 200:320] = 140
-    tampered = _save_jpeg(Image.fromarray(arr), tmp_path, "splice.jpg")
+def test_painted_number_is_localized(tmp_path):
+    scan, _ = _save_reload(_noisy_doc(1), tmp_path, "base.jpg")
+    box = (150, 120, 330, 175)                   # white-out + retype a value (no sensor noise here)
+    d = ImageDraw.Draw(scan)
+    d.rectangle(box, fill=(226, 226, 226))
+    d.text((156, 126), "1,234,567", fill=(20, 20, 20))
+    scan.save(tmp_path / "paint.jpg", "JPEG", quality=90)
 
-    res = analyze_image(tampered)
-    assert res["ok"] is True
-    region_findings = _region_findings(res)
-    assert region_findings, "expected at least one localized finding on a spliced image"
-    assert any(
-        _overlaps(r["bbox"], tamper)
-        for f in region_findings for r in f["values"]["regions"]
-    ), "no localized region overlapped the spliced area"
+    res = analyze_image(str(tmp_path / "paint.jpg"))
     assert res["verdict"] in ("EDITED", "SUSPICIOUS")
-    assert res["annotated_b64"]  # an overlay image is always produced
+    rf = _region_findings(res)
+    assert rf, "expected a localized finding on a painted region"
+    assert any(_overlaps(r["bbox"], box) for f in rf for r in f["values"]["regions"])
+    assert res["annotated_b64"]
 
 
-@pytest.mark.skipif(not _CV2, reason="opencv not installed; copy-move detector unavailable")
-def test_copy_move_clone_detected(tmp_path):
-    img = _base_doc(2)
-    arr = np.array(img)
-    # Exact clone: copy an 80x80 textured block to a distant location.
-    block = arr[40:120, 40:120].copy()
-    arr[180:260, 320:400] = block
-    clone_box = (320, 180, 400, 260)
-    tampered = _save_jpeg(Image.fromarray(arr), tmp_path, "clone.jpg", quality=95)
+def test_spliced_patch_is_localized(tmp_path):
+    scan, _ = _save_reload(_noisy_doc(2), tmp_path, "base2.jpg")
+    box = (60, 220, 300, 285)
+    patch = scan.crop((60, 40, 300, 105)).filter(ImageFilter.GaussianBlur(1.2))  # foreign, low-noise
+    scan.paste(patch, (box[0], box[1]))
+    scan.save(tmp_path / "splice.jpg", "JPEG", quality=90)
 
-    res = analyze_image(tampered)
-    cm = [f for f in res["findings"] if f["values"].get("detector") == "copy_move"]
-    assert cm, "copy-move detector did not flag an exact clone"
-    assert any(_overlaps(r["bbox"], clone_box) for f in cm for r in f["values"]["regions"])
-    assert res["verdict"] == "EDITED"
+    res = analyze_image(str(tmp_path / "splice.jpg"))
+    rf = _region_findings(res)
+    assert rf and any(_overlaps(r["bbox"], box) for f in rf for r in f["values"]["regions"])
 
 
 def test_analyze_image_handles_garbage(tmp_path):

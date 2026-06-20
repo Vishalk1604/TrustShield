@@ -346,3 +346,32 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
 - **Frontend reverted to the single-page investigator console** (§10 decision; the §8/§9 multi-page app
   is retired to git `66d9165`, recoverable). *Why:* the judges want a simple "upload → see what's edited"
   view, not an auth/role product; the §9 KYC/underwriting **backend** stays for depth.
+
+## Hackathon sprint §10 — Day 2: tamper-image dataset + detector robustness (2026-06-20)
+
+- **Synthetic clean docs need a realistic SCAN baseline.** Vector-clean PDF renders are noise-free, so a
+  synthetic "edit" leaves no forensic trace and nothing is detectable. `build_image_dataset._simulate_scan`
+  adds a lighting gradient + optical blur + a **sensor-noise floor (σ≈12 pre-JPEG → ~4 after)** so that an
+  edited region, which lacks that noise, becomes detectable. This mirrors how DocTamper-style datasets are
+  built and is the honest way to demonstrate the detectors.
+- **Noise must be estimated on FLAT pixels, not raw high-pass residual.** Text/line edges produce a huge
+  residual unrelated to sensor noise; flagging "high-residual" blocks lit up every line of text (100%
+  false positives on clean documents). `_block_noise_sigma` keeps only low-gradient (flat) pixels and
+  takes their residual std → a true local noise floor. We then flag regions whose noise drops below
+  ~50% of the page floor (paint/splice/recompress destroy the noise). Result: **zero false positives on
+  clean documents** while catching the realistic edits.
+- **Copy-move is corroboration-only on documents.** Repeated glyphs/amounts are pixel-identical, so
+  ORB+NCC (even with a noise-residual cross-check, which text-edge structure defeats on tiny patches)
+  cannot reliably tell a clone from legitimately-repeated text. Rather than ship false positives, a clone
+  is reported only where it overlaps a noise/ELA region; robust clone detection on dense text is the job
+  of the learned DocTamper model (Day 3). Documented as a known limitation in the eval summary.
+- **Measure everything; store the results.** `scripts/eval_image_forensics.py` writes
+  `results/image_forensics/` (metrics.json + summary.md + sample overlays) — committed as the durable
+  showcase. The image dataset itself (`data/synthetic/images/`) is gitignored and regenerated
+  deterministically. Headline: detection precision 1.0 / recall 0.73; localization IoU 0.84–0.86 on
+  paint/splice.
+- **Dashboard source is bind-mounted** (`docker-compose` volumes + Vite `usePolling`). *Why:* the dashboard
+  image bakes its code (`COPY . .`), so a frontend change needs a rebuild — which twice left a stale UI in
+  the running container. Mounting `src/`, `public/`, `index.html` makes edits hot-reload; node_modules
+  stays in the image. The new **image edit-detection panel** (overlay + ELA heatmap) lives on the
+  single-page console with curated synthetic examples under `public/examples/`.

@@ -1,0 +1,47 @@
+{
+  "dataset": {
+    "n_clean": 12,
+    "n_tampered": 48,
+    "dpi": 150,
+    "jpeg_quality": 90,
+    "seed": 7
+  },
+  "detection": {
+    "precision": 1.0,
+    "recall": 0.729,
+    "f1": 0.843,
+    "accuracy": 0.783,
+    "confusion": {
+      "tp": 35,
+      "fp": 0,
+      "tn": 12,
+      "fn": 13
+    }
+  },
+  "localization": {
+    "hit_rate": 0.729,
+    "mean_iou": 0.472,
+    "by_tamper_type": {
+      "copy_move": {
+        "n": 12,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "number_edit": {
+        "n": 12,
+        "localization_hit_rate": 1.0,
+        "mean_iou": 0.841
+      },
+      "recompress": {
+        "n": 12,
+        "localization_hit_rate": 0.917,
+        "mean_iou": 0.189
+      },
+      "splice": {
+        "n": 12,
+        "localization_hit_rate": 1.0,
+        "mean_iou": 0.86
+      }
+    }
+  }
+}

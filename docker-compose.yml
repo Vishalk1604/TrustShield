@@ -65,6 +65,12 @@ services:
     image: trustshield-dashboard
     ports:
       - "5173:5173"
+    volumes:
+      # Bind-mount the source so edits hot-reload in the container (no rebuild needed). node_modules
+      # stays in the image (not mounted). Vite polls for changes (see vite.config.js usePolling).
+      - ./services/dashboard/src:/app/src
+      - ./services/dashboard/public:/app/public
+      - ./services/dashboard/index.html:/app/index.html
     depends_on:
       - forensics
       - risk

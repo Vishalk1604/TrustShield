@@ -8,5 +8,8 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
+    // Docker bind-mounts on Windows/macOS don't deliver inotify events, so poll for changes.
+    // This lets edits to src/ hot-reload in the container without an image rebuild.
+    watch: { usePolling: true, interval: 300 },
   },
 });

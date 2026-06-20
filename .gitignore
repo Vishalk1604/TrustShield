@@ -50,6 +50,11 @@ services/risk/case_store/
 # NOTE: data/synthetic/packets/*.pdf ARE committed on purpose (tiny, synthetic, zero PII) so a
 # fresh clone demos with no setup. The generator is deterministic, so they can also be regenerated.
 
+# §10 Day 2: the rasterized clean/tampered IMAGE dataset (+ masks) for the image-forensics eval is
+# regenerated on demand (python -m data.generator.build_image_dataset) — not committed. The committed
+# eval RESULTS (results/image_forensics/) + a few curated demo examples are the durable artifacts.
+data/synthetic/images/
+
 # data/real/ holds REAL, PII-bearing documents used ONLY for local validation of the real-document
 # pipeline. NEVER commit them. data/real/.gitignore keeps just the folder structure + README.
 # (Belt-and-suspenders: also ignored here at the repo root.)

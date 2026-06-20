@@ -59,12 +59,20 @@ BLOCK = 16                 # px block size for ELA / noise block statistics
 MAD_K = 6.0                # robust threshold = median + MAD_K · 1.4826 · MAD
 ELA_ABS_FLOOR = 14.0       # min mean block ELA energy (0–255) to consider at all
 ELA_MIN_BLOCKS = 3         # min contiguous flagged blocks to form an ELA region
-NOISE_ABS_FLOOR = 1.5      # min residual-std deviation to consider
-NOISE_MIN_BLOCKS = 4
-COPYMOVE_FEATURES = 4000   # ORB keypoint budget
-COPYMOVE_MIN_OFFSET = 24   # px; ignore matches within the same neighbourhood
-COPYMOVE_MIN_MATCHES = 8   # min consistent-offset matches to call a clone
-COPYMOVE_NCC = 0.90        # pixel cross-correlation to confirm a clone (rejects repeated glyphs)
+# Noise is estimated on FLAT (non-text) pixels so text edges aren't mistaken for noise; a tampered
+# region (painted/pasted/recompressed) loses the page's sensor-noise floor → its block noise drops.
+NOISE_FLAT_GRAD = 6.0      # local gradient below this = a flat (non-edge) pixel
+NOISE_MIN_FLAT_FRAC = 0.22 # a block needs this fraction of flat pixels to get a noise estimate
+NOISE_MIN_FLOOR = 2.2      # page noise σ below this = too clean to detect a "lost noise" edit
+NOISE_LOW_FRAC = 0.50      # a block whose noise is < 50% of the page floor is suspicious
+NOISE_MIN_BLOCKS = 5       # min contiguous low-noise blocks to form a region
+COPYMOVE_FEATURES = 5000   # ORB keypoint budget
+COPYMOVE_MIN_OFFSET = 30   # px; ignore matches within the same neighbourhood
+COPYMOVE_MIN_MATCHES = 10  # min consistent-offset matches to call a clone
+COPYMOVE_NCC = 0.92        # CONTENT cross-correlation of the two patches
+COPYMOVE_NOISE_NCC = 0.30  # NOISE-residual correlation: a literal copy duplicates the sensor noise,
+                           # whereas independently-scanned repeated glyphs do not — the key gate
+COPYMOVE_MAX_CLUSTER_FRAC = 0.06  # src/dst keypoint clusters must be COMPACT (rejects repeated text)
 JPEG_GHOST_QUALITIES = (55, 65, 75, 85, 95)
 MAX_DIM = 2000             # downscale very large uploads before analysis (speed; px on long side)
 
@@ -175,31 +183,50 @@ def _ela_regions(energy: np.ndarray) -> tuple[list[Region], np.ndarray]:
     return regions, bm
 
 
-# ── 2. noise residual ──────────────────────────────────────────────────────────────
+# ── 2. noise inconsistency (flat-pixel sensor-noise estimate) ────────────────────────
 
-def _noise_residual(img: Image.Image) -> np.ndarray:
-    gray = img.convert("L")
-    med = gray.filter(ImageFilter.MedianFilter(3))
-    return np.abs(np.asarray(gray, dtype=np.float32) - np.asarray(med, dtype=np.float32))
+def _block_noise_sigma(img: Image.Image) -> np.ndarray:
+    """Per-block sensor-noise σ estimated over FLAT (non-edge) pixels only.
 
+    Text/line edges produce a huge high-pass residual that has nothing to do with sensor noise,
+    so naively flagging "high-residual" blocks lights up every line of text. Instead we high-pass
+    the image, keep only low-gradient (flat) pixels, and take their residual std per block — a
+    genuine estimate of the local noise floor. Blocks without enough flat pixels return NaN.
+    """
+    gray = np.asarray(img.convert("L"), dtype=np.float32)
+    blur = np.asarray(img.convert("L").filter(ImageFilter.GaussianBlur(1.0)), dtype=np.float32)
+    residual = gray - blur
+    gyy, gxx = np.gradient(blur)
+    flat = np.hypot(gxx, gyy) < NOISE_FLAT_GRAD
 
-def _noise_regions(residual: np.ndarray) -> list[Region]:
-    # Per-block local noise level (std of the high-pass residual).
-    h, w = residual.shape
+    h, w = gray.shape
     gh, gw = h // BLOCK, w // BLOCK
-    if gh == 0 or gw == 0:
+    sigma = np.full((gh, gw), np.nan, dtype=np.float32)
+    need = int(NOISE_MIN_FLAT_FRAC * BLOCK * BLOCK)
+    for i in range(gh):
+        for j in range(gw):
+            ys, xs = i * BLOCK, j * BLOCK
+            fblk = flat[ys:ys + BLOCK, xs:xs + BLOCK]
+            if int(fblk.sum()) >= need:
+                sigma[i, j] = residual[ys:ys + BLOCK, xs:xs + BLOCK][fblk].std()
+    return sigma
+
+
+def _noise_regions(img: Image.Image) -> list[Region]:
+    sigma = _block_noise_sigma(img)
+    valid = ~np.isnan(sigma)
+    if int(valid.sum()) < 8:
         return []
-    r = residual[: gh * BLOCK, : gw * BLOCK].reshape(gh, BLOCK, gw, BLOCK)
-    block_std = r.std(axis=(1, 3))
-    med = float(np.median(block_std))
-    dev = np.abs(block_std - med)                 # deviation either way = inconsistent noise
-    thr = max(_robust_threshold(dev), NOISE_ABS_FLOOR)
-    mask = dev > thr
-    span = float(dev.max() - thr) or 1.0
+    g = float(np.median(sigma[valid]))
+    if g < NOISE_MIN_FLOOR:  # essentially noise-free (pure digital render) → can't detect lost noise
+        return []
+    low_thr = g * NOISE_LOW_FRAC                    # blocks well below the page's noise floor
+    mask = valid & (sigma < low_thr)
     regions: list[Region] = []
+    span = float(low_thr) or 1.0
     for cells in _components(mask, NOISE_MIN_BLOCKS):
-        region_dev = float(np.mean([dev[y, x] for y, x in cells]))
-        strength = max(0.0, min(1.0, (region_dev - thr) / span))
+        region_sigma = float(np.mean([sigma[y, x] for y, x in cells]))
+        strength = max(0.0, min(1.0, (low_thr - region_sigma) / span))
         regions.append(Region(_cells_to_bbox(cells), "noise", round(strength, 3)))
     return regions
 
@@ -233,6 +260,7 @@ def _copy_move_regions(img: Image.Image) -> list[Region]:
                 (int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
             )
 
+    img_area = float(gray.shape[0] * gray.shape[1])
     regions: list[Region] = []
     for pairs in offset_bins.values():
         if len(pairs) < COPYMOVE_MIN_MATCHES:
@@ -240,26 +268,49 @@ def _copy_move_regions(img: Image.Image) -> list[Region]:
         verified = [p for p in pairs if _ncc_ok(gray, p)]
         if len(verified) < COPYMOVE_MIN_MATCHES:
             continue
-        xs = [p[0] for p in verified] + [p[2] for p in verified]
-        ys = [p[1] for p in verified] + [p[3] for p in verified]
-        bbox = (min(xs) - BLOCK, min(ys) - BLOCK, max(xs) + BLOCK, max(ys) + BLOCK)
+        # Compactness gate: a real clone moves a CONTIGUOUS region, so the source keypoints form a
+        # tight cluster and so do the destinations. Repeated body text produces the same dominant
+        # offset but with points scattered across the whole page — reject those (large clusters).
+        sx = [p[0] for p in verified]; sy = [p[1] for p in verified]
+        dx_ = [p[2] for p in verified]; dy_ = [p[3] for p in verified]
+        src_area = (max(sx) - min(sx)) * (max(sy) - min(sy))
+        dst_area = (max(dx_) - min(dx_)) * (max(dy_) - min(dy_))
+        if src_area > COPYMOVE_MAX_CLUSTER_FRAC * img_area or \
+           dst_area > COPYMOVE_MAX_CLUSTER_FRAC * img_area:
+            continue
+        bbox = (min(dx_) - BLOCK, min(dy_) - BLOCK, max(dx_) + BLOCK, max(dy_) + BLOCK)
         strength = min(1.0, len(verified) / float(3 * COPYMOVE_MIN_MATCHES))
         regions.append(Region(_clamp_bbox(bbox, gray.shape), "copy_move", round(strength, 3)))
     return regions
 
 
+def _ncc(a: np.ndarray, b: np.ndarray) -> float:
+    a = a - a.mean()
+    b = b - b.mean()
+    denom = (np.sqrt((a * a).sum()) * np.sqrt((b * b).sum())) + 1e-6
+    return float((a * b).sum() / denom)
+
+
 def _ncc_ok(gray: np.ndarray, pair: tuple[int, int, int, int], win: int = 12) -> bool:
-    """Confirm a clone candidate by normalized cross-correlation of the two pixel patches."""
+    """Confirm a clone candidate. A true copy-move duplicates pixels *and the sensor noise*, so we
+    require BOTH the content AND the high-pass noise residual of the two patches to correlate.
+    Repeated-but-independently-scanned glyphs match on content but NOT on noise → rejected."""
     x1, y1, x2, y2 = pair
     h, w = gray.shape
     if not (win <= x1 < w - win and win <= y1 < h - win and win <= x2 < w - win and win <= y2 < h - win):
         return False
     a = gray[y1 - win:y1 + win, x1 - win:x1 + win].astype(np.float32)
     b = gray[y2 - win:y2 + win, x2 - win:x2 + win].astype(np.float32)
-    a -= a.mean()
-    b -= b.mean()
-    denom = (np.sqrt((a * a).sum()) * np.sqrt((b * b).sum())) + 1e-6
-    return float((a * b).sum() / denom) >= COPYMOVE_NCC
+    if _ncc(a, b) < COPYMOVE_NCC:
+        return False
+    if _CV2:
+        # Isolate sensor NOISE with an edge-preserving (bilateral) filter: residual = image minus
+        # its edge-preserved denoise ≈ noise only (text edges cancel). A literal pixel copy shares
+        # this noise (high NCC); independently-scanned repeated glyphs do not (low NCC).
+        ra = a - cv2.bilateralFilter(a, 5, 40, 5)
+        rb = b - cv2.bilateralFilter(b, 5, 40, 5)
+        return _ncc(ra, rb) >= COPYMOVE_NOISE_NCC
+    return True
 
 
 def _clamp_bbox(b, shape) -> tuple[int, int, int, int]:
@@ -394,7 +445,7 @@ def analyze_image(path: str) -> dict:
 
     noise_regions: list[Region] = []
     try:
-        noise_regions = _noise_regions(_noise_residual(img))
+        noise_regions = _noise_regions(img)
         signals["noise"] = {"regions": len(noise_regions)}
     except Exception as exc:  # pragma: no cover
         signals["noise_error"] = str(exc)
@@ -422,43 +473,50 @@ def analyze_image(path: str) -> dict:
 
     drawn: list[tuple[tuple, str]] = []  # (bbox, severity) for the overlay
 
-    # Copy-move: a verified clone is unambiguous → HIGH on its own.
-    for r in cm_regions:
+    # NOISE-LOSS is the primary, reliable detector on documents: a painted/pasted/recompressed
+    # region loses the page's sensor-noise floor. (Text edges are excluded from the estimate, so
+    # clean documents do not fire.) ELA corroboration escalates.
+    for n in noise_regions:
+        corroborated = any(_overlap(n.bbox, e.bbox) for e in ela_regions)
+        sev = "high" if (n.strength >= 0.5 or corroborated) else "medium"
+        extra = (" Error-Level Analysis agrees on this region, so two independent signals concur."
+                 if corroborated else "")
         findings.append(_finding(
-            "high", "Cloned / copy-pasted region",
-            "A region of this image is a pixel-for-pixel duplicate of another region (verified by "
-            "cross-correlation). Cloning is used to cover an original value with a copy of "
-            "nearby content — a deliberate edit.",
-            {"detector": "copy_move", "strength": r.strength}, confidence=0.85, regions=[r.bbox]))
-        drawn.append((r.bbox, "high"))
+            sev, "Region lost the page's noise pattern (likely edited)",
+            "This region no longer carries the document's sensor/scan noise — the hallmark of "
+            "content that was painted over, pasted in, or re-compressed after the original scan."
+            + extra,
+            {"detector": "noise", "strength": n.strength, "corroborated": corroborated},
+            confidence=0.7 if corroborated else 0.6, regions=[n.bbox]))
+        drawn.append((n.bbox, sev))
 
-    # ELA + noise: corroboration escalates; a lone signal stays measured.
+    # ELA regions not already covered by a noise finding.
     for r in ela_regions:
-        corroborated = any(_overlap(r.bbox, n.bbox) for n in noise_regions)
-        strength = min(1.0, r.strength + (0.3 if corroborated else 0.0))
-        sev = "high" if corroborated else _severity_for(strength)
-        why = (" Its noise signature also differs from the surrounding page, so two independent "
-               "signals agree this area was altered.") if corroborated else ""
+        if any(_overlap(r.bbox, n.bbox) for n in noise_regions):
+            continue
+        sev = _severity_for(r.strength)
         findings.append(_finding(
             sev, "Inconsistent compression (possible edit)",
             "Error-Level Analysis shows this region compresses at a different level than the rest "
-            "of the document — typical of content pasted or repainted after the original was "
-            f"created.{why}",
-            {"detector": "ela", "strength": round(strength, 3), "corroborated": corroborated},
-            confidence=0.75 if corroborated else 0.6, regions=[r.bbox]))
+            "of the document — typical of content pasted or repainted after the original was created.",
+            {"detector": "ela", "strength": round(r.strength, 3)},
+            confidence=0.6, regions=[r.bbox]))
         drawn.append((r.bbox, sev))
 
-    # Noise regions not already covered by an ELA finding.
-    for n in noise_regions:
-        if any(_overlap(n.bbox, e.bbox) for e in ela_regions):
+    # COPY-MOVE is corroboration-only: dense document text (repeated glyphs / amounts) makes
+    # standalone clone detection unreliable, so we report a clone ONLY where it overlaps a
+    # noise/ELA region. (Robust clone detection on text is the learned DocTamper model — Day 3.)
+    primary = noise_regions + ela_regions
+    for r in cm_regions:
+        if not any(_overlap(r.bbox, p.bbox) for p in primary):
             continue
-        sev = _severity_for(n.strength) if n.strength >= 0.33 else "low"
         findings.append(_finding(
-            sev, "Inconsistent noise pattern",
-            "The sensor/scan noise in this region differs from the rest of the document — content "
-            "spliced from another source carries a different noise fingerprint.",
-            {"detector": "noise", "strength": n.strength}, confidence=0.55, regions=[n.bbox]))
-        drawn.append((n.bbox, sev))
+            "high", "Cloned / copy-pasted region",
+            "A region here duplicates another region of the page (verified by content + noise "
+            "cross-correlation) and coincides with an edit signal — content cloned to cover an "
+            "original value.",
+            {"detector": "copy_move", "strength": r.strength}, confidence=0.8, regions=[r.bbox]))
+        drawn.append((r.bbox, "high"))
 
     # JPEG-ghost corroborates an ELA/noise region; on its own it is only an INFO hint.
     for g in ghost_regions:
