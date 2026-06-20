@@ -375,3 +375,30 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   the running container. Mounting `src/`, `public/`, `index.html` makes edits hot-reload; node_modules
   stays in the image. The new **image edit-detection panel** (overlay + ELA heatmap) lives on the
   single-page console with curated synthetic examples under `public/examples/`.
+
+## Hackathon sprint §10 — Day 3: digital paint-over + DocTamper status (2026-06-20)
+
+- **Heuristics catch scanned/photo edits, NOT pristine-digital edits — by nature.** Real feedback: a PAN
+  edited in a drawing app (flat paint over the number) returned CLEAN. Root cause: the noise-loss and
+  ELA detectors rely on a sensor-noise floor / JPEG history that a pristine digital image (e-PAN
+  screenshot, vector render, PNG export) does not have. Confirmed by reproduction: `photo+paint` is
+  caught (g=3.04 -> EDITED); `digital+paint` (g=0) is not. This is a real, honest limitation of trace-
+  based forensics, and motivates the learned model.
+- **New flat-fill (paint-over) detector** (`_flat_fill_regions`). A deliberate cover-up is an
+  unnaturally uniform colour rectangle whose shade differs from the paper. We flag SOLID blocks
+  (std < 4) that are mid-tone (exclude near-black text/lines and near-white paper) and differ from the
+  page-background mean by > 12 gray levels, clustered. Reported MEDIUM standalone (a fill can be a legit
+  form field), HIGH when corroborated. Validated: catches the digital paint-over (PNG + JPG) while the
+  synthetic eval's clean precision **stays 1.0** (zero new false positives). For the live demo, a
+  photo/scan of a document is the strongest case; a pristine digital edit relies on flat-fill or the
+  learned model.
+- **DocTamper ships NO weights.** Inspection: the repo has the model code + `pks/*.pk` per-image JPEG
+  **quantisation tables** (dicts of 2k-30k entries), but no `.pth/.pt/.ckpt`. The trained DTD checkpoint
+  is gated (request from the authors with an education email, like the dataset). So DTD inference is not
+  runnable from what is on disk. `ingest/doctamper.py` is the **seam**: `available()` is False until a
+  checkpoint is placed under `models/doctamper/weights/` (+ torch); `localize()` returns None and the
+  heuristics stay live; `status()` is surfaced in every analysis (`signals.learned_model`) for honesty.
+  registry.json + REGISTRY.md corrected (previously, incorrectly, said the `.pk` files were checkpoints).
+- **No torch in the runtime.** The DTD seam keeps torch out of the slim forensics image; the learned
+  model would run on the Person-2 GPU machine once weights are obtained. Heuristics remain the
+  guaranteed local path.

@@ -302,9 +302,29 @@ Turned the detectors into a *measured* capability and made them robust on real d
 deferred (0, by design). **Live container smoke:** clean example → CLEAN/100, edited-number → EDITED/0
 localized, splice → EDITED/15. `pytest` → **184 passed**; `verify_local_only` passes; build clean.
 
+### Hackathon sprint (plan §10) — Day 3: digital paint-over detector + DocTamper seam ✅
+Triggered by real feedback: a PAN edited in a drawing app (flat paint over the number) came back CLEAN.
+Diagnosed: the noise/ELA detectors need a sensor-noise/JPEG trace — a **pristine digital** edit has
+none. (A **photographed** edit *is* caught — verified: photo+paint → EDITED.)
+- **`image_forensics._flat_fill_regions`** (NEW detector) — flags a **solid mid-tone colour fill**
+  embedded in the document (excludes near-black text/lines + near-white paper, ignores textured
+  photos/logos). Catches the Sketchbook-style paint-over on clean/PNG images that the noise/ELA
+  detectors miss. MEDIUM on its own (a fill *can* be a legit field), HIGH when corroborated.
+- **`services/forensics/app/ingest/doctamper.py`** (NEW seam) — the learned DTD model is the deeper
+  fix for digital edits, but **DocTamper ships code + JPEG quant tables, NOT trained weights** (gated —
+  the `pks/*.pk` are quantisation dicts, not a checkpoint). The adapter reports UNAVAILABLE and the
+  heuristics stay live; dropping a `.pth` under `models/doctamper/weights/` (+ torch) auto-enables it.
+  Status is surfaced in every analysis (`signals.learned_model`). Registry/REGISTRY.md corrected.
+- Dashboard: added a **"Digital paint-over"** example (the user's case) to the image panel.
+- 2 new tests (digital paint-over caught; clean digital not flagged).
+
+**Verified:** reproduction (clean digital PAN + flat paint, PNG **and** JPG) → now **EDITED + localized**;
+clean digital → **CLEAN** (no false positive); **eval precision stays 1.0** (the new detector adds zero
+clean false positives). Live container smoke: digital paint-over → EDITED/15. `pytest` → **186 passed**.
+
 ---
 
 ## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app
-## + real-document KYC & underwriting (§9) + §10 Day 1–2 image-pixel forensics + eval. 🎉
+## + real-document KYC & underwriting (§9) + §10 Day 1–3 image-pixel forensics + eval. 🎉
 Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Run: `docker compose up -d --build`
 → console at http://localhost:5173; image edit-detection at `POST :8001/forensics/analyze-image`.

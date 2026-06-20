@@ -35,15 +35,20 @@ data/reference/funsd/                 tiny FUNSD parquet (KV reference)   ← no
 | Asset | Status | Live now? | Fallback when absent |
 |---|---|---|---|
 | `layoutlmv3-base` | present | no (seam) | heuristic classifier + regex extractors |
-| `doctamper/code` (+ checkpoints) | present | no (seam) | PDF-structure forensics + re-OCR |
+| `doctamper/code` (model source + quant tables) | present | no (seam) | heuristic image forensics |
+| `doctamper/weights` (trained DTD `.pth`) | **absent (gated)** | no | heuristic image forensics — drop a checkpoint here + torch to enable |
 | `doctamper/data` (LMDB) | present | n/a (training only) | — |
 | `paddleocr/src` | present | no | Tesseract |
 | `paddleocr/weights` | **absent** | no | Tesseract |
 | `funsd` (in `data/reference/`) | present | n/a (reference) | — |
 
 ## Notes
-- **torchvision backbone not required** — DocTamper ships its own Swin backbone + pretrained `.pk`
-  checkpoints. No separate download.
+- **DocTamper ships code, NOT weights.** The `pks/*.pk` files are per-image JPEG **quantisation
+  tables** (dicts of 2k–30k entries), not a trained model. The DTD checkpoint is gated — request it
+  from the authors (education email) like the dataset, then place it under `doctamper/weights/`. The
+  seam (`services/forensics/app/ingest/doctamper.py`) enables the learned model automatically when a
+  checkpoint + torch are present; until then the heuristics in `image_forensics.py` are the live path.
+- **torchvision backbone not required** — the DTD model brings its own Swin backbone definition.
 - **DocTamper dataset is on disk in LMDB form**; the gated password was only needed to obtain it.
   Reading it needs the `lmdb` Python lib (a Person-2 / training-time dependency, not a runtime one).
 - Enabling the deep models (loading LayoutLMv3 / the forgery CNN into the live pipeline) is the

@@ -153,6 +153,7 @@ const IMG_EXAMPLES = [
   { label: "Clean Form 16", path: "examples/clean_form16.jpg" },
   { label: "Edited number", path: "examples/edited_number_form16.jpg" },
   { label: "Spliced patch", path: "examples/spliced_form16.jpg" },
+  { label: "Digital paint-over", path: "examples/digital_paintover_id.png" },
 ];
 const panelCard = { background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12, padding: 18 };
 const exampleBtn = { cursor: "pointer", background: "#1e293b", border: "1px solid #334155", color: "#cbd5e1", borderRadius: 8, padding: "7px 12px", fontSize: 13 };

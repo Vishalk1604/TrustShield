@@ -17,14 +17,26 @@
     {
       "name": "doctamper-code",
       "path": "doctamper/code",
-      "kind": "repo+checkpoints",
-      "use": "image-forgery detector (DTD/Swin) — ships its own backbone + trained .pk checkpoints in pks/",
+      "kind": "repo",
+      "use": "image-forgery detector (DTD/Swin) source + per-image JPEG quant tables (pks/*.pk). NOTE: the pks/ files are quantization dicts, NOT trained weights.",
       "source_url": "https://github.com/qcf-568/DocTamper",
       "license": "non-commercial (research)",
       "size_approx": "8MB",
       "status": "present",
       "live": false,
-      "fallback": "PDF-structure forensics + re-OCR cross-check (forensics analyzer.py)"
+      "fallback": "heuristic image forensics (image_forensics.py): noise-loss + ELA + flat-fill + copy-move"
+    },
+    {
+      "name": "doctamper-weights",
+      "path": "doctamper/weights",
+      "kind": "weights",
+      "use": "trained DTD checkpoint (.pth) for learned tamper-text localization — catches digital edits with no noise/JPEG trace",
+      "source_url": "gated — request from the DocTamper authors (education email), like the dataset",
+      "license": "non-commercial (research)",
+      "size_approx": "~100-350MB",
+      "status": "absent",
+      "live": false,
+      "fallback": "heuristic image forensics; the seam in ingest/doctamper.py enables this automatically once a checkpoint is placed here (+ torch installed)"
     },
     {
       "name": "doctamper-data",

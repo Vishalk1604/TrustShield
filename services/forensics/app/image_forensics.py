@@ -40,6 +40,8 @@ from typing import Optional
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
+from services.forensics.app.ingest import doctamper
+
 try:
     from PIL.ExifTags import TAGS as _EXIF_TAGS
 except Exception:  # pragma: no cover
@@ -73,6 +75,14 @@ COPYMOVE_NCC = 0.92        # CONTENT cross-correlation of the two patches
 COPYMOVE_NOISE_NCC = 0.30  # NOISE-residual correlation: a literal copy duplicates the sensor noise,
                            # whereas independently-scanned repeated glyphs do not — the key gate
 COPYMOVE_MAX_CLUSTER_FRAC = 0.06  # src/dst keypoint clusters must be COMPACT (rejects repeated text)
+# Flat-fill (digital paint-over) detector: catches a solid colour fill drawn over content (e.g. a box
+# painted over a number in a drawing app) — the case the noise/ELA detectors miss on pristine digital
+# images (no sensor noise / no JPEG history). Tuned to ignore black text/lines and white paper.
+FILL_STD_MAX = 4.0         # block grayscale std below this = a 'solid' fill
+FILL_MEAN_LO = 70          # exclude near-black blocks (text / lines / dark seals)
+FILL_MEAN_HI = 242         # exclude near-white blocks (paper background)
+FILL_BG_DELTA = 12         # a fill's mean must differ from the page background by this much
+FILL_MIN_BLOCKS = 6        # min contiguous solid-fill blocks to flag
 JPEG_GHOST_QUALITIES = (55, 65, 75, 85, 95)
 MAX_DIM = 2000             # downscale very large uploads before analysis (speed; px on long side)
 
@@ -228,6 +238,39 @@ def _noise_regions(img: Image.Image) -> list[Region]:
         region_sigma = float(np.mean([sigma[y, x] for y, x in cells]))
         strength = max(0.0, min(1.0, (low_thr - region_sigma) / span))
         regions.append(Region(_cells_to_bbox(cells), "noise", round(strength, 3)))
+    return regions
+
+
+# ── 2b. flat-fill (digital paint-over) ──────────────────────────────────────────────
+
+def _flat_fill_regions(img: Image.Image) -> list[Region]:
+    """Flag a SOLID mid-tone colour fill embedded in the document — a painted-over region.
+
+    Catches the digital edit the noise/ELA detectors can't (a flat fill on a pristine image leaves
+    no sensor-noise/JPEG trace). A genuine paint-over is an unnaturally uniform rectangle whose
+    colour differs from the paper. We exclude near-black (text/lines) and near-white (paper) so we
+    don't flag normal document structure; textured content (photos/logos) isn't 'solid' and is
+    ignored too. Reported at MEDIUM (a flat fill *can* be a legitimate field, so it's a flag, not a
+    verdict)."""
+    gray = np.asarray(img.convert("L"), dtype=np.float32)
+    h, w = gray.shape
+    gh, gw = h // BLOCK, w // BLOCK
+    if gh == 0 or gw == 0:
+        return []
+    blk = gray[: gh * BLOCK, : gw * BLOCK].reshape(gh, BLOCK, gw, BLOCK)
+    mean = blk.mean(axis=(1, 3))
+    std = blk.std(axis=(1, 3))
+    flatish = std < FILL_STD_MAX
+    if int(flatish.sum()) == 0:
+        return []
+    bg = float(np.median(mean[flatish]))                 # dominant flat colour = paper background
+    suspicious = (flatish & (mean > FILL_MEAN_LO) & (mean < FILL_MEAN_HI)
+                  & (np.abs(mean - bg) > FILL_BG_DELTA))
+    regions: list[Region] = []
+    for cells in _components(suspicious, FILL_MIN_BLOCKS):
+        region_mean = float(np.mean([mean[y, x] for y, x in cells]))
+        strength = max(0.0, min(1.0, abs(region_mean - bg) / 60.0))
+        regions.append(Region(_cells_to_bbox(cells), "flat_fill", round(strength, 3)))
     return regions
 
 
@@ -431,6 +474,17 @@ def analyze_image(path: str) -> dict:
     findings: list[dict] = []
     signals: dict = {"format": fmt, "cv2": _CV2}
 
+    # Learned model (DocTamper) — the primary localizer WHEN its gated weights are present locally;
+    # otherwise None and the heuristics below are the live path. Status is always surfaced for honesty.
+    signals["learned_model"] = doctamper.status()
+    dt_regions: list[Region] = []
+    try:
+        dt = doctamper.localize(path)
+        if dt and dt.get("regions"):
+            dt_regions = [Region(tuple(b), "doctamper", 0.9) for b in dt["regions"]]
+    except Exception as exc:  # pragma: no cover
+        signals["learned_model_error"] = str(exc)
+
     # Detectors (each guarded — one failure never sinks the analysis).
     ela_regions: list[Region] = []
     ela_bm = np.zeros((0, 0), dtype=np.float32)
@@ -449,6 +503,13 @@ def analyze_image(path: str) -> dict:
         signals["noise"] = {"regions": len(noise_regions)}
     except Exception as exc:  # pragma: no cover
         signals["noise_error"] = str(exc)
+
+    fill_regions: list[Region] = []
+    try:
+        fill_regions = _flat_fill_regions(img)
+        signals["flat_fill"] = {"regions": len(fill_regions)}
+    except Exception as exc:  # pragma: no cover
+        signals["flat_fill_error"] = str(exc)
 
     cm_regions: list[Region] = []
     try:
@@ -473,6 +534,16 @@ def analyze_image(path: str) -> dict:
 
     drawn: list[tuple[tuple, str]] = []  # (bbox, severity) for the overlay
 
+    # LEARNED MODEL (DocTamper) — strongest signal when available; localizes tampered text directly.
+    for r in dt_regions:
+        findings.append(_finding(
+            "high", "Tampered text (learned model)",
+            "The DocTamper model — trained on 170k tampered documents — localizes this region as "
+            "edited text. The learned detector catches digital edits that leave no noise/compression "
+            "trace.",
+            {"detector": "doctamper", "strength": r.strength}, confidence=0.85, regions=[r.bbox]))
+        drawn.append((r.bbox, "high"))
+
     # NOISE-LOSS is the primary, reliable detector on documents: a painted/pasted/recompressed
     # region loses the page's sensor-noise floor. (Text edges are excluded from the estimate, so
     # clean documents do not fire.) ELA corroboration escalates.
@@ -489,6 +560,21 @@ def analyze_image(path: str) -> dict:
             {"detector": "noise", "strength": n.strength, "corroborated": corroborated},
             confidence=0.7 if corroborated else 0.6, regions=[n.bbox]))
         drawn.append((n.bbox, sev))
+
+    # FLAT-FILL (digital paint-over): a solid colour fill drawn over content. Reported MEDIUM on its
+    # own (could be a legit field), escalated to HIGH where a noise/ELA edit signal also lands.
+    for fr in fill_regions:
+        if any(_overlap(fr.bbox, p.bbox) for p in (noise_regions + ela_regions)):
+            continue  # already described by a stronger edit finding at this spot
+        corroborated = any(_overlap(fr.bbox, c.bbox) for c in cm_regions)
+        sev = "high" if corroborated else "medium"
+        findings.append(_finding(
+            sev, "Uniform fill over content (possible cover-up)",
+            "A solid block of colour sits over part of the document where content would normally be — "
+            "the signature of a region painted/filled over in an editor to hide an original value. "
+            "Unlike the surrounding text, it carries no texture.",
+            {"detector": "flat_fill", "strength": fr.strength}, confidence=0.55, regions=[fr.bbox]))
+        drawn.append((fr.bbox, sev))
 
     # ELA regions not already covered by a noise finding.
     for r in ela_regions:

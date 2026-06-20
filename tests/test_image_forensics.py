@@ -77,6 +77,42 @@ def test_spliced_patch_is_localized(tmp_path):
     assert rf and any(_overlaps(r["bbox"], box) for f in rf for r in f["values"]["regions"])
 
 
+def _digital_doc() -> Image.Image:
+    """A pristine, noise-free digital render (e.g. an e-PAN / PDF screenshot) — the case where the
+    noise/ELA detectors can't fire and only the flat-fill detector can."""
+    a = np.full((360, 520), 250, dtype=np.uint8)         # clean white 'paper', no sensor noise
+    img = Image.fromarray(a, mode="L").convert("RGB")
+    d = ImageDraw.Draw(img)
+    for y in range(40, 320, 38):                          # crisp 'printed' text rows
+        d.text((50, y), "FIELD: " + "X" * 30, fill=(15, 15, 15))
+    return img
+
+
+def test_clean_digital_doc_not_flagged(tmp_path):
+    p = tmp_path / "digital_clean.png"
+    _digital_doc().save(p)
+    res = analyze_image(str(p))
+    assert res["verdict"] == "CLEAN" and len(res["findings"]) == 0
+
+
+def test_digital_paint_over_is_flagged(tmp_path):
+    """A flat colour painted over a value on a pristine digital doc (Sketchbook-style) is caught by
+    the flat-fill detector even with no sensor-noise / JPEG trace."""
+    img = _digital_doc()
+    box = (150, 120, 360, 156)
+    d = ImageDraw.Draw(img)
+    d.rectangle(box, fill=(232, 232, 228))                # paint over, then retype a new value
+    d.text((156, 124), "ABCDE1234F", fill=(20, 20, 20))
+    p = tmp_path / "digital_paint.png"
+    img.save(p)
+
+    res = analyze_image(str(p))
+    assert res["verdict"] in ("EDITED", "SUSPICIOUS")
+    fills = [f for f in res["findings"] if f["values"].get("detector") == "flat_fill"]
+    assert fills, "flat-fill detector did not flag the paint-over"
+    assert any(_overlaps(r["bbox"], box) for f in fills for r in f["values"]["regions"])
+
+
 def test_analyze_image_handles_garbage(tmp_path):
     bad = tmp_path / "notimage.jpg"
     bad.write_bytes(b"this is not an image")
