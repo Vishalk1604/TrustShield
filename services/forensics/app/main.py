@@ -280,6 +280,7 @@ async def ingest_upload(
         raise HTTPException(status_code=400, detail="at least one file is required")
 
     documents: list[dict] = []
+    image_tmps: dict[str, str] = {}  # filename -> temp path, kept for cross-document face matching
     for f in files:
         if not f.filename:
             continue
@@ -288,5 +289,22 @@ async def ingest_upload(
             documents.append({"filename": f.filename, "ok": False, "error": "empty file"})
             continue
         documents.append(_ingest_one(content, f.filename, password))
+        if Path(f.filename).suffix.lower() in _IMAGE_SUFFIXES:
+            with tempfile.NamedTemporaryFile(
+                    suffix=Path(f.filename).suffix.lower(), delete=False) as tmp:
+                tmp.write(content)
+                image_tmps[f.filename] = tmp.name
 
-    return {"documents": documents, "count": len(documents)}
+    # Cross-document face match (identity-swap): same person on every photo ID? No-op without a face lib.
+    out: dict = {"documents": documents, "count": len(documents)}
+    try:
+        from services.forensics.app.ingest.extract import face_match
+
+        face_findings, face_info = face_match.face_check(image_tmps)
+        out["face_match"] = {"info": face_info, "findings": face_findings}
+    except Exception as exc:  # pragma: no cover
+        out["face_match"] = {"info": {"error": str(exc)}, "findings": []}
+    finally:
+        for p in image_tmps.values():
+            Path(p).unlink(missing_ok=True)
+    return out

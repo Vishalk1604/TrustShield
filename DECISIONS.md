@@ -446,3 +446,27 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   median, ≥4 peaks) — real docs' text edges + JPEG 8x8 block grid sit at ~30-37 dB. Conservative by
   design: validated silent on all clean/real/tampered docs (incl. the real PAN photos), fires on screen
   grids. MEDIUM severity. Subtle real-screen recapture is best left to the learned model (honest limit).
+
+## §10 Phases 4–6 — forgery-model seam, train-our-own DTD, face-match (2026-06-21)
+
+- **Generalized forgery-model seam** (`ingest/forgery_model.py`) over the heuristic baseline: backends
+  `dtd | trufor | catnet` selected by `TRUSTSHIELD_FORGERY_BACKEND` (default `dtd`, which delegates to the
+  existing `doctamper.py`). `mask_to_regions()` converts a model's tamper-probability mask into
+  image-space boxes + overlay (pure numpy/PIL/cv2). **torch stays optional** — `available()`/`localize()`
+  return False/None unless a backend's weights + adapter + torch are all local, so the heuristics remain
+  the guaranteed path. Non-DTD backends load a vendored `trustshield_infer.py` adapter that
+  `scripts/setup_forgery_model.py` writes (so the committed repo ships no speculative model code). The
+  setup script reads the clone URL from `registry.json` (not a literal) so `verify_local_only` stays clean.
+- **Train our own DTD weights** (`services/forensics/train_forgery.py`). DocTamper's *training* code is
+  gated, but we hold the dataset (LMDB) + the model def + losses + dataloader → we supply the training
+  loop ourselves and save to `models/doctamper/weights/`, which the `dtd` backend auto-detects. This
+  fills the gated-checkpoint gap with assets we already possess. The existing
+  `scripts/eval_image_forensics.py` scores the uplift automatically (it routes through `analyze_image`).
+- **Face-match across documents** (`ingest/extract/face_match.py`): embed the portrait on each document
+  (insightface ArcFace, or face_recognition) and compare via cosine distance (threshold 0.62, documented);
+  over-threshold → HIGH "face mismatch" (identity swap). Wired into `/forensics/ingest` (multi-doc),
+  behind a seam (no-op without a face lib). The compare logic is pure + tested; embedding needs the lib.
+- **QR decode reality (Phase 3):** the dense PAN-card QR did NOT decode from the real low-res phone photos
+  (pyzbar x1/x2/x3 + OpenCV all returned 0). So QR cross-check is reported gracefully (`qr_found:0`, no
+  finding) and the semantic identifier check remains the catch for those; QR shines on higher-res scans
+  and the signed Aadhaar QR. Honest limitation documented in plan.md §10.

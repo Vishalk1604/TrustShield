@@ -224,6 +224,17 @@ function ImageForensicsPanel() {
               </div>
             );
           })()}
+          {res.signals?.learned_model && (
+            <div style={{ marginTop: 6, fontSize: 12, color: "#64748b" }}>
+              Layers: pixel forensics · recapture · semantic ID check · QR
+              {res.identifier_check?.qr?.qr_found ? " (QR read)" : ""}. Learned model:{" "}
+              <span style={{ color: res.signals.learned_model.available ? "#22c55e" : "#64748b" }}>
+                {res.signals.learned_model.available
+                  ? `active (${res.signals.learned_model.backend})`
+                  : "heuristics only — no model weights loaded"}
+              </span>.
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
             <figure style={figS}>
               <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={imgS} />

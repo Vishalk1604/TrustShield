@@ -351,13 +351,34 @@ clean. `pytest` → **188 passed**.
 - 5 new tests (`tests/test_recapture.py`); `_digital_doc` test helper de-latticed (varied text).
   `pytest` (image+recapture) green; **eval precision stays 1.0**.
 
-### Remaining §10 phases (in progress)
-- Phase 3 QR cross-verification · Phase 4 generalized forgery-model seam · Phase 5 train DTD weights ·
-  Phase 6 face-match · Phase 7 dashboard + verification.
+### §10 Phases 3–7 ✅ (cross-signal + learned-model stack)
+- **Phase 3 — QR cross-verification** (`ingest/extract/qr_codes.py`): decode the card's QR (pyzbar +
+  upscale retry), parse an Aadhaar Secure QR (pyaadhaar, optional, incl. UIDAI signature), cross-check vs
+  the OCR'd printed PAN/Aadhaar → HIGH on mismatch / invalid signature. Wired into `_identifier_check`.
+  **Graceful**: the real PAN cards' QR doesn't decode from a low-res photo (verified) → `qr_found:0`, no
+  false finding; the semantic check still catches the edit. pyzbar + libzbar0 added (graceful no-op). 7 tests.
+- **Phase 4 — generalized forgery-model seam** (`ingest/forgery_model.py`): backends `dtd|trufor|catnet`
+  (env-selected); `dtd` delegates to doctamper; `mask_to_regions()` turns a model mask into boxes.
+  `analyze_image` repointed (default `dtd`, back-compat); torch optional → heuristics stay live.
+  `scripts/setup_forgery_model.py` automates enablement (clone URL read from registry → guard stays clean).
+  registry/REGISTRY add forgery-trufor/catnet. 5 seam tests.
+- **Phase 5 — train our own DTD weights** (`services/forensics/train_forgery.py`, GPU): wires the
+  vendored DTD model + losses + dataloader over the **DocTamper LMDB we hold** → checkpoint to
+  `models/doctamper/weights/` (the seam auto-enables it); fine-tune on the Day-2 synthetic + real
+  `_TAMPERED` sets. `eval_image_forensics.py` already routes through `analyze_image`, so it scores the
+  model uplift automatically once weights exist.
+- **Phase 6 — face-match across documents** (`ingest/extract/face_match.py`): embed each portrait
+  (insightface/ArcFace or face_recognition) + compare → HIGH "face mismatch" (identity swap). Wired into
+  `/forensics/ingest` (multi-doc). Seam: no-op without a face lib. 4 tests (pure compare logic).
+- **Phase 7 — dashboard**: image panel shows the **learned-model status** + layer summary + QR-read note;
+  recapture/QR/face findings render via the evidence cards. `npm run build` clean.
+- **Honest stance:** the learned model + face-match are **seams** (activate when weights/libs are dropped
+  in on the GPU machine); the live, guaranteed-local detection is heuristics + recapture + semantic + QR.
 
 ---
 
-## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app + §9 KYC/
-## underwriting + §10 image-pixel forensics (Days 1–3) + recapture detector. 🎉
+## All phases complete (0–8) + Phase 9 + real-doc ingestion + web app + §9 KYC/underwriting
+## + §10 full edit-detection stack (pixel forensics + recapture + semantic ID + QR + forgery-model seam
+## + face-match). 🎉
 Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Run: `docker compose up -d --build`
 → console at http://localhost:5173; image edit-detection at `POST :8001/forensics/analyze-image`.
