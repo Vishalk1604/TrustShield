@@ -209,8 +209,21 @@ function ImageForensicsPanel() {
         <div style={{ marginTop: 14 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: vc, background: vc + "22", border: `1px solid ${vc}`, borderRadius: 8, padding: "4px 12px" }}>{res.verdict}</span>
-            <span style={{ color: "#94a3b8", fontSize: 13 }}>image trust {Math.round(res.image_trust)}/100 · {name}</span>
+            <span style={{ color: "#94a3b8", fontSize: 13 }}>trust {Math.round(res.image_trust)}/100 · {name}</span>
           </div>
+          {res.identifier_check?.fields?.pan && (() => {
+            const ok = res.identifier_check.kyc?.pan?.valid;
+            const c = ok ? "#22c55e" : "#ef4444";
+            return (
+              <div style={{ marginTop: 8, fontSize: 13, color: "#94a3b8" }}>
+                Document number check —{" "}
+                <span style={{ color: c, fontWeight: 600 }}>
+                  PAN {res.identifier_check.fields.pan}: {ok ? "valid" : "INVALID"}
+                </span>
+                {!ok && res.identifier_check.kyc?.pan?.reason ? ` (${res.identifier_check.kyc.pan.reason})` : ""}
+              </div>
+            );
+          })()}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
             <figure style={figS}>
               <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={imgS} />

@@ -412,3 +412,22 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   off and rely on noise-loss (real photos carry sensor noise an edit destroys) + the learned model.
   Validated: colored card → CLEAN; white-paper digital paint still caught; synthetic eval precision
   stays 1.0. Honest scope: flat-fill = white-paper documents; ID-card edits = noise-loss / DocTamper.
+
+## §10 Day 3 follow-up: semantic identifier check on real ID photos (2026-06-20)
+
+- **Real PAN cards exposed the limit of pixel forensics — and the value of the layered design.** Two
+  photographed PAN cards (one with the trailing PAN letter painted out) were both denoised by the phone
+  (`page_noise g~0.3`) and colour-backgrounded (`white_frac 0`), so EVERY pixel detector correctly stays
+  silent (no false positives) but also can't see the edit. The edit is still obvious semantically: the
+  edited PAN `PATPK4316` is 9 chars, not a valid PAN.
+- **`/forensics/analyze-image` now runs a SEMANTIC identifier check** alongside pixel forensics: OCR the
+  image, extract any PAN/Aadhaar, validate it (`validate_pan` / Verhoeff), and emit a HIGH `semantic`
+  finding when an ID number is invalid. Verdict/trust are recomputed over the merged findings
+  (`image_forensics.compute_verdict`, factored out for reuse). Result on the real cards: original ->
+  CLEAN (PAN valid), edited -> EDITED (PAN invalid). This is the honest, robust catch for ID-card edits
+  that leave no pixel trace — and a clean demo of why authenticity is multi-layer, not pixels-only.
+- **`extract_pan` now captures a malformed PAN** (final letter optional) so a tampered card whose PAN
+  lost/gained a character is captured and then *fails* validation, instead of being silently dropped.
+- **Honest scope, stated for the demo:** photo/scan edits that disturb sensor noise -> noise-loss;
+  white-paper digital paint -> flat-fill; ID-number value edits -> semantic identifier check; subtle
+  pristine-pixel edits -> the learned DocTamper model (gated weights). No single layer is sufficient.

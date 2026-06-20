@@ -118,3 +118,23 @@ def test_analyze_image_handles_garbage(tmp_path):
     bad.write_bytes(b"this is not an image")
     res = analyze_image(str(bad))
     assert res["ok"] is False and res["findings"] == []
+
+
+def test_compute_verdict_levels():
+    from services.forensics.app.image_forensics import compute_verdict
+    assert compute_verdict([])[0] == "CLEAN"
+    v, t = compute_verdict([{"severity": "high", "values": {}}])
+    assert v == "EDITED" and t < 30
+    assert compute_verdict([{"severity": "medium", "values": {}}])[0] == "SUSPICIOUS"
+
+
+def test_tampered_pan_number_is_captured_and_flagged():
+    """A PAN whose trailing letter was painted out is captured and flagged invalid — the semantic
+    catch behind /forensics/analyze-image's identifier check (works when pixels can't see the edit)."""
+    from services.forensics.app.ingest.extract.pan import extract_pan
+    from services.forensics.app.ingest.normalize import validate_pan
+    edited = extract_pan("Permanent Account Number Card\nPATPK4316\nName VISHAL KARUN")
+    assert edited["pan"] == "PATPK4316"                       # malformed PAN is captured…
+    assert validate_pan(edited["pan"])["valid"] is False      # …and flagged invalid
+    genuine = extract_pan("PATPK4316K")
+    assert genuine["pan"] == "PATPK4316K" and validate_pan(genuine["pan"])["valid"] is True

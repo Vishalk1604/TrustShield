@@ -21,12 +21,12 @@ from pydantic import BaseModel
 from shared.privacy import install_log_redaction
 from shared.schemas import EvidenceCategory
 from services.forensics.app.analyzer import analyze_pdf
-from services.forensics.app.image_forensics import analyze_image
+from services.forensics.app.image_forensics import analyze_image, compute_verdict
 from services.forensics.app.ingest.loader import _IMAGE_EXTS
 from services.forensics.app.ingest.pipeline import ingest_document
 
 SERVICE_NAME = "forensics"
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 _PDF_SUFFIXES = {".pdf"}
 _IMAGE_SUFFIXES = set(_IMAGE_EXTS)
@@ -129,13 +129,57 @@ async def analyze_upload(
 # §10 / §6.D1 — Image-pixel forensics (scanned / photographed document edits)
 # --------------------------------------------------------------------------
 
+def _identifier_check(tmp_path: str) -> tuple[list[dict], dict]:
+    """OCR the image + validate any ID number on it (PAN / Aadhaar) — a SEMANTIC tamper signal.
+
+    Pixel forensics can't see an edit on a denoised, colored ID-card photo, but the *value* often
+    gives it away: a PAN whose trailing letter was painted out is no longer a valid PAN, an Aadhaar
+    that fails its checksum is invalid. This catches exactly those — independent of any pixel trace.
+    Returns (findings, info). Never raises.
+    """
+    findings: list[dict] = []
+    info: dict = {"ran": True}
+    try:
+        ing = ingest_document(tmp_path)
+    except Exception as exc:
+        return [], {"ran": False, "error": str(exc)}
+    fields = ing.get("fields", {}) or {}
+    kyc = ing.get("kyc", {}) or {}
+    info.update({"doc_type": ing.get("doc_type"), "fields": {
+        k: fields.get(k) for k in ("pan", "aadhaar", "name") if fields.get(k)}, "kyc": kyc})
+
+    pan, pan_res = fields.get("pan"), kyc.get("pan")
+    if pan and pan_res and not pan_res.get("valid"):
+        findings.append({
+            "category": "semantic", "severity": "high",
+            "title": "Invalid ID number (possible alteration)",
+            "description": (f"The PAN read from this document, '{pan}', is not a structurally valid "
+                            f"PAN ({pan_res.get('reason')}). A genuine PAN is 10 characters in the "
+                            f"form AAAAA9999A — the number may have been altered."),
+            "source_location": "document identifier validation (OCR + PAN check)",
+            "values": {"pan": pan, "reason": pan_res.get("reason")}, "confidence": 0.85})
+
+    aad, aad_res = fields.get("aadhaar"), kyc.get("aadhaar")
+    if aad and aad_res and not aad_res.get("valid"):
+        findings.append({
+            "category": "semantic", "severity": "high",
+            "title": "Invalid Aadhaar number (possible alteration)",
+            "description": (f"The Aadhaar number read from this document is not valid "
+                            f"({aad_res.get('reason')}) — the digits may have been altered."),
+            "source_location": "document identifier validation (OCR + Aadhaar/Verhoeff check)",
+            "values": {"reason": aad_res.get("reason")}, "confidence": 0.8})
+    return findings, info
+
+
 @app.post("/forensics/analyze-image")
 async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
-    """Analyze an uploaded raster image (JPG/PNG/TIFF…) for pixel-level tampering.
+    """Analyze an uploaded raster image (JPG/PNG/TIFF…) for tampering.
 
-    Runs ELA + noise-residual + copy-move + JPEG-ghost + EXIF/software-trace and returns the
-    forensic findings (each with bounding boxes), an annotated overlay + ELA heatmap (base64
-    PNG), the raw per-detector signals, and a 0–100 image-trust + verdict. All local, no network.
+    Two complementary layers: (1) PIXEL forensics — ELA + noise-loss + copy-move + JPEG-ghost +
+    flat-fill + EXIF (annotated overlay + ELA heatmap + per-detector signals); and (2) a SEMANTIC
+    identifier check — OCR the image and validate any PAN/Aadhaar, which catches value edits the
+    pixels can't see (e.g. a painted-out PAN character making the number invalid). Returns the merged
+    findings + a combined verdict + trust. All local, no network.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="filename is required")
@@ -153,6 +197,12 @@ async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
         tmp_path = tmp.name
     try:
         result = analyze_image(tmp_path)
+        # Semantic identifier check — merge any invalid-ID findings + recompute the combined verdict.
+        id_findings, id_info = _identifier_check(tmp_path)
+        result["identifier_check"] = id_info
+        if id_findings:
+            result["findings"] = id_findings + result.get("findings", [])
+            result["verdict"], result["image_trust"] = compute_verdict(result["findings"])
         result["filename"] = file.filename
         return result
     finally:

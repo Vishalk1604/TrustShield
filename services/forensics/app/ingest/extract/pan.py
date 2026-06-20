@@ -7,7 +7,10 @@ import re
 
 from services.forensics.app.ingest.normalize import parse_date
 
-_PAN_RE = re.compile(r"[A-Za-z]{5}[0-9]{4}[A-Za-z]")
+# Capture a PAN with the final letter OPTIONAL, so a tampered card whose PAN is missing/extra a
+# character (e.g. "PATPK4316" after the trailing "K" was painted out) is still captured — and then
+# fails validation, surfacing the alteration. A genuine PAN keeps all 10 chars (validate_pan checks).
+_PAN_RE = re.compile(r"[A-Za-z]{5}[0-9]{4}[A-Za-z]?")
 _DOB_RE = re.compile(
     r"(?:Date of Birth|DOB|D\.?O\.?B\.?)\s*[:\-]?\s*"
     r"([0-3]?\d[/\-.][0-3A-Za-z]{1,9}[/\-.]\d{2,4})",

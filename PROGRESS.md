@@ -322,6 +322,24 @@ none. (A **photographed** edit *is* caught — verified: photo+paint → EDITED.
 clean digital → **CLEAN** (no false positive); **eval precision stays 1.0** (the new detector adds zero
 clean false positives). Live container smoke: digital paint-over → EDITED/15. `pytest` → **186 passed**.
 
+### Day 3 follow-up — real PAN cards: flat-fill gating + semantic identifier check ✅ (forensics v1.4.0)
+Driven by two **real** photographed PAN cards (one with the trailing PAN letter painted out):
+- **Flat-fill gated to white-paper docs** — both cards first flagged SUSPICIOUS with boxes on the card
+  *background*; the detector mistook the PAN's coloured security background for a fill. Now flat-fill
+  only runs when the page is predominantly white paper; colored ID cards gate it off (no false boxes).
+- **`/forensics/analyze-image` now runs a SEMANTIC identifier check** (OCR → extract PAN/Aadhaar →
+  validate) and merges a HIGH `semantic` finding when an ID number is invalid; verdict recomputed over
+  the merged findings (`compute_verdict`, factored out). `extract_pan` now captures a malformed PAN so
+  it fails validation instead of being silently dropped. Dashboard shows the "Document number check".
+- **Result on the real cards:** `pan_original` → **CLEAN** (PAN `PATPK4316K` valid); `pan_edited` →
+  **EDITED/15** ("Invalid ID number", PAN `PATPK4316` only 9 chars). The pixel layer can't see a
+  denoised-colored-photo edit (correctly silent); the **semantic layer catches it** — multi-layer wins.
+- Honest scope: photo edits → noise-loss; white-paper digital paint → flat-fill; ID-number edits →
+  semantic check; subtle pristine-pixel edits → the learned DocTamper model (gated weights). 2 new tests.
+
+**Verified:** live smoke on the real PAN images (original CLEAN, edited EDITED); image tests pass; build
+clean. `pytest` → **188 passed**.
+
 ---
 
 ## All phases complete (0–8) + Phase 9 forensic/OCR depth + real-doc ingestion + web app

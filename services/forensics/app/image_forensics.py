@@ -466,6 +466,22 @@ def _severity_for(strength: float) -> str:
     return "low"
 
 
+_SEV_RANK = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+_SEV_RISK = {0: 0.0, 1: 0.15, 2: 0.45, 3: 0.85, 4: 1.0}
+
+
+def compute_verdict(findings: list[dict]) -> tuple[str, float]:
+    """Map a finding list to (verdict, trust 0-100). Graduated, not binary: a lone HIGH lands in the
+    freeze band but not a hard 0; more localized regions push lower; CRITICAL → 0. Shared by
+    `analyze_image` and the endpoint (which merges a semantic identifier check)."""
+    top = max((_SEV_RANK.get(f["severity"], 0) for f in findings), default=0)
+    n_region = sum(1 for f in findings if (f.get("values") or {}).get("regions"))
+    risk = min(1.0, _SEV_RISK[top] + 0.05 * max(0, n_region - 1))
+    trust = round(100.0 * (1.0 - risk), 1)
+    verdict = "EDITED" if top >= 3 else "SUSPICIOUS" if top == 2 else "CLEAN"
+    return verdict, trust
+
+
 SEVERITY_COLOR = {"critical": (220, 38, 38), "high": (239, 68, 68), "medium": (234, 179, 8),
                   "low": (56, 189, 248), "info": (100, 116, 139)}
 
@@ -628,15 +644,7 @@ def analyze_image(path: str) -> dict:
             drawn.append((g.bbox, "medium"))
 
     # ── overall verdict ──
-    # Graduated (not binary): a lone HIGH finding lands in the freeze band but isn't a hard 0;
-    # corroboration / multiple localized regions push it down further. CRITICAL → 0 trust.
-    rank = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
-    sev_risk = {0: 0.0, 1: 0.15, 2: 0.45, 3: 0.85, 4: 1.0}
-    top = max((rank.get(f["severity"], 0) for f in findings), default=0)
-    n_region_findings = sum(1 for f in findings if f["values"].get("regions"))
-    risk = min(1.0, sev_risk[top] + 0.05 * max(0, n_region_findings - 1))
-    image_trust = round(100.0 * (1.0 - risk), 1)
-    verdict = ("EDITED" if top >= 3 else "SUSPICIOUS" if top == 2 else "CLEAN")
+    verdict, image_trust = compute_verdict(findings)
 
     return {
         "ok": True,
