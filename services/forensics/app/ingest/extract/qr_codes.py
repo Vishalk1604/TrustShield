@@ -70,9 +70,6 @@ def _parse_aadhaar_secure_qr(raw: bytes) -> Optional[dict]:
 
         obj = AadhaarSecureQR(int(raw))
         data = obj.decodeddata() or {}
-        sig = None
-        for meth in ("verify_email_mobile", "isSecureQR"):  # API varies across versions
-            pass
         try:
             sig = bool(obj.verifySignature())  # type: ignore[attr-defined]
         except Exception:
