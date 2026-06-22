@@ -356,29 +356,100 @@ def build_form16(
     return doc
 
 
+# Bank header variants (rotated with `template`) — different issuers, IFSC and branches.
+_BANKS: list[dict] = [
+    {"name": "HDFC Bank Ltd.", "ifsc": "HDFC0000123", "branch": "Koramangala, Bengaluru"},
+    {"name": "ICICI Bank Ltd.", "ifsc": "ICIC0000456", "branch": "Andheri East, Mumbai"},
+    {"name": "State Bank of India", "ifsc": "SBIN0000789", "branch": "Connaught Place, New Delhi"},
+]
+
+
+def _emp_id(name: str) -> str:
+    return "EMP" + str(sum(ord(c) for c in name) % 90000 + 10000)
+
+
 def build_salary_slip(
-    name: str, employer: str, month: str, net_monthly: float, meta: DocMeta
+    name: str, employer: str, month: str, net_monthly: float, meta: DocMeta,
+    *, fields: Optional[dict] = None, template: int = 0,
 ) -> "fitz.Document":
+    """A realistic payslip: employer header + employee details + an Earnings/Deductions table + Net Pay.
+    `net_monthly` is treated as the in-hand Net Pay; gross is back-computed so deductions look real. Net
+    Pay is still drawn as `_money(net_monthly)` so cross-doc checks keep matching. `fields` records the
+    image-targetable fraud fields (basic, gross, net_pay)."""
     doc, page = _new_doc()
-    y = _header(page, "SALARY SLIP", f"{employer}  |  {month}")
-    basic = net_monthly * 0.5
-    hra = net_monthly * 0.3
-    allow = net_monthly * 0.2
-    y = _lines(
-        page,
-        y + 6,
-        [
-            f"Employee:        {name}",
-            "",
-            f"Basic Pay:               {_money(basic)}",
-            f"HRA:                     {_money(hra)}",
-            f"Special Allowance:       {_money(allow)}",
-        ],
-        leading=20,
-        size=11,
-    )
-    page.insert_text((MARGIN_X, y + 10), "Net Pay (Monthly):", fontname=FONT_BOLD, fontsize=13)
-    page.insert_text((320, y + 10), _money(net_monthly), fontname=FONT_BOLD, fontsize=13)
+    ML, MR = 40.0, PAGE_W - 40.0
+    midx = (ML + MR) / 2
+    tpl = _F16_TEMPLATES[template % len(_F16_TEMPLATES)]
+    net = float(net_monthly)
+    gross = round(net / 0.85)                       # ~15% statutory deductions
+    basic = round(gross * 0.50)
+    hra = round(gross * 0.24)
+    conveyance = 1600
+    special = gross - basic - hra - conveyance
+    ded_total = gross - round(net)
+    epf = round(basic * 0.12)
+    prof_tax = 200
+    tds = max(0, ded_total - epf - prof_tax)
+
+    # header band
+    page.draw_rect(fitz.Rect(ML, 40, MR, 72), color=tpl["band"], fill=tpl["band"])
+    _htext(page, ML + 8, MR, 56, employer, size=12, bold=True, color=(1, 1, 1))
+    _htext(page, ML + 8, MR, 67, tpl["addr"][0] + ",  " + tpl["addr"][1], size=7.5, color=(0.9, 0.9, 0.9))
+    _htext(page, ML, MR, 90, f"Payslip for the month of {month}", size=10, bold=True, align=1)
+
+    # employee details — two columns of label/value
+    y = 102.0
+    left = [("Employee Name", name), ("Employee ID", _emp_id(name)), ("Designation", "Senior Engineer")]
+    right = [("Date of Joining", "01-Jul-2019"), ("Pay Period", month), ("Days Paid", "30 / 30")]
+    for (ll, lv), (rl, rv) in zip(left, right):
+        page.insert_text((ML, y), f"{ll}:", fontname=FONT_BOLD, fontsize=8.5)
+        page.insert_text((ML + 95, y), lv, fontname=FONT_BODY, fontsize=8.5)
+        page.insert_text((midx + 10, y), f"{rl}:", fontname=FONT_BOLD, fontsize=8.5)
+        page.insert_text((midx + 90, y), rv, fontname=FONT_BODY, fontsize=8.5)
+        y += 15
+
+    # Earnings | Deductions table
+    y += 6
+    e_amt, d_amt = midx - 80, MR - 80
+    rh = 15.0
+    _cell(page, fitz.Rect(ML, y, e_amt, y + rh), "  Earnings", size=8.5, bold=True)
+    _cell(page, fitz.Rect(e_amt, y, midx, y + rh), "Amount  ", size=8.5, bold=True, align=2)
+    _cell(page, fitz.Rect(midx, y, d_amt, y + rh), "  Deductions", size=8.5, bold=True)
+    _cell(page, fitz.Rect(d_amt, y, MR, y + rh), "Amount  ", size=8.5, bold=True, align=2)
+    y += rh
+    earn = [("Basic", basic, "basic", "inflate"), ("House Rent Allowance", hra, "", "none"),
+            ("Conveyance Allowance", conveyance, "", "none"), ("Special Allowance", special, "", "none")]
+    ded = [("Provident Fund (EPF)", epf), ("Professional Tax", prof_tax),
+           ("Income Tax (TDS)", tds), ("", None)]
+    for (el, ev, efname, efraud), (dl, dv) in zip(earn, ded):
+        _cell(page, fitz.Rect(ML, y, e_amt, y + rh), "  " + el, size=8.5)
+        _cell(page, fitz.Rect(e_amt, y, midx, y + rh))
+        _money_field(page, e_amt + 6, y + 10, ev, size=8.5, fields=fields if efname else None,
+                     name=efname, fraud=efraud)
+        _cell(page, fitz.Rect(midx, y, d_amt, y + rh), ("  " + dl) if dl else "", size=8.5)
+        _cell(page, fitz.Rect(d_amt, y, MR, y + rh))
+        if dv is not None:
+            _money_field(page, d_amt + 6, y + 10, dv, size=8.5)
+        y += rh
+    # totals
+    _cell(page, fitz.Rect(ML, y, e_amt, y + rh), "  Gross Earnings", size=8.5, bold=True)
+    _cell(page, fitz.Rect(e_amt, y, midx, y + rh))
+    _money_field(page, e_amt + 6, y + 10, gross, size=8.5, font=FONT_BOLD,
+                 fields=fields, name="gross", fraud="inflate")
+    _cell(page, fitz.Rect(midx, y, d_amt, y + rh), "  Total Deductions", size=8.5, bold=True)
+    _cell(page, fitz.Rect(d_amt, y, MR, y + rh))
+    _money_field(page, d_amt + 6, y + 10, ded_total, size=8.5, font=FONT_BOLD)
+    y += rh + 8
+
+    # Net Pay
+    page.draw_rect(fitz.Rect(ML, y, MR, y + 20), color=(0.93, 0.93, 0.93), fill=(0.93, 0.93, 0.93))
+    page.insert_text((ML + 6, y + 14), "Net Pay (take-home)", fontname=FONT_BOLD, fontsize=11)
+    _money_field(page, MR - 130, y + 14, net, size=11, font=FONT_BOLD,
+                 fields=fields, name="net_pay", fraud="inflate")
+    y += 30
+    page.insert_textbox(fitz.Rect(ML, y, MR, y + 18),
+                        "This is a computer-generated payslip and does not require a signature.",
+                        fontname=FONT_BODY, fontsize=7.5, color=(0.4, 0.4, 0.4))
     meta.title = "Salary Slip"
     apply_metadata(doc, meta)
     return doc
@@ -392,21 +463,107 @@ def build_bank_statement(
     meta: DocMeta,
     *,
     duplicate_row: bool = False,
+    fields: Optional[dict] = None,
+    template: int = 0,
 ) -> "fitz.Document":
-    """Six-month statement. If duplicate_row, one salary-credit row is duplicated verbatim
-    (a classic forged-statement padding signal Phase 1 can detect)."""
+    """A realistic statement: bank header + account summary + a multi-row transaction table with a
+    running balance (monthly salary credits + rent/UPI/ATM debits). If duplicate_row, one salary-credit
+    row is duplicated verbatim (the copy-paste padding signal). `fields` records the fraud fields
+    (salary_credit, closing_balance) plus the balance column so a tamper can keep the maths consistent."""
     doc, page = _new_doc()
-    masked_acct = account_number[:2] + "XXXX" + account_number[-4:]
-    y = _header(page, "BANK STATEMENT", f"Account: {masked_acct}  |  Holder: {name}")
-    rows = ["Date          Description                         Credit"]
-    balance = 0.0
+    ML, MR = 40.0, PAGE_W - 40.0
+    tpl = _F16_TEMPLATES[template % len(_F16_TEMPLATES)]
+    bank = _BANKS[template % len(_BANKS)]
+    masked = account_number[:2] + "XXXX" + account_number[-4:]
+    first = name.split()[0].upper()
+
+    # header band
+    page.draw_rect(fitz.Rect(ML, 40, MR, 72), color=tpl["band"], fill=tpl["band"])
+    _htext(page, ML + 8, MR, 56, bank["name"], size=13, bold=True, color=(1, 1, 1))
+    _htext(page, ML + 8, MR, 67, f"Branch: {bank['branch']}    IFSC: {bank['ifsc']}", size=7.5,
+           color=(0.9, 0.9, 0.9))
+    _htext(page, ML, MR, 90, "Statement of Account", size=10, bold=True, align=1)
+
+    # account info
+    y = 100.0
+    info = [("Account Holder", name), ("Account Number", masked),
+            ("Account Type", "Savings"), ("Statement Period", f"{months[0]} – {months[-1]} 2024")]
+    for k, v in info:
+        page.insert_text((ML, y), f"{k}:", fontname=FONT_BOLD, fontsize=8.5)
+        page.insert_text((ML + 110, y), v, fontname=FONT_BODY, fontsize=8.5)
+        y += 14
+
+    # build transactions + running balance
+    opening = round(monthly_credit * 1.4)
+    txns: list[tuple[str, str, float, float]] = []   # (date, narration, debit, credit)
     for m in months:
-        rows.append(f"{m}-28   SALARY CREDIT {name.split()[0].upper():<18}   {_money(monthly_credit)}")
+        txns.append((f"03-{m}", f"NEFT/RENT/{first}LANDLORD", round(monthly_credit * 0.30), 0.0))
+        txns.append((f"26-{m}", "UPI/GROCERY/BIGBAZAAR", round(monthly_credit * 0.12), 0.0))
+        txns.append((f"28-{m}", f"SALARY CREDIT {first}", 0.0, float(monthly_credit)))
     if duplicate_row and months:
-        # Verbatim duplicate of the first month's salary credit — padding the inflows.
-        m = months[0]
-        rows.append(f"{m}-28   SALARY CREDIT {name.split()[0].upper():<18}   {_money(monthly_credit)}")
-    _lines(page, y + 6, rows, leading=18, size=10, font=FONT_MONO)
+        txns.append((f"28-{months[0]}", f"SALARY CREDIT {first}", 0.0, float(monthly_credit)))
+    # target a middle salary row for the fraud edit
+    salary_rows = [i for i, t in enumerate(txns) if t[3] > 0]
+    target_row = salary_rows[len(salary_rows) // 2] if salary_rows else -1
+
+    # account summary
+    y += 6
+    total_cr = sum(t[3] for t in txns)
+    total_dr = sum(t[2] for t in txns)
+    closing = opening + total_cr - total_dr
+    sx = [ML, ML + 128, ML + 256, ML + 384, MR]
+    summ = [("Opening Balance", opening), ("Total Credits", total_cr),
+            ("Total Debits", total_dr), ("Closing Balance", closing)]
+    for i, (k, v) in enumerate(summ):
+        _cell(page, fitz.Rect(sx[i], y, sx[i + 1], y + 13), k, size=7.5, bold=True, align=1)
+    y += 13
+    for i, (k, v) in enumerate(summ):
+        _cell(page, fitz.Rect(sx[i], y, sx[i + 1], y + 14))
+        _money_field(page, sx[i] + 6, y + 9.5, v, size=8)
+    y += 14 + 8
+
+    # transaction table
+    cx = [ML, ML + 55, ML + 270, ML + 355, ML + 440, MR]   # Date|Narration|Debit|Credit|Balance
+    hdr = ["Date", "Narration", "Debit", "Credit", "Balance"]
+    rh = 13.0
+    for i, h in enumerate(hdr):
+        _cell(page, fitz.Rect(cx[i], y, cx[i + 1], y + rh), h, size=7.5, bold=True,
+              align=(0 if i < 2 else 2))
+    y += rh
+    bal = float(opening)
+    balance_cells: list[dict] = []
+    for ri, (date, narr, dr, cr) in enumerate(txns):
+        bal += cr - dr
+        _cell(page, fitz.Rect(cx[0], y, cx[1], y + rh), "  " + date, size=7.5)
+        _cell(page, fitz.Rect(cx[1], y, cx[2], y + rh), "  " + narr, size=7.5)
+        _cell(page, fitz.Rect(cx[2], y, cx[3], y + rh))
+        _cell(page, fitz.Rect(cx[3], y, cx[4], y + rh))
+        _cell(page, fitz.Rect(cx[4], y, cx[5], y + rh))
+        if dr:
+            _money_field(page, cx[2] + 4, y + 9, dr, size=7.5)
+        if cr:
+            is_target = ri == target_row
+            _money_field(page, cx[3] + 4, y + 9, cr, size=7.5,
+                         fields=fields if is_target else None,
+                         name="salary_credit" if is_target else "", fraud="inflate")
+        # balance cell — recorded so a tamper can keep the running maths consistent
+        bx = cx[4] + 4
+        _money_field(page, bx, y + 9, round(bal), size=7.5)
+        if fields is not None:
+            balance_cells.append({"rect_pts": [round(v, 2) for v in _text_rect(bx, y + 9, _money(round(bal)), FONT_BODY, 7.5)],
+                                  "amount": round(bal), "row": ri})
+        y += rh
+
+    if fields is not None:
+        fields["closing_balance"] = {
+            "rect_pts": balance_cells[-1]["rect_pts"] if balance_cells else [0, 0, 0, 0],
+            "value": _money(round(closing)), "amount": round(closing), "font": FONT_BODY, "size": 7.5,
+            "fraud": "inflate", "kind": "money",
+        }
+        fields["_balance_column"] = balance_cells
+        if "salary_credit" in fields:
+            fields["salary_credit"]["row"] = target_row
+
     meta.title = "Bank Statement"
     apply_metadata(doc, meta)
     return doc
