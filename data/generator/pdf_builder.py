@@ -193,23 +193,56 @@ _F16_TEMPLATES: list[dict] = [
 # Document builders. Each returns an open fitz.Document; the caller saves it. Builders that
 # back the image-tamper pipeline also accept an optional `fields` out-dict (see field map above).
 # --------------------------------------------------------------------------------------
-def build_identity(name: str, pan: str, dob: str, meta: DocMeta) -> "fitz.Document":
+def _id_rows(page: "fitz.Page", y: float, rows: list[tuple], fields: Optional[dict],
+             *, vx: float = MARGIN_X + 140, leading: float = 30.0) -> float:
+    """Label/value rows where each value sits at a known x (so its glyph rect is exact + recordable).
+    `rows` items: (label, value, field_name | "", fraud, font, size, kind)."""
+    for label, val, fname, fraud, font, size, kind in rows:
+        page.insert_text((MARGIN_X, y), label + ":", fontname=FONT_BODY, fontsize=11, color=(0.25, 0.25, 0.25))
+        page.insert_text((vx, y), val, fontname=font, fontsize=size)
+        if fname:
+            _record_field(fields, fname, vx, y, val, font=font, size=size, fraud=fraud, kind=kind)
+        y += leading
+    return y
+
+
+def build_identity(name: str, pan: str, dob: str, meta: DocMeta, *,
+                   fields: Optional[dict] = None, father: str = "") -> "fitz.Document":
+    """PAN card (doc-style). `fields` records the image-targetable fraud fields (pan, name, dob)."""
     doc, page = _new_doc()
     y = _header(page, "INCOME TAX DEPARTMENT", "Permanent Account Number Card")
-    _lines(
-        page,
-        y + 6,
-        [
-            "",
-            f"Name:            {name}",
-            f"PAN:             {pan}",
-            f"Date of Birth:   {dob}",
-            "Signature:       ____________________",
-        ],
-        leading=22,
-        size=12,
-    )
+    y = _id_rows(page, y + 24, [
+        ("Name", name, "name", "swap", FONT_BODY, 12, "text"),
+        ("Father's Name", father or "—", "", "none", FONT_BODY, 12, "text"),
+        ("Date of Birth", dob, "dob", "swap", FONT_BODY, 12, "date"),
+        ("Permanent Account No.", pan, "pan", "swap", FONT_BOLD, 13, "pan"),
+    ], fields)
+    page.insert_text((MARGIN_X, y + 12), "Signature: ____________________", fontname=FONT_BODY, fontsize=11)
     meta.title = "PAN Card"
+    apply_metadata(doc, meta)
+    return doc
+
+
+def build_aadhaar(name: str, aadhaar: str, dob: str, gender: str, address: list[str], meta: DocMeta,
+                  *, fields: Optional[dict] = None) -> "fitz.Document":
+    """Aadhaar (doc-style, clearly marked SYNTHETIC — never a usable ID). `fields` records the fraud
+    fields (aadhaar_number, name, dob)."""
+    doc, page = _new_doc()
+    y = _header(page, "GOVERNMENT OF INDIA", "Unique Identification Authority of India (UIDAI)")
+    page.insert_textbox(fitz.Rect(110, 300, 490, 400), "SPECIMEN", fontname=FONT_BOLD, fontsize=72,
+                        color=(0.93, 0.93, 0.93), align=1)
+    y = _id_rows(page, y + 24, [
+        ("Name", name, "name", "swap", FONT_BODY, 12, "text"),
+        ("Date of Birth", dob, "dob", "swap", FONT_BODY, 12, "date"),
+        ("Gender", gender, "", "none", FONT_BODY, 12, "text"),
+        ("Aadhaar No.", aadhaar, "aadhaar_number", "swap", FONT_BOLD, 14, "aadhaar"),
+    ], fields)
+    page.insert_text((MARGIN_X, y), "Address:", fontname=FONT_BODY, fontsize=11, color=(0.25, 0.25, 0.25))
+    _lines(page, y + 16, address, x=MARGIN_X + 16, leading=16, size=10)
+    page.insert_textbox(fitz.Rect(MARGIN_X, PAGE_H - 70, PAGE_W - MARGIN_X, PAGE_H - 50),
+                        "Synthetic specimen generated for tamper-detection research - not a real Aadhaar.",
+                        fontname=FONT_BODY, fontsize=8, color=(0.5, 0.5, 0.5), align=1)
+    meta.title = "Aadhaar"
     apply_metadata(doc, meta)
     return doc
 
@@ -487,7 +520,7 @@ def build_bank_statement(
     # account info
     y = 100.0
     info = [("Account Holder", name), ("Account Number", masked),
-            ("Account Type", "Savings"), ("Statement Period", f"{months[0]} – {months[-1]} 2024")]
+            ("Account Type", "Savings"), ("Statement Period", f"{months[0]} - {months[-1]} 2024")]
     for k, v in info:
         page.insert_text((ML, y), f"{k}:", fontname=FONT_BOLD, fontsize=8.5)
         page.insert_text((ML + 110, y), v, fontname=FONT_BODY, fontsize=8.5)
