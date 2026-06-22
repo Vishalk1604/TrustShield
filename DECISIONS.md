@@ -546,3 +546,14 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   guarantee (no FP); the forgery U-Net is fine-tuned on the v2 `train` split and re-measured on the
   held-out `test` split (`results/forgery_training/`). GPU note: CUDA was unavailable this session
   (dGPU not visible), so the fine-tune ran on CPU on the small (~283-sample) domain set.
+
+### §11 fine-tune RESULT — domain data works (2026-06-23)
+GPU came back (RTX 5060). Trained DocTamper base (12k×3) → fine-tuned on the v2 **train** split (25
+epochs) → eval on the held-out **test** split. **Heuristics:** P=1.0 R=0.17 (geom only). **+U-Net:**
+R=**0.915** — pro edits **0.83** (heuristics 0.0), naive 1.0 / blended 0.95 / geom 0.90, loc IoU 0.48.
+So the realistic §11 dataset IS good training data — it turns the cross-domain-useless model into the
+primary detector. **Caveat:** the U-Net false-fires on 5/10 clean test docs (~50% clean FP) → precision
+0.945 is flattered by the tampered-heavy split. Default runtime stays heuristic (P=1.0); U-Net is opt-in.
+This is within-synthetic-domain generalization (shared generator/fonts/edit-method), **not** yet
+synthetic→real. Upgrades next: scale+diversity + tamper-crop/tiled-inference + real-doc eval anchor +
+clean-FP calibration. Full writeup in `results/forgery_training/summary.md`.
