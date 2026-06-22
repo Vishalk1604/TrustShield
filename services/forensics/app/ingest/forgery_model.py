@@ -29,8 +29,8 @@ from typing import Optional
 from services.forensics.app.ingest import doctamper
 from services.forensics.app.ingest.model_registry import model_store_dir
 
-DEFAULT_BACKEND = "dtd"
-BACKENDS = ("dtd", "trufor", "catnet")
+DEFAULT_BACKEND = "unet"   # our own U-Net (trained on the DocTamper data we hold) — the runnable default
+BACKENDS = ("unet", "dtd", "trufor", "catnet")
 MASK_THRESHOLD = 0.5       # binarize the model's tamper-probability mask
 MIN_REGION_FRAC = 0.0008   # ignore connected components smaller than this fraction of the image
 
@@ -71,6 +71,8 @@ def available() -> bool:
     b = backend_name()
     if b == "dtd":
         return doctamper.available()
+    if b == "unet":  # our own model — inference lives in-repo (forgery_unet.py), no vendored adapter
+        return weights_path("unet") is not None and _torch_available()
     return (weights_path(b) is not None
             and (_backend_dir(b) / "code" / "trustshield_infer.py").exists()
             and _torch_available())
@@ -83,6 +85,17 @@ def status() -> dict:
         s = doctamper.status()
         s["backend"] = "dtd"
         return s
+    if b == "unet":
+        return {
+            "backend": "unet",
+            "available": available(),
+            "weights_present": weights_path("unet") is not None,
+            "torch": _torch_available(),
+            "reason": None if available()
+            else ("forgery U-Net not trained yet — run "
+                  "`python services/forensics/train_forgery.py` (trains on the DocTamper data we hold; "
+                  "writes models/forgery/unet/weights/forgery.pth, which this seam then auto-loads)"),
+        }
     return {
         "backend": b,
         "available": available(),
@@ -103,6 +116,10 @@ def localize(image_path: str) -> Optional[dict]:
     try:
         if b == "dtd":
             return doctamper.localize(image_path)
+        if b == "unet":
+            from services.forensics.app.ingest import forgery_unet
+            mask = forgery_unet.infer(image_path, str(weights_path("unet")))
+            return mask_to_regions(mask, image_path) if mask is not None else None
         return _vendored_localize(b, image_path)
     except Exception:  # pragma: no cover - depends on local weights/torch
         return None

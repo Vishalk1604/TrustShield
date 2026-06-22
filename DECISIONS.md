@@ -487,3 +487,20 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   put it in the verdict. Aadhaar edits need the **signed QR** (didn't decode on these low-res photos) or
   the **learned forgery model** — the honest limit. (PAN's 10-char *format* check is far more OCR-robust,
   which is why PAN edits are caught and Aadhaar's aren't.)
+
+## Phase 5 training — torch-only forgery U-Net (not the exact DTD) (2026-06-22)
+
+- **The exact DocTamper DTD is Windows-blocked.** DTD consumes JPEG **DCT coefficients via `jpegio`**
+  (+ `segmentation_models_pytorch`, `timm`, `albumentations`), and `jpegio` is extremely hard to build
+  on Windows. Rather than force that, we **train our own** compact **U-Net** (`forgery_unet.py`,
+  torch-only) on the data we DO hold — the DocTamper **LMDB** (validated intact: **120k** RGB 512x512
+  document images + tamper masks, ~1.8% tampered px). Same goal (a learned per-pixel tamper localizer),
+  achievable locally. `train_forgery.py` reads the LMDB directly (RGB+mask, no jpegio), trains with
+  Dice+BCE + AMP, fine-tunes on our Day-2 synthetic set, → `models/forgery/unet/weights/forgery.pth`.
+- **`unet` is the default forgery backend** (`forgery_model.py`); inference is in-repo (`forgery_unet.infer`
+  → the seam's `mask_to_regions`). `dtd`/`trufor`/`catnet` remain selectable for the gated/external models.
+  Still optional + behind the seam: no torch in the slim runtime; `available()` False → heuristics live.
+- **Blackwell GPU (RTX 5060, sm_120) needs torch `cu128`** (`--index-url .../whl/cu128`); the default
+  cu124 wheels don't have sm_120 kernels. Honest caveats: full convergence on 120k images is hours; and
+  DocTamper is Chinese-document tampering, so cross-domain transfer to Indian ID edits is uncertain
+  (DocForge-Bench) — the eval harness measures any real uplift before we rely on it.
