@@ -129,7 +129,7 @@ def train(args) -> None:
         model.load_state_dict(torch.load(ckpt, map_location=device))
         print(f"loaded base weights from {ckpt} for fine-tuning")
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr)
-    scaler = torch.cuda.amp.GradScaler(enabled=(device == "cuda"))
+    scaler = torch.amp.GradScaler("cuda", enabled=(device == "cuda"))
 
     model.train()
     for ep in range(args.epochs):
@@ -138,7 +138,7 @@ def train(args) -> None:
             x = x.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True).float()
             opt.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast(enabled=(device == "cuda")):
+            with torch.amp.autocast("cuda", enabled=(device == "cuda")):
                 loss = _dice_bce(model(x), y)
             scaler.scale(loss).backward()
             scaler.step(opt)
