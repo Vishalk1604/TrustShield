@@ -29,7 +29,12 @@ from typing import Optional
 from services.forensics.app.ingest import doctamper
 from services.forensics.app.ingest.model_registry import model_store_dir
 
-DEFAULT_BACKEND = "unet"   # our own U-Net (trained on the DocTamper data we hold) — the runnable default
+# Default is a no-op (no weights) → heuristics stay live. The `unet` backend (our own model trained on
+# the DocTamper data) is OPT-IN via TRUSTSHIELD_FORGERY_BACKEND=unet: it's trained + integrated, but its
+# cross-domain transfer to our document types is weak (the published-benchmark result — see DECISIONS),
+# so it does not beat the heuristics on our docs and is not auto-enabled. Re-evaluate after fine-tuning
+# on domain data (our synthetic + real Indian-doc tampered set with masks).
+DEFAULT_BACKEND = "dtd"
 BACKENDS = ("unet", "dtd", "trufor", "catnet")
 MASK_THRESHOLD = 0.5       # binarize the model's tamper-probability mask
 MIN_REGION_FRAC = 0.0008   # ignore connected components smaller than this fraction of the image

@@ -10,21 +10,23 @@ from PIL import Image
 from services.forensics.app.ingest import forgery_model
 
 
-def test_backend_selection_default_unet(monkeypatch):
+def test_backend_selection_default(monkeypatch):
+    # Default backend is a no-op (no weights) → heuristics stay live; the unet model is opt-in.
     monkeypatch.delenv("TRUSTSHIELD_FORGERY_BACKEND", raising=False)
-    assert forgery_model.backend_name() == "unet"        # our own trainable model is the default
-    monkeypatch.setenv("TRUSTSHIELD_FORGERY_BACKEND", "trufor")
-    assert forgery_model.backend_name() == "trufor"
-    monkeypatch.setenv("TRUSTSHIELD_FORGERY_BACKEND", "bogus")  # unknown → default
+    assert forgery_model.backend_name() == "dtd"
+    monkeypatch.setenv("TRUSTSHIELD_FORGERY_BACKEND", "unet")
     assert forgery_model.backend_name() == "unet"
+    monkeypatch.setenv("TRUSTSHIELD_FORGERY_BACKEND", "bogus")  # unknown → default
+    assert forgery_model.backend_name() == "dtd"
 
 
-def test_unet_backend_unavailable_without_weights(monkeypatch):
-    # Default backend, but no trained weights yet → heuristics stay live, status is honest.
-    monkeypatch.delenv("TRUSTSHIELD_FORGERY_BACKEND", raising=False)
-    st = forgery_model.status()
-    assert st["backend"] == "unet" and st["available"] is False and st["reason"]
+def test_seam_unavailable_without_weights(monkeypatch):
+    # A backend with no local weights → no-op (heuristics stay live), status is honest.
+    monkeypatch.setenv("TRUSTSHIELD_FORGERY_BACKEND", "trufor")
+    assert forgery_model.available() is False
     assert forgery_model.localize("nonexistent.png") is None
+    st = forgery_model.status()
+    assert st["backend"] == "trufor" and st["available"] is False and st["reason"]
 
 
 def test_seam_unavailable_without_weights(monkeypatch):

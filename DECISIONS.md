@@ -504,3 +504,19 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   cu124 wheels don't have sm_120 kernels. Honest caveats: full convergence on 120k images is hours; and
   DocTamper is Chinese-document tampering, so cross-domain transfer to Indian ID edits is uncertain
   (DocForge-Bench) — the eval harness measures any real uplift before we rely on it.
+
+## Phase 5 training — RESULT: trained, but cross-domain transfer fails (2026-06-22)
+
+- **Trained our own forgery U-Net on the GPU** (RTX 5060 Blackwell, torch 2.11+cu128): 12k DocTamper
+  images × 3 epochs at 256px, ~72 img/s, loss 1.49→1.02 → `models/forgery/unet/weights/forgery.pth`.
+  The full GPU train+inference pipeline works end-to-end — the gated-DocTamper-checkpoint blocker is gone.
+- **Honest outcome — NO uplift (measured).** Eval is identical to heuristics-only (precision 1.0, recall
+  0.729). Raw model probabilities cluster at 0.45–0.59 **regardless of tampered vs clean** on both the
+  synthetic eval and the real PAN/Aadhaar photos → the DocTamper-trained model does not discriminate on
+  our document types. This is cross-domain failure (DocForge-Bench): DocTamper is Chinese-document
+  tampering and does not transfer to Indian forms/IDs. Stored in `results/forgery_training/summary.md`.
+- **Decision:** **heuristics + semantic + QR stay the default** (reliable on our docs). The U-Net is
+  trained, integrated behind the seam, and **opt-in** (`TRUSTSHIELD_FORGERY_BACKEND=unet`) but **not
+  auto-enabled** (it adds latency without benefit). DEFAULT_BACKEND reverted to the no-op. Path to value:
+  **fine-tune on domain data** (our synthetic + labelled real Indian-doc edits) via `--finetune`, then
+  re-measure on a held-out split.
