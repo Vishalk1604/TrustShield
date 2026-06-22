@@ -584,7 +584,7 @@ def build_bank_statement(
         _money_field(page, bx, y + 9, round(bal), size=7.5)
         if fields is not None:
             balance_cells.append({"rect_pts": [round(v, 2) for v in _text_rect(bx, y + 9, _money(round(bal)), FONT_BODY, 7.5)],
-                                  "amount": round(bal), "row": ri})
+                                  "amount": round(bal), "row": ri, "size": 7.5, "font": FONT_BODY})
         y += rh
 
     if fields is not None:

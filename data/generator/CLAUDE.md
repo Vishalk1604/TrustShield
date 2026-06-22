@@ -6,16 +6,26 @@ as real PDFs, plus a ground-truth `labels.json`. This is the test corpus every l
 against. All data is synthetic; there is no real PII.
 
 ## Key files
-- `pdf_builder.py` — builds clean PDFs (PAN/identity, Form 16, salary slip, bank statement, **sale
-  deed, encumbrance certificate, property valuation, legal opinion**) with PyMuPDF; controls fonts
-  and metadata; `make_seal_png()` for the copy-paste signal.
-- `tamper.py` — forges specific, detectable signals into clean PDFs (see its table). `edit_money_figure`
-  and the generic `edit_text` (used for forged-title / tampered-EC) leave the original value in the
-  text layer as the forensic residue. Each maps to a Phase 1 forensic detector.
-- `generate.py` — orchestrator. Holds the canonical `ROSTER` + property records, the category builders
-  (`build_clean / build_forensic / build_cross_doc / build_template_reuse / build_behavioral /
-  build_property`), realizes packets to disk, and writes `labels.json`. Run: `python -m data.generator.generate`.
-- `requirements.txt` — `PyMuPDF` (the only extra dep needed to generate).
+- `pdf_builder.py` — builds clean PDFs with PyMuPDF. **§11 generator v2:** realistic layouts —
+  `build_form16` (TRACES Part A/B + quarterly-TDS table), `build_bank_statement` (running-balance
+  transaction table), `build_salary_slip` (balancing earnings/deductions), doc-style `build_identity`
+  (PAN) + new `build_aadhaar` (marked SYNTHETIC); plus the land/legal collateral builders. Income/KYC
+  builders take an optional **`fields` out-dict** (the *field map*: each editable value's rect in PDF
+  points + its realistic fraud direction) and a `template` variant. **Backward-compatible** — the
+  `fields`/`template` args are keyword-only, so legacy positional callers + the PDF-level tampers still
+  work (gross is still drawn as `_money(...)`). `make_seal_png()` for the copy-paste signal.
+- `seamless_edit.py` (**§11**) — the no-hard-edge edit engine. `edit_field(img, box, new_text,
+  difficulty=…)` on a **naive→blended→pro** spectrum: `pro` = cv2.inpaint → font/colour/**bold**-matched
+  render → page-matched sensor noise → single recompress. Pure PIL/numpy; cv2 optional (pro→blended).
+- `tamper.py` — PDF-level forensic signals (white-box edit / font / duplicate / incremental). Unchanged.
+- `build_image_dataset.py` (**§11 v2**) — builds docs **in-process** (to hold exact field boxes),
+  rasterises → `_simulate_scan`, applies field-targeted seamless edits across the difficulty spectrum +
+  the geometric pixel tampers, with ground-truth masks and a deterministic **train/val/test split by
+  source id**. Writes `data/synthetic/images/{clean,tampered,masks}/` + `labels.json`.
+- `_preview_form16.py` — throwaway QA gate (renders clean + a pro edit; not a test). Output gitignored.
+- `generate.py` — PDF-packet orchestrator (`ROSTER` + category builders → `data/synthetic/packets/` +
+  `labels.json`). Run: `python -m data.generator.generate`. (Separate corpus from the image dataset.)
+- `requirements.txt` — `PyMuPDF`. The image pipeline also uses `numpy`/`Pillow`/`opencv` (cv2 optional).
 
 ## How it fits
 Output lands in `../synthetic/`. Phase 1 forensics reads the PDFs; Phase 2 OCRs them; Phases 3–5

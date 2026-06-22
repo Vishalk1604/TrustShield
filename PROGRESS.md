@@ -377,8 +377,23 @@ clean. `pytest` → **188 passed**.
 
 ---
 
+## §11 — Realistic synthetic data (generator v2) ✅ (2026-06-23)
+- **Realistic layouts:** TRACES-style `build_form16` (Part A/B + quarterly-TDS table); realistic
+  `build_bank_statement` (running-balance transaction table) + `build_salary_slip` (balancing
+  earnings/deductions); field-aware PAN + new doc-style Aadhaar (SYNTHETIC-marked). Backward-compatible
+  (keyword-only `fields`/`template`; legacy positional callers + the PDF-level tampers unaffected).
+- **Field map + seamless engine** (`data/generator/seamless_edit.py`): field-targeted edits on a
+  **naive→blended→pro** spectrum; `pro` = inpaint + font/colour/bold-matched render + page-matched
+  noise + single recompress (no hard edges). Bank statement: arithmetic-consistent vs -broken variants.
+- **Dataset v2** (`build_image_dataset`): 50 clean + 460 tampered, ground-truth masks, **train/val/test
+  split by source**; `eval_image_forensics` gains a per-difficulty breakdown.
+- **Honest result:** precision **1.0** (zero FP on clean); heuristic detection by difficulty `geom`
+  0.57 / `naive`,`blended`,`pro` ≈ 0.0 — realistic small edits evade the pixel heuristics. Forgery
+  U-Net fine-tuned on the v2 `train` split, re-measured on the held-out `test` split
+  (`train_forgery.py --finetune`; `results/forgery_training/`). Tests updated; `verify_local_only` passes.
+
 ## All phases complete (0–8) + Phase 9 + real-doc ingestion + web app + §9 KYC/underwriting
 ## + §10 full edit-detection stack (pixel forensics + recapture + semantic ID + QR + forgery-model seam
-## + face-match). 🎉
+## + face-match) + §11 realistic synthetic data (generator v2). 🎉
 Synthetic demo: `python scripts/seed_demo.py` then `DEMO.md`. Run: `docker compose up -d --build`
 → console at http://localhost:5173; image edit-detection at `POST :8001/forensics/analyze-image`.

@@ -8,7 +8,7 @@ reader that is painful to build on Windows). So we train our own compact **U-Net
 our Day-2 synthetic tamper set. Output → `models/forgery/unet/weights/forgery.pth`, which the seam
 (`ingest/forgery_model.py`, backend `unet`) auto-detects. torch only; no jpegio/smp/timm; no network.
 
-    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128   # Blackwell GPU
+    pip install torch torchvision  (from the PyTorch CUDA 12.8 / cu128 wheel index, for a Blackwell GPU)
     pip install lmdb six                                                                # LMDB reader
     # quick run (subset, proves the pipeline + a usable baseline):
     python services/forensics/train_forgery.py --max-samples 12000 --epochs 3 --batch 16
@@ -64,13 +64,23 @@ class LmdbForgery:
 
 
 class SynthForgery:
-    """Our Day-2 synthetic tamper set (tampered jpg + mask png from labels.json) for fine-tuning."""
+    """Our synthetic tamper set (tampered jpg + mask png from labels.json) for fine-tuning. Filters by
+    split (default the `train` split only — never the held-out test split) and optionally difficulty."""
 
-    def __init__(self, images_dir: Path):
+    def __init__(self, images_dir: Path, splits=("train",), difficulties=None):
         import json
         recs = json.loads((images_dir / "labels.json").read_text())["records"]
-        self.items = [(images_dir / r["file"], images_dir / r["mask"])
-                      for r in recs if r["label"] == "tampered" and r.get("mask")]
+
+        def keep(r):
+            if r["label"] != "tampered" or not r.get("mask"):
+                return False
+            if splits and r.get("split") not in splits:
+                return False
+            if difficulties and r.get("difficulty") not in difficulties:
+                return False
+            return True
+
+        self.items = [(images_dir / r["file"], images_dir / r["mask"]) for r in recs if keep(r)]
         self.root = images_dir
 
     def __len__(self):
@@ -114,7 +124,9 @@ def train(args) -> None:
     ckpt = WEIGHTS_OUT / "forgery.pth"
 
     if args.finetune:
-        ds = SynthForgery(REPO_ROOT / "data" / "synthetic" / "images")
+        ds = SynthForgery(REPO_ROOT / "data" / "synthetic" / "images", splits=("train",))
+        if len(ds) == 0:
+            sys.exit("no train-split tampered samples — run python -m data.generator.build_image_dataset first")
     else:
         split = DOC_DATA / "DocTamperV1-TrainingSet"
         if not split.exists():

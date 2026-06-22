@@ -30,9 +30,14 @@ DIFFICULTIES = ("naive", "blended", "pro")
 
 # ── font / colour sampling ──────────────────────────────────────────────────────────
 
-def _load_font(size_px: int, mono: bool = False) -> ImageFont.FreeTypeFont:
-    names = (("consola.ttf", "cour.ttf", "DejaVuSansMono.ttf", "LiberationMono-Regular.ttf") if mono
-             else ("arial.ttf", "Arial.ttf", "DejaVuSans.ttf", "calibri.ttf", "LiberationSans-Regular.ttf"))
+def _load_font(size_px: int, mono: bool = False, bold: bool = False) -> ImageFont.FreeTypeFont:
+    if mono:
+        names = (("consolab.ttf", "DejaVuSansMono-Bold.ttf") if bold
+                 else ("consola.ttf", "cour.ttf", "DejaVuSansMono.ttf", "LiberationMono-Regular.ttf"))
+    else:
+        names = (("arialbd.ttf", "Arialbd.ttf", "DejaVuSans-Bold.ttf", "calibrib.ttf", "LiberationSans-Bold.ttf")
+                 if bold else
+                 ("arial.ttf", "Arial.ttf", "DejaVuSans.ttf", "calibri.ttf", "LiberationSans-Regular.ttf"))
     for n in names:
         try:
             return ImageFont.truetype(n, max(6, int(size_px)))
@@ -180,7 +185,7 @@ _TIERS = {"naive": _naive, "blended": _blended, "pro": _pro}
 
 
 def edit_field(img: Image.Image, box: Box, new_text: str, *, difficulty: str = "pro",
-               font_px: Optional[int] = None, mono: bool = False,
+               font_px: Optional[int] = None, mono: bool = False, bold: bool = False,
                text_color: Optional[tuple[int, int, int]] = None,
                rng: Optional[np.random.Generator] = None) -> tuple[Image.Image, Image.Image]:
     """Replace the value in `box` with `new_text` at the given difficulty. Returns (image, mask)."""
@@ -193,7 +198,7 @@ def edit_field(img: Image.Image, box: Box, new_text: str, *, difficulty: str = "
     x0, y0, x1, y1 = (int(round(v)) for v in box)
     x0, y0 = max(0, x0), max(0, y0)
     x1, y1 = min(W - 1, x1), min(H - 1, y1)
-    font = _load_font(font_px or max(10, int((y1 - y0) * 0.8)), mono=mono)
+    font = _load_font(font_px or max(10, int((y1 - y0) * 0.8)), mono=mono, bold=bold)
     ink = text_color or _ink_color(arr, (x0, y0, x1, y1))
     paper = _paper_color(arr, (x0, y0, x1, y1))
     # widen the box if the replacement is longer than the original value

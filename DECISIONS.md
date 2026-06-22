@@ -520,3 +520,29 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   auto-enabled** (it adds latency without benefit). DEFAULT_BACKEND reverted to the no-op. Path to value:
   **fine-tune on domain data** (our synthetic + labelled real Indian-doc edits) via `--finetune`, then
   re-measure on a held-out split.
+
+## §11 — Realistic synthetic data: real layouts + field-targeted, no-hard-edge tampering (2026-06-23)
+
+- **Why:** the old synthetic corpus was unrealistic on two axes that made it useless as training/eval
+  data — flat-text layouts and **hard-edged rectangle-fill** image tampers. That crudeness is *why*
+  nothing transferred (the §10 forgery model showed no uplift). Rebuilt the generator (v2).
+- **Realistic layouts** (`data/generator/pdf_builder.py`): TRACES-style Form 16 (Part A/B + quarterly-
+  TDS table), bank statement with a correct running-balance table, balancing salary slip; PAN/Aadhaar
+  kept doc-style per scope (Aadhaar marked SYNTHETIC). Builders stay backward-compatible (keyword-only
+  `fields`/`template`) so the existing PDF packets + PDF-level tampers + tests are unaffected.
+- **Field map + seamless engine** (`seamless_edit.py`): edits target the fields fraudsters actually
+  edit, on a tagged **naive→blended→pro** spectrum. `pro` = cv2.inpaint (no flat box) → font/colour/
+  **bold**-matched render → re-added page-matched sensor noise → single recompress. cv2 optional (pro
+  degrades to blended). Validated by eye: the pro edits are seamless (matched tone/weight/softness).
+- **Dataset v2 + splits** (`build_image_dataset.py`): builds docs in-process (to hold exact field
+  boxes), applies field + geometric tampers with masks, deterministic **train/val/test split by source
+  id** (no leakage). `labels.json` carries field_name/fraud_field/difficulty/old_value/new_value/
+  variant/split. Eval gains a per-difficulty breakdown + an optional split filter.
+- **Honest measured finding:** on realistic documents the pixel heuristics hold **precision 1.0 (zero
+  FP on clean)** but **recall collapses** — detection by difficulty: `geom` 0.57, `naive`/`blended`/
+  `pro` field edits ≈ **0.0** (a number in a table is below the size-guarded heuristics' floor). The
+  seamless `pro` tier evades them by construction. This is the precise, honest motivation for the
+  learned model — and the domain-matched data it was missing. Decision: heuristics stay the default
+  guarantee (no FP); the forgery U-Net is fine-tuned on the v2 `train` split and re-measured on the
+  held-out `test` split (`results/forgery_training/`). GPU note: CUDA was unavailable this session
+  (dGPU not visible), so the fine-tune ran on CPU on the small (~283-sample) domain set.

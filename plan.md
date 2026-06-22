@@ -588,3 +588,39 @@ heuristics + semantic + QR baseline alone.
 **Already DONE earlier (kept, used as depth in the demo):** §6.D2 re-OCR cross-check, §6.D3 tamper
 localization + overlays, the 5-layer pipeline (forensic/semantic/model/aggregator/graph), §9 KYC +
 underwriting backend. The §10 demo opens on edit-detection and shows these as the layers underneath.
+
+---
+
+## 11. Realistic synthetic data — real layouts + field-targeted, no-hard-edge tampering (DONE)
+
+**Why:** the old synthetic corpus was unrealistic on two axes that made it useless as training/eval
+data — flat-text layouts (a 5-line "Form 16") and **hard-edged rectangle-fill** tampers. Detectors
+tuned/scored on it learned nothing transferable (this is *why* the §10 forgery model showed no uplift).
+
+**What we built (generator v2, `data/generator/`):**
+- **Realistic layouts.** `build_form16` → TRACES Part A (employer/employee blocks, PAN-of-deductor /
+  TAN / PAN-of-employee, quarterly-TDS table) + Part B (salary breakup u/s 17/10/16 + Chapter VI-A),
+  with 3 employer template variants. `build_bank_statement` → bank header + account summary + a
+  multi-row transaction table with a correct running balance. `build_salary_slip` → an Earnings/
+  Deductions table that balances. PAN/Aadhaar kept doc-style (`build_identity`/`build_aadhaar`, the
+  latter watermarked SYNTHETIC). Validated by eye against real samples.
+- **Field map.** Builders emit an optional `fields` out-dict recording *where* each editable value
+  sits (rect in PDF points) + the realistic fraud direction, so edits target a **named** field
+  (gross_salary, tds, salary_credit, closing_balance, net_pay, basic, pan, aadhaar_number, name, dob).
+- **Seamless-edit engine** (`seamless_edit.py`) on a tagged difficulty spectrum:
+  `naive` (hard fill — the easy tier), `blended` (feathered alpha), `pro` (cv2.inpaint → font/colour/
+  **bold**-matched render → re-added page-matched sensor noise → single recompress; no hard edges). The
+  bank statement also gets an arithmetic-**consistent** pro variant (running balance recomputed) vs the
+  **broken** one (balances left stale → the cross-field check catches it).
+- **Dataset v2 + splits.** `build_image_dataset` builds docs in-process, applies field-targeted
+  seamless edits across the spectrum + the geometric pixel tampers, with ground-truth masks and a
+  deterministic **train/val/test split by source id**. `labels.json` carries field_name/fraud_field/
+  difficulty/old_value/new_value/variant/split.
+
+**Honest measured result (the point):** on realistic documents the hand-tuned pixel heuristics hold
+**precision 1.0 (zero false positives on clean)** but **recall collapses** — detection rate by
+difficulty: `geom` 0.57, but `naive`/`blended`/`pro` field edits ≈ **0.0** (a number in a table is too
+small for the size-guarded heuristics). The seamless `pro` tier evades them by construction. This is
+the precise, honest motivation for the learned model, and the domain-matched training data it needs:
+the forgery U-Net is fine-tuned on the v2 `train` split and re-measured on the held-out `test` split
+(`services/forensics/train_forgery.py --finetune`; results in `results/forgery_training/`).
