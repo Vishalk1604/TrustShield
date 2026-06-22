@@ -470,3 +470,20 @@ and tamper localization (D3). Both use the already-installed Tesseract + PyMuPDF
   (pyzbar x1/x2/x3 + OpenCV all returned 0). So QR cross-check is reported gracefully (`qr_found:0`, no
   finding) and the semantic identifier check remains the catch for those; QR shines on higher-res scans
   and the signed Aadhaar QR. Honest limitation documented in plan.md §10.
+
+## Real-doc hardening: noise-detector size + count guards (2026-06-22)
+
+- **Real test set (4 PAN + 3 Aadhaar pairs) exposed noise-detector false positives.** On real PAN photos
+  with moderate sensor noise (page σ≈2-3), the noise-loss detector flagged 6-28 regions on GENUINE cards —
+  including huge low-noise blobs (up to 15.5% of the image = glare / lamination sheen / blurred
+  background), flipping two originals to EDITED/SUSPICIOUS. A real number-edit, by contrast, is a FEW
+  SMALL regions (≤2%). Fix: (1) **size cap** `NOISE_MAX_FRAC=0.02` drops large glare/background blobs;
+  (2) **count guard** `NOISE_MAX_REGIONS=3` — many low-noise regions = diffuse photo noise (focus/glare/
+  JPEG), not a targeted edit, so suppress all. Result: all 4 PAN originals → CLEAN (FPs gone), edited PANs
+  still caught 3/4 (semantic + noise + forensic), synthetic eval **unchanged** (precision 1.0, IoU 0.84).
+- **Aadhaar Verhoeff on OCR is NOT verdict-safe.** Both the genuine AND edited Aadhaar numbers OCR'd to
+  Verhoeff-INVALID values — i.e. OCR misread a digit on the *genuine* card too. A 12-digit checksum is
+  broken by any single OCR error, so validating an OCR'd Aadhaar would false-flag real cards. We do NOT
+  put it in the verdict. Aadhaar edits need the **signed QR** (didn't decode on these low-res photos) or
+  the **learned forgery model** — the honest limit. (PAN's 10-char *format* check is far more OCR-robust,
+  which is why PAN edits are caught and Aadhaar's aren't.)

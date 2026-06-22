@@ -69,6 +69,8 @@ NOISE_MIN_FLAT_FRAC = 0.22 # a block needs this fraction of flat pixels to get a
 NOISE_MIN_FLOOR = 2.2      # page noise σ below this = too clean to detect a "lost noise" edit
 NOISE_LOW_FRAC = 0.50      # a block whose noise is < 50% of the page floor is suspicious
 NOISE_MIN_BLOCKS = 5       # min contiguous low-noise blocks to form a region
+NOISE_MAX_FRAC = 0.02      # drop low-noise regions larger than this (glare / blurred background, not an edit)
+NOISE_MAX_REGIONS = 3      # >this many low-noise regions = diffuse photo noise, not a targeted edit → suppress
 COPYMOVE_FEATURES = 5000   # ORB keypoint budget
 COPYMOVE_MIN_OFFSET = 30   # px; ignore matches within the same neighbourhood
 COPYMOVE_MIN_MATCHES = 10  # min consistent-offset matches to call a clone
@@ -236,12 +238,22 @@ def _noise_regions(img: Image.Image) -> list[Region]:
         return []
     low_thr = g * NOISE_LOW_FRAC                    # blocks well below the page's noise floor
     mask = valid & (sigma < low_thr)
-    regions: list[Region] = []
+    total_blocks = sigma.shape[0] * sigma.shape[1]
     span = float(low_thr) or 1.0
+    regions: list[Region] = []
     for cells in _components(mask, NOISE_MIN_BLOCKS):
+        # Size cap: a real number-edit is small; a large low-noise blob is glare / a blurred
+        # background / lamination sheen on a real photo — not a paint-over.
+        if len(cells) > NOISE_MAX_FRAC * total_blocks:
+            continue
         region_sigma = float(np.mean([sigma[y, x] for y, x in cells]))
         strength = max(0.0, min(1.0, (low_thr - region_sigma) / span))
         regions.append(Region(_cells_to_bbox(cells), "noise", round(strength, 3)))
+    # Count guard: a targeted edit yields a FEW low-noise regions. Many of them means the photo just
+    # has diffuse, spatially-varying sensor noise (focus/glare/JPEG) — unreliable, so suppress all
+    # rather than false-flag a genuine document (validated on real PAN photos).
+    if len(regions) > NOISE_MAX_REGIONS:
+        return []
     return regions
 
 

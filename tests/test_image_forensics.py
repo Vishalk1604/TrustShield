@@ -13,11 +13,13 @@ from services.forensics.app.image_forensics import analyze_image
 
 
 def _noisy_doc(seed: int = 0) -> Image.Image:
-    """A light 'paper' page with text bars + a realistic sensor-noise floor (σ≈12)."""
+    """An ID-card-sized 'paper' page with text bars + a realistic sensor-noise floor (σ≈12).
+    Card-sized (800x1080) so a number-sized edit (~180x55 px) is a small fraction of the page —
+    the noise detector's size cap (drops >2% glare/background blobs) targets exactly that regime."""
     rng = np.random.default_rng(seed)
-    a = np.full((360, 520), 226, dtype=np.float32)
-    for y in range(40, 330, 42):                 # uniform text-like bars
-        a[y:y + 7, 40:470] = 40
+    a = np.full((1080, 800), 226, dtype=np.float32)
+    for y in range(60, 1000, 64):                # uniform text-like bars
+        a[y:y + 10, 60:720] = 40
     a += rng.normal(0.0, 12.0, a.shape)          # sensor noise (survives JPEG → a detectable floor)
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGB")
 
