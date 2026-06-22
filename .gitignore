@@ -54,6 +54,8 @@ services/risk/case_store/
 # regenerated on demand (python -m data.generator.build_image_dataset) — not committed. The committed
 # eval RESULTS (results/image_forensics/) + a few curated demo examples are the durable artifacts.
 data/synthetic/images/
+# Throwaway generator-v2 QA previews (rendered by data/generator/_preview_*.py) — not committed.
+data/synthetic/_preview/
 
 # data/real/ holds REAL, PII-bearing documents used ONLY for local validation of the real-document
 # pipeline. NEVER commit them. data/real/.gitignore keeps just the folder structure + README.

@@ -108,7 +108,90 @@ def _new_doc() -> tuple["fitz.Document", "fitz.Page"]:
 
 
 # --------------------------------------------------------------------------------------
-# Document builders. Each returns an open fitz.Document; the caller saves it.
+# Field map — records WHERE each editable value sits so the image pipeline can target it
+# with a seamless, field-aware edit (instead of a blind random box). `fraud` is the
+# realistic attacker direction. Rects are in PDF points; the raster step scales by dpi/72.
+# --------------------------------------------------------------------------------------
+def _text_rect(x: float, y: float, value: str, font: str, size: float) -> tuple[float, float, float, float]:
+    """Glyph bounding box (PDF points) for text drawn by `insert_text` at baseline (x, y).
+    PyMuPDF places the baseline at y; glyphs rise ~0.8·size above it and drop ~0.22·size below."""
+    w = fitz.get_text_length(value, fontname=font, fontsize=size)
+    return (x - 1.0, y - size * 0.80, x + w + 1.0, y + size * 0.22)
+
+
+def _record_field(fields: Optional[dict], name: str, x: float, y: float, value: str,
+                  *, font: str = FONT_BODY, size: float = 11.0, fraud: str = "none",
+                  kind: str = "text", amount: Optional[float] = None) -> None:
+    if fields is None:
+        return
+    fields[name] = {
+        "rect_pts": [round(v, 2) for v in _text_rect(x, y, value, font, size)],
+        "value": value, "amount": amount, "font": font, "size": size,
+        "fraud": fraud, "kind": kind,
+    }
+
+
+def _money_field(page: "fitz.Page", x: float, y: float, amount: float, *, size: float = 8.5,
+                 font: str = FONT_BODY, fields: Optional[dict] = None, name: str = "",
+                 fraud: str = "none") -> None:
+    """Draw a currency value with `insert_text` (so its glyph rect is exactly known) + record it."""
+    s = _money(amount)
+    page.insert_text((x, y), s, fontname=font, fontsize=size)
+    if name:
+        _record_field(fields, name, x, y, s, font=font, size=size, fraud=fraud,
+                      kind="money", amount=float(amount))
+
+
+def _htext(page: "fitz.Page", x0: float, x1: float, baseline_y: float, text: str, *,
+           size: float = 8.0, bold: bool = False, color: tuple = (0, 0, 0), align: int = 0) -> None:
+    """Single line drawn with `insert_text` (reliable in short cells, unlike `insert_textbox`).
+    align: 0=left, 1=center, 2=right within [x0, x1]."""
+    font = FONT_BOLD if bold else FONT_BODY
+    tw = fitz.get_text_length(text, fontname=font, fontsize=size)
+    if align == 1:
+        tx = x0 + (x1 - x0 - tw) / 2
+    elif align == 2:
+        tx = x1 - tw
+    else:
+        tx = x0
+    page.insert_text((tx, baseline_y), text, fontname=font, fontsize=size, color=color)
+
+
+def _cell(page: "fitz.Page", rect: "fitz.Rect", text: str = "", *, size: float = 8.0,
+          bold: bool = False, align: int = 0, pad: float = 3.0, color: tuple = (0, 0, 0),
+          border: float = 0.6) -> None:
+    """A bordered table cell with (optionally centered/right-aligned) single-line text."""
+    if border:
+        page.draw_rect(rect, color=(0.45, 0.45, 0.45), width=border)
+    if text:
+        ty = rect.y0 + (rect.height + size * 0.72) / 2 - size * 0.1
+        _htext(page, rect.x0 + pad, rect.x1 - pad, ty, text, size=size, bold=bold, color=color, align=align)
+
+
+def _assessment_year(fy: str) -> str:
+    """FY '2023-24' → AY '2024-25'."""
+    try:
+        start = int(fy.split("-")[0])
+        return f"{start + 1}-{str(start + 2)[-2:]}"
+    except Exception:
+        return "2024-25"
+
+
+# Form-16 employer/template variants — different issuers print slightly different headers, TANs and
+# addresses; rotating them kills the single-template fingerprint the old generator had.
+_F16_TEMPLATES: list[dict] = [
+    {"band": (0.12, 0.20, 0.42), "tan": "BLRT04321A", "cert": "TRA2K7QF",
+     "addr": ["Electronics City Phase 1", "Bengaluru, Karnataka - 560100"], "updated": "21-May-2024"},
+    {"band": (0.10, 0.32, 0.28), "tan": "MUMW09887C", "cert": "PQRS9912",
+     "addr": ["Plot 12, MIDC Andheri (E)", "Mumbai, Maharashtra - 400093"], "updated": "14-Jun-2024"},
+    {"band": (0.30, 0.16, 0.14), "tan": "DELH03210B", "cert": "ZX8810KK",
+     "addr": ["Tower B, Cyber Hub, DLF Ph-2", "Gurugram, Haryana - 122002"], "updated": "02-Jun-2024"},
+]
+
+
+# --------------------------------------------------------------------------------------
+# Document builders. Each returns an open fitz.Document; the caller saves it. Builders that
+# back the image-tamper pipeline also accept an optional `fields` out-dict (see field map above).
 # --------------------------------------------------------------------------------------
 def build_identity(name: str, pan: str, dob: str, meta: DocMeta) -> "fitz.Document":
     doc, page = _new_doc()
@@ -132,28 +215,142 @@ def build_identity(name: str, pan: str, dob: str, meta: DocMeta) -> "fitz.Docume
 
 
 def build_form16(
-    name: str, pan: str, employer: str, gross_income: float, tax_paid: float, fy: str, meta: DocMeta
+    name: str, pan: str, employer: str, gross_income: float, tax_paid: float, fy: str, meta: DocMeta,
+    *, fields: Optional[dict] = None, template: int = 0,
 ) -> "fitz.Document":
+    """A TRACES-style Form 16: Part A (employer/employee, PAN/TAN, quarterly-TDS table) + Part B
+    (salary breakup). The headline gross-salary figure is still drawn as `_money(gross_income)` so the
+    PDF-level `tamper.edit_money_figure` keeps working; `fields` (if given) records the image-targetable
+    fraud fields (gross_salary, tds, employer_pan)."""
     doc, page = _new_doc()
-    y = _header(page, "FORM 16", f"Certificate of TDS  |  FY {fy}")
-    y = _lines(
-        page,
-        y + 6,
-        [
-            f"Employee:        {name}",
-            f"PAN:             {pan}",
-            f"Employer:        {employer}",
-            "",
-            "Part B - Details of Salary Paid",
-        ],
-        leading=20,
-        size=11,
-    )
-    # The headline income figure — tamper.py targets this row's rectangle.
-    page.insert_text((MARGIN_X, y + 8), "Gross Salary (Annual):", fontname=FONT_BODY, fontsize=12)
-    page.insert_text((320, y + 8), _money(gross_income), fontname=FONT_BODY, fontsize=12)
-    page.insert_text((MARGIN_X, y + 34), "Total Tax Deducted (TDS):", fontname=FONT_BODY, fontsize=12)
-    page.insert_text((320, y + 34), _money(tax_paid), fontname=FONT_BODY, fontsize=12)
+    ML, MR = 40.0, PAGE_W - 40.0
+    midx = (ML + MR) / 2
+    tpl = _F16_TEMPLATES[template % len(_F16_TEMPLATES)]
+    ay = _assessment_year(fy)
+    fy_from, fy_to = f"01-Apr-{fy.split('-')[0]}", f"31-Mar-{int(fy.split('-')[0]) + 1}"
+
+    # faint TRACES watermark behind the body
+    page.insert_textbox(fitz.Rect(110, 360, 490, 470), "TRACES", fontname=FONT_BOLD, fontsize=78,
+                        color=(0.92, 0.92, 0.92), align=1)
+
+    # ── top header ───────────────────────────────────────────────────────────────────
+    _htext(page, ML, MR, 50, "FORM NO. 16", size=11, bold=True, align=1)
+    _htext(page, ML, MR, 62, "[See rule 31(1)(a)]", size=8, align=1)
+    _htext(page, ML, MR, 82,
+           "Certificate under Section 203 of the Income-tax Act, 1961 for tax deducted at source on salary",
+           size=8.5, align=1)
+
+    # ── PART A banner + certificate row ──────────────────────────────────────────────
+    y = 102.0
+    page.draw_rect(fitz.Rect(ML, y, MR, y + 15), color=tpl["band"], fill=tpl["band"])
+    _htext(page, ML, MR, y + 10.5, "PART A", size=9, bold=True, color=(1, 1, 1), align=1)
+    y += 15
+    _cell(page, fitz.Rect(ML, y, MR, y + 15))
+    page.insert_text((ML + 5, y + 10), f"Certificate No.  {tpl['cert']}", fontname=FONT_BODY, fontsize=8)
+    page.insert_text((MR - 165, y + 10), f"Last updated on  {tpl['updated']}", fontname=FONT_BODY, fontsize=8)
+    y += 15
+
+    # employer / employee two-column block
+    bh = 58.0
+    _cell(page, fitz.Rect(ML, y, midx, y + bh))
+    _cell(page, fitz.Rect(midx, y, MR, y + bh))
+    page.insert_text((ML + 5, y + 11), "Name and address of the Employer", fontname=FONT_BOLD, fontsize=7.5)
+    _lines(page, y + 23, [employer, *tpl["addr"]], x=ML + 5, leading=11, size=8)
+    page.insert_text((midx + 5, y + 11), "Name and address of the Employee", fontname=FONT_BOLD, fontsize=7.5)
+    page.insert_text((midx + 5, y + 23), name, fontname=FONT_BODY, fontsize=8)
+    y += bh
+
+    # PAN-of-deductor | TAN-of-deductor | PAN-of-employee  (3-col header + value row)
+    c1, c2 = ML + (MR - ML) / 3, ML + 2 * (MR - ML) / 3
+    _cell(page, fitz.Rect(ML, y, c1, y + 13), "PAN of the Deductor", size=7.5, align=1)
+    _cell(page, fitz.Rect(c1, y, c2, y + 13), "TAN of the Deductor", size=7.5, align=1)
+    _cell(page, fitz.Rect(c2, y, MR, y + 13), "PAN of the Employee", size=7.5, align=1)
+    y += 13
+    _cell(page, fitz.Rect(ML, y, c1, y + 15))
+    _cell(page, fitz.Rect(c1, y, c2, y + 15))
+    _cell(page, fitz.Rect(c2, y, MR, y + 15))
+    deductor_pan = pan[:3] + "CD" + pan[5:]  # a distinct (synthetic) employer PAN
+    page.insert_text((ML + 6, y + 10.5), deductor_pan, fontname=FONT_BODY, fontsize=8.5)
+    _record_field(fields, "employer_pan", ML + 6, y + 10.5, deductor_pan, font=FONT_BODY, size=8.5,
+                  fraud="swap", kind="pan")
+    page.insert_text((c1 + 6, y + 10.5), tpl["tan"], fontname=FONT_BODY, fontsize=8.5)
+    page.insert_text((c2 + 6, y + 10.5), pan, fontname=FONT_BODY, fontsize=8.5)
+    y += 15
+
+    # AY | period row
+    _cell(page, fitz.Rect(ML, y, midx, y + 15), f"  Assessment Year:  {ay}", size=8)
+    _cell(page, fitz.Rect(midx, y, MR, y + 15), f"  Period:  {fy_from}  to  {fy_to}", size=8)
+    y += 15
+
+    # ── Part A summary: quarterly TDS table ──────────────────────────────────────────
+    y += 6
+    page.insert_text((ML, y), "Summary of tax deducted at source", fontname=FONT_BOLD, fontsize=8)
+    y += 5
+    qx = [ML, ML + 70, ML + 250, MR]  # Quarter | Amount paid/credited | Tax deducted/deposited
+    hdr = ["Quarter", "Amount paid / credited", "Amount of tax deducted & deposited"]
+    rh = 13.0
+    for i, h in enumerate(hdr):
+        _cell(page, fitz.Rect(qx[i], y, qx[i + 1], y + rh), h, size=7.5, bold=True, align=1)
+    y += rh
+    q_gross, q_tax = gross_income / 4.0, tax_paid / 4.0
+    for qi, q in enumerate(("Q1", "Q2", "Q3", "Q4"), start=0):
+        _cell(page, fitz.Rect(qx[0], y, qx[1], y + rh), q, size=8, align=1)
+        _cell(page, fitz.Rect(qx[1], y, qx[2], y + rh))
+        _cell(page, fitz.Rect(qx[2], y, qx[3], y + rh))
+        _money_field(page, qx[1] + 6, y + 9.5, round(q_gross), size=8)
+        _money_field(page, qx[2] + 6, y + 9.5, round(q_tax), size=8)
+        y += rh
+    # total row (gross + tax appear here as `_money(...)` so the legacy PDF edit still finds them)
+    _cell(page, fitz.Rect(qx[0], y, qx[1], y + rh), "Total", size=8, bold=True, align=1)
+    _cell(page, fitz.Rect(qx[1], y, qx[2], y + rh))
+    _cell(page, fitz.Rect(qx[2], y, qx[3], y + rh))
+    _money_field(page, qx[1] + 6, y + 9.5, gross_income, size=8, font=FONT_BOLD)
+    _money_field(page, qx[2] + 6, y + 9.5, tax_paid, size=8, font=FONT_BOLD)
+    y += rh
+
+    # ── PART B banner + salary breakup ───────────────────────────────────────────────
+    y += 14
+    page.draw_rect(fitz.Rect(ML, y, MR, y + 15), color=tpl["band"], fill=tpl["band"])
+    _htext(page, ML, MR, y + 10.5, "PART B (Annexure)", size=9, bold=True, color=(1, 1, 1), align=1)
+    y += 15
+    _cell(page, fitz.Rect(ML, y, MR, y + 14), "  Details of Salary Paid and Tax Deducted", size=8, bold=True)
+    y += 14
+
+    std_ded, prof_tax = 50000.0, 2400.0
+    chap_via = round(gross_income * 0.08)
+    exempt = round(gross_income * 0.06)
+    net_salary = gross_income - exempt
+    chargeable = net_salary - std_ded - prof_tax
+    taxable = max(0.0, chargeable - chap_via)
+    amt_x = MR - 110  # left edge of the amount column (values left-aligned here → exact rects)
+    rows = [
+        ("1.  Gross Salary  [Sec 17(1)]", gross_income, "gross_salary", "inflate", False),
+        ("2.  Less: Allowances exempt u/s 10 (HRA, LTA)", exempt, "exempt_s10", "none", False),
+        ("3.  Net Salary", net_salary, "", "none", False),
+        ("4.  Less: Standard deduction u/s 16(ia)", std_ded, "", "none", False),
+        ("5.  Less: Tax on employment u/s 16(iii)", prof_tax, "", "none", False),
+        ("6.  Income chargeable under head 'Salaries'", chargeable, "", "none", False),
+        ("7.  Less: Deductions under Chapter VI-A (80C, 80D)", chap_via, "chapter_via", "inflate", False),
+        ("8.  Total taxable income", taxable, "", "none", True),
+        ("9.  Tax payable on total income", round(taxable * 0.15), "", "none", False),
+        ("10. Tax deducted at source (TDS)", tax_paid, "tds", "inflate", True),
+    ]
+    rh = 15.0
+    for label, amount, fname, fraud, bold in rows:
+        _cell(page, fitz.Rect(ML, y, amt_x, y + rh), "  " + label, size=8, bold=bold)
+        _cell(page, fitz.Rect(amt_x, y, MR, y + rh))
+        _money_field(page, amt_x + 6, y + 10, amount, size=8.5, font=(FONT_BOLD if bold else FONT_BODY),
+                     fields=fields if fname else None, name=fname, fraud=fraud)
+        y += rh
+
+    # attestation
+    y += 16
+    page.insert_textbox(fitz.Rect(ML, y, MR, y + 26),
+                        "I certify that the information given above is true, complete and correct and is "
+                        "based on the books of account, documents, TDS statements and other available records.",
+                        fontname=FONT_BODY, fontsize=7.5)
+    page.insert_text((MR - 150, y + 44), "Signature of person responsible", fontname=FONT_BODY, fontsize=8)
+
     meta.title = "Form 16"
     apply_metadata(doc, meta)
     return doc
