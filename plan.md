@@ -624,3 +624,16 @@ small for the size-guarded heuristics). The seamless `pro` tier evades them by c
 the precise, honest motivation for the learned model, and the domain-matched training data it needs:
 the forgery U-Net is fine-tuned on the v2 `train` split and re-measured on the held-out `test` split
 (`services/forensics/train_forgery.py --finetune`; results in `results/forgery_training/`).
+
+**Fine-tune result + upgrades (measured, honest):** the domain fine-tune lifts the U-Net from
+cross-domain-useless to a real **synthetic** detector — test-split recall 0.49 (vs heuristics 0.18),
+catches seamless `pro` edits at 0.29 (heuristics 0.0), IoU 0.30, ~13% clean FP. Adding **clean images as
+negative training examples** was the key fix for over-firing; patch/tiled inference was tried and reverted
+(tiling compounds false positives); scan variety was reverted to **fixed** because it tripped the
+heuristics on clean docs — so the **heuristics keep precision 1.0 (FP 0/95 on clean)**. The U-Net is
+**opt-in** (`TRUSTSHIELD_FORGERY_BACKEND=unet`); the default stays heuristic. **Decisive gap — synthetic→real:** on the real PAN/Aadhaar pairs (`scripts/eval_real_anchor.py`)
+the U-Net flags **7/7 originals AND 7/7 edited** (it learned the generator's fingerprint, doesn't
+transfer), while heuristics hold **0/7 false positives**. So the §11 dataset is good for synthetic
+training/eval but not yet enough to make a *real-doc-ready* model — that needs real tampered data +
+photo-realistic ID synthesis (colored cards + phone-photo capture) + domain adaptation. Heuristics +
+semantic + QR remain the guaranteed-local real-doc layer.

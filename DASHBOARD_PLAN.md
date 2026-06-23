@@ -1,0 +1,98 @@
+# TrustShield — Judge-Facing Dashboard: Continuous Build Plan (routine)
+
+> This file drives a recurring autonomous routine (runs 01:00 and every ~5h: 01/06/11/16/21).
+> Each run is a COLD start — this file + the repo are your only memory. Read it fully first.
+
+## Routine protocol (do this every run)
+1. **Orient:** read this whole file, then `PROGRESS.md`, `plan.md` (esp. §1, §10, §11), and `git log --oneline -15`.
+2. **Clean tree first:** if there is uncommitted work, evaluate it — if it's finished §11 forensics work, commit it (msg `…(§11)…`); otherwise stash. Start each dashboard task from a clean tree.
+3. **Pick the FIRST unchecked task** in the Backlog below. Do it fully in this run. If it's too big, split it, make real incremental progress, and leave a clear sub-note.
+4. **Verify:** `cd services/dashboard && npm run build` must pass. Don't break the Python suite (`pytest -q` should stay green) or `python scripts/verify_local_only.py`.
+5. **Commit** to `main` (no Claude co-author trailer — owner's rule). Then **tick the task** here and **append one line to the Worklog** (date — what landed — short commit hash).
+6. **Deep-think (5 min):** consider the project holistically (story, gaps, what would impress judges). Log ideas in the Ideas section. Only act on dashboard ideas; non-dashboard ideas just get logged.
+7. If the whole Backlog is checked, start a **Polish loop**: pick the weakest screen and make it better (visual quality, copy, motion, responsiveness, a guided judge tour), log it as a new R-task.
+
+## Constraints (non-negotiable)
+- **100% local-first.** No runtime network except the local services (forensics `:8001`, risk `:8002`). `verify_local_only.py` must keep passing. No external CDNs at runtime — vendor assets/fonts locally.
+- **Demo must work with the backend DOWN.** Every judge-facing screen renders from baked-in demo data (see Assets) so the home + examples work with zero setup. Live calls are an enhancement, not a requirement.
+- **No real PII.** Use synthetic samples only (`data/synthetic/_preview/`, `results/image_forensics/samples/`). Never bundle anything from `data/real/`.
+- **Honest claims only.** Use the real numbers from `results/`. Where the model has limits (the synthetic→real gap), present it as a strength of our rigor, not hidden.
+- Keep commits small and frequent. Don't rewrite working code without reason.
+
+---
+
+## Context — what we're presenting (the pitch)
+**TrustShield** is a **100% local-first underwriting copilot** that detects document tampering/forgery
+across a loan packet and returns an **explainable trust score (0–100) + evidence chain + recommended
+action**. Audience: **hackathon judges**. Everything runs on-device — privacy is a core selling point.
+
+The engine is a **5-layer pipeline**: (1) **pixel/image forensics** (ELA, sensor-noise, copy-move,
+JPEG-ghost, recapture/moiré), (2) **semantic identifier checks** (PAN/Aadhaar validation + **QR
+cross-verification** of the card's signed data vs the printed text), (3) a **learned forgery-localization
+model** (our own U-Net, trained on realistic synthetic edits), (4) **trust-score aggregation** (weighted,
+documented) producing an evidence chain + action, (5) a **cross-application graph** (fraud rings,
+double-financing). Plus **KYC/underwriting** (identity/address established, income reconciliation, FOIR).
+
+Recent work (§11): a **realistic synthetic dataset** (TRACES Form 16, real bank statement, salary slip,
+PAN/Aadhaar) with **seamless, no-hard-edge tampering** on the fields fraudsters actually edit, used to
+train/measure the forgery model. Honest result: heuristics keep **precision 1.0 (zero false positives)**;
+the learned model detects seamless edits well **on synthetic** docs but **does not yet transfer to real**
+documents (the synthetic→real gap) — so heuristics + semantic + QR are the guaranteed-local layer and the
+model is opt-in. See `results/forgery_training/summary.md`, `results/image_forensics/`, `DECISIONS.md §11`.
+
+## Vision for the dashboard
+A polished, **judge-facing** dashboard, built fresh, that **opens on a HOME/LANDING screen** telling the
+TrustShield story end-to-end, then lets judges explore **live detection** and **annotated examples**.
+Think: "if a judge opens this cold, in 60 seconds they understand the problem, our approach, the proof,
+and can click one button to watch us catch a forged document."
+
+## Information architecture
+### A. Home / Landing (the hero — first thing judges see)
+1. **Hero** — name + tagline + one-liner + a prominent **"100% on-device · no network"** badge; primary CTA "Watch it catch a forgery", secondary "How it works".
+2. **The problem** — loan fraud via forged Form 16 / bank statements / PAN / Aadhaar; seamless digital edits slip past human review. A crisp visual (a "spot the edit" before/after that judges can't tell apart).
+3. **How it works** — the **5-layer pipeline** as an interactive diagram; each layer a card with a one-line "what it catches".
+4. **Key features grid** — every capability (icon + 1-liner): pixel forensics; semantic ID + QR cross-verify; learned forgery localization; trust score + evidence chain + action; cross-application graph (rings/double-financing); KYC/underwriting (FOIR); **privacy / local-only**.
+5. **Proof / results** — the honest numbers as small charts/stat cards: heuristics **precision 1.0 / zero FP**, detection-by-difficulty, the forgery-model uplift on synthetic, the **synthetic→real** honesty note, 209 tests passing, `verify_local_only` green.
+6. **Annotated examples** — a gallery of before/after seamless edits with **detection overlays** + captions explaining the edit and how we catch (or honestly miss) it.
+7. **Footer** — tech stack, "no data leaves the device", links to the layers.
+
+### B. Live Investigator (the working tool)
+- Pick a **sample packet** or upload a doc → call forensics `:8001` (`/forensics/analyze-image` for images) → render **verdict, trust score gauge, evidence chain cards, recommended action, region overlays**. Falls back to baked-in demo JSON when the backend is down.
+
+### C. Examples / Evidence deep-dive
+- Curated clean-vs-tampered cases with the mask overlay, the finding list, and a plain-English explanation per case.
+
+## Tech approach
+- **React + Vite** in `services/dashboard/` — build a NEW polished front-end (new Home + restructured
+  routes/components); reuse `src/api.js` wiring + the existing investigator logic where useful.
+- Styling: use the **ui-styling / ui-ux-pro-max / design** skills for quality (Tailwind ok; vendor
+  locally). Aim for a clean, trustworthy, fintech-grade look (the brand is *trust*).
+- **Demo mode**: a `src/demo/` module with baked-in JSON/handcrafted results (derived from `results/` +
+  `data/synthetic/_preview/`) so Home + Examples render with no backend. A small toggle "Live / Demo".
+- Keep `npm run build` green every commit.
+
+## Assets to use (already in the repo)
+- Annotated detection overlays: `results/image_forensics/samples/*.png`
+- Clean + edited preview renders (Form 16 / bank / salary / PAN / Aadhaar + zoom crops): `data/synthetic/_preview/*.png`
+- Real numbers: `results/image_forensics/metrics.json`, `results/forgery_training/summary.md`
+- Contracts/types: `shared/schemas/models.py` (TrustScore, EvidenceItem, Recommendation)
+- Existing UI to mine for logic: `services/dashboard/src/App.jsx`, `src/api.js`
+
+## Backlog (ordered — do the first unchecked each run; split if large)
+- [ ] **R1 — Shell + design system.** New routing (Home / Investigator / Examples), brand tokens (palette, type, the local-first badge), responsive layout, vendored fonts/icons. `npm run build` green.
+- [ ] **R2 — Home: Hero + Problem.** Copy + the no-network badge + a "spot the edit" before/after using preview crops.
+- [ ] **R3 — Home: How-it-works pipeline.** Interactive 5-layer diagram, each layer card with "what it catches".
+- [ ] **R4 — Home: Key features grid.** All capabilities, icon + blurb; link each to its layer/example.
+- [ ] **R5 — Home: Proof/results.** Stat cards + small charts from `metrics.json`; the honest synthetic→real note framed as rigor.
+- [ ] **R6 — Annotated examples gallery.** Before/after + overlay + caption per case (Form 16 gross-salary, bank salary-credit, PAN swap); pull from samples/_preview.
+- [ ] **R7 — Live Investigator.** Sample-or-upload → forensics call → verdict/evidence/overlay; demo-mode fallback wired.
+- [ ] **R8 — Trust score + evidence chain + action viz.** Gauge + ordered evidence cards + recommendation banding.
+- [ ] **R9 — Cross-application graph mini-view.** Rings / double-financing (static demo data or from risk `:8002`).
+- [ ] **R10 — Polish + judge tour.** Motion, transitions, mobile, a11y, copy editing, a guided "click-through tour" overlay; capture screenshots for the deck under `docs/`.
+- [ ] **R11+ — Iterate.** KYC/underwriting (FOIR) panel; refine weakest screens; demo script in `DEMO.md`.
+
+## Worklog (append one line per run)
+- 2026-06-23 (setup) — plan created; routine scheduled (01:00 + every ~5h). First run starts at R1.
+
+## Ideas (deep-think log — record, act only on dashboard ones)
+- (none yet — add insights about the project/story/gaps here each run)

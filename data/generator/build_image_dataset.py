@@ -86,6 +86,42 @@ APPLICANTS: list[dict] = [
      "account": "1011121314", "income": 990000, "dob": "06/10/1991", "gender": "Male",
      "aadhaar": "5583 1209 7746", "father": "Subir Bose",
      "address": ["11 Salt Lake Sec V", "Kolkata, West Bengal 700091"]},
+    {"key": "fatima", "name": "Fatima Sheikh", "pan": "DEFPS2233J", "employer": "Oracle India",
+     "account": "1213141516", "income": 1880000, "dob": "17/05/1989", "gender": "Female",
+     "aadhaar": "7741 2230 6695", "father": "Imran Sheikh",
+     "address": ["6 Banjara Hills Rd 12", "Hyderabad, Telangana 500034"]},
+    {"key": "arjun", "name": "Arjun Menon", "pan": "FGHPM4455L", "employer": "Deloitte India",
+     "account": "1314151617", "income": 1340000, "dob": "29/08/1990", "gender": "Male",
+     "aadhaar": "3360 7782 1148", "father": "Ravi Menon",
+     "address": ["22 Marine Drive", "Kochi, Kerala 682011"]},
+    {"key": "kavya", "name": "Kavya Pillai", "pan": "HIJPP6677N", "employer": "Zoho Corporation",
+     "account": "1415161718", "income": 1060000, "dob": "11/12/1992", "gender": "Female",
+     "aadhaar": "5128 9943 2076", "father": "Anil Pillai",
+     "address": ["48 GST Road", "Chennai, Tamil Nadu 600045"]},
+    {"key": "sandeep", "name": "Sandeep Yadav", "pan": "JKLPY8899P", "employer": "Maruti Suzuki",
+     "account": "1516171819", "income": 1210000, "dob": "03/07/1987", "gender": "Male",
+     "aadhaar": "6692 1108 7734", "father": "Ram Yadav",
+     "address": ["14 Sector 18", "Gurugram, Haryana 122015"]},
+    {"key": "neha", "name": "Neha Agarwal", "pan": "LMNPA0011R", "employer": "Flipkart",
+     "account": "1617181920", "income": 1560000, "dob": "26/02/1991", "gender": "Female",
+     "aadhaar": "2284 6630 9915", "father": "Vinod Agarwal",
+     "address": ["9 Indiranagar 100ft Rd", "Bengaluru, Karnataka 560038"]},
+    {"key": "rajesh", "name": "Rajesh Pillai", "pan": "NOPPR2233T", "employer": "ITC Limited",
+     "account": "1718192021", "income": 1450000, "dob": "08/09/1985", "gender": "Male",
+     "aadhaar": "4471 0092 6638", "father": "Mohan Pillai",
+     "address": ["31 Park Circus", "Kolkata, West Bengal 700017"]},
+    {"key": "divya", "name": "Divya Rao", "pan": "PQRPR4455V", "employer": "Reliance Jio",
+     "account": "1819202122", "income": 990000, "dob": "19/04/1993", "gender": "Female",
+     "aadhaar": "8830 1147 2259", "father": "Suresh Rao",
+     "address": ["5 Jubilee Hills", "Hyderabad, Telangana 500033"]},
+    {"key": "manish", "name": "Manish Gupta", "pan": "RSTPG6677X", "employer": "Bajaj Finserv",
+     "account": "1920212223", "income": 1700000, "dob": "14/11/1988", "gender": "Male",
+     "aadhaar": "3309 7741 8852", "father": "Prakash Gupta",
+     "address": ["27 Viman Nagar", "Pune, Maharashtra 411014"]},
+    {"key": "pooja", "name": "Pooja Desai", "pan": "TUVPD8899Z", "employer": "Adani Group",
+     "account": "2021222324", "income": 1290000, "dob": "07/06/1990", "gender": "Female",
+     "aadhaar": "5563 2208 7741", "father": "Hitesh Desai",
+     "address": ["12 CG Road", "Ahmedabad, Gujarat 380009"]},
 ]
 
 # Fraud fields exercised per doc type (kept to 2 → a balanced dataset across the spectrum).
@@ -109,9 +145,14 @@ def _net(income: float) -> float:
 
 
 def _simulate_scan(img: Image.Image, rng: np.random.Generator) -> Image.Image:
-    """Give a vector-clean render the characteristics of a real scan/photo: a faint lighting gradient,
-    mild optical blur, and a consistent sensor-noise floor. This baseline is what lets a `pro` edit
-    *match* the page (and what makes a naive flat fill stand out)."""
+    """Give a vector-clean render the characteristics of a real scan/photo: a faint (per-source) lighting
+    gradient, mild optical blur, and a consistent sensor-noise floor. This baseline is what lets a `pro`
+    edit *match* the page (and what makes a naive flat fill stand out).
+
+    NOTE: extra scan variety (blur/noise bands, rotation/skew, varied JPEG) was tried for diversity but
+    it tripped the ELA/noise heuristics on the large flat regions of CLEAN docs (the Aadhaar SPECIMEN
+    watermark, the coloured header bands) — precision 1.0 -> 0.97 — without improving synthetic->real
+    transfer. Reverted to the fixed blur/noise that keeps the heuristic zero-false-positive guarantee."""
     a = np.asarray(img, dtype=np.float32)
     h, w, _ = a.shape
     gy = np.linspace(rng.uniform(0.90, 0.96), 1.0, h)[:, None]
@@ -230,14 +271,15 @@ def build_dataset(out_dir: Path = DEFAULT_OUT, *, dpi: int = 150, jpeg_quality: 
         doc, fmap = _build_doc(app, doc_type, template)
         scan = _rasterize_scan(doc, dpi, np.random.default_rng(seed * 131 + idx))
         doc.close()
+        src_q = jpeg_quality                                                   # fixed → stable ELA history
         clean_path = out_dir / "clean" / f"{sid}.jpg"
-        scan.save(clean_path, "JPEG", quality=jpeg_quality)
+        scan.save(clean_path, "JPEG", quality=src_q)
         scan = Image.open(clean_path).convert("RGB")     # reload → realistic compression history
         records.append({"id": sid, "file": f"clean/{sid}.jpg", "label": "clean", "tamper_type": None,
                         "difficulty": None, "doc_type": doc_type, "split": split, "source": sid})
 
         def _save(tid: str, img: Image.Image, mask: Image.Image, **rec) -> None:
-            img.save(out_dir / "tampered" / f"{tid}.jpg", "JPEG", quality=jpeg_quality)
+            img.save(out_dir / "tampered" / f"{tid}.jpg", "JPEG", quality=src_q)
             mask.save(out_dir / "masks" / f"{tid}.png")
             records.append({"id": tid, "file": f"tampered/{tid}.jpg", "label": "tampered",
                             "mask": f"masks/{tid}.png", "doc_type": doc_type, "split": split,

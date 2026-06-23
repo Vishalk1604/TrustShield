@@ -1,46 +1,131 @@
 {
   "dataset": {
-    "n_clean": 12,
-    "n_tampered": 48,
+    "n_clean": 95,
+    "n_tampered": 874,
+    "split": "all",
     "dpi": 150,
     "jpeg_quality": 90,
     "seed": 7
   },
   "detection": {
     "precision": 1.0,
-    "recall": 0.729,
-    "f1": 0.843,
-    "accuracy": 0.783,
+    "recall": 0.185,
+    "f1": 0.313,
+    "accuracy": 0.265,
     "confusion": {
-      "tp": 35,
+      "tp": 162,
       "fp": 0,
-      "tn": 12,
-      "fn": 13
+      "tn": 95,
+      "fn": 712
+    }
+  },
+  "by_difficulty": {
+    "blended": {
+      "n": 190,
+      "detection_rate": 0.0,
+      "localization_hit_rate": 0.0,
+      "mean_iou": 0.0
+    },
+    "geom": {
+      "n": 285,
+      "detection_rate": 0.565,
+      "localization_hit_rate": 0.565,
+      "mean_iou": 0.325
+    },
+    "naive": {
+      "n": 190,
+      "detection_rate": 0.005,
+      "localization_hit_rate": 0.005,
+      "mean_iou": 0.002
+    },
+    "pro": {
+      "n": 209,
+      "detection_rate": 0.0,
+      "localization_hit_rate": 0.0,
+      "mean_iou": 0.0
     }
   },
   "localization": {
-    "hit_rate": 0.729,
-    "mean_iou": 0.472,
+    "hit_rate": 0.185,
+    "mean_iou": 0.106,
     "by_tamper_type": {
-      "copy_move": {
-        "n": 12,
+      "aadhaar_number": {
+        "n": 57,
+        "detection_rate": 0.0,
         "localization_hit_rate": 0.0,
         "mean_iou": 0.0
       },
-      "number_edit": {
-        "n": 12,
-        "localization_hit_rate": 1.0,
-        "mean_iou": 0.841
+      "basic": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "closing_balance": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "copy_move": {
+        "n": 95,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "dob": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "gross_salary": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "name": {
+        "n": 57,
+        "detection_rate": 0.018,
+        "localization_hit_rate": 0.018,
+        "mean_iou": 0.005
+      },
+      "net_pay": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
+      },
+      "pan": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
       },
       "recompress": {
-        "n": 12,
-        "localization_hit_rate": 0.917,
-        "mean_iou": 0.189
+        "n": 95,
+        "detection_rate": 0.695,
+        "localization_hit_rate": 0.695,
+        "mean_iou": 0.159
+      },
+      "salary_credit": {
+        "n": 76,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
       },
       "splice": {
-        "n": 12,
+        "n": 95,
+        "detection_rate": 1.0,
         "localization_hit_rate": 1.0,
-        "mean_iou": 0.86
+        "mean_iou": 0.815
+      },
+      "tds": {
+        "n": 57,
+        "detection_rate": 0.0,
+        "localization_hit_rate": 0.0,
+        "mean_iou": 0.0
       }
     }
   }

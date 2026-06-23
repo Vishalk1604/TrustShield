@@ -64,23 +64,25 @@ class LmdbForgery:
 
 
 class SynthForgery:
-    """Our synthetic tamper set (tampered jpg + mask png from labels.json) for fine-tuning. Filters by
-    split (default the `train` split only — never the held-out test split) and optionally difficulty."""
+    """Our synthetic set for fine-tuning (whole-image resize). Crucially it includes **clean images as
+    negative examples** (all-zero mask), oversampled to ~30% of the set — without them the model never
+    learns to output nothing and over-fires on clean docs. Filters by split (default `train` only —
+    never the held-out test split) and optionally difficulty."""
 
-    def __init__(self, images_dir: Path, splits=("train",), difficulties=None):
+    def __init__(self, images_dir: Path, splits=("train",), difficulties=None, clean_frac: float = 0.3):
         import json
         recs = json.loads((images_dir / "labels.json").read_text())["records"]
 
-        def keep(r):
-            if r["label"] != "tampered" or not r.get("mask"):
-                return False
-            if splits and r.get("split") not in splits:
-                return False
-            if difficulties and r.get("difficulty") not in difficulties:
-                return False
-            return True
+        def in_split(r):
+            return (not splits) or r.get("split") in splits
 
-        self.items = [(images_dir / r["file"], images_dir / r["mask"]) for r in recs if keep(r)]
+        tampered = [r for r in recs if r["label"] == "tampered" and r.get("mask") and in_split(r)
+                    and (not difficulties or r.get("difficulty") in difficulties)]
+        clean = [r for r in recs if r["label"] == "clean" and in_split(r)]
+        # oversample clean (empty-mask negatives) to ~clean_frac of the set
+        target = int(clean_frac / max(1e-6, 1 - clean_frac) * len(tampered))
+        reps = max(1, target // max(1, len(clean))) if clean else 0
+        self.items = [(r, True) for r in tampered] + [(r, False) for r in clean] * reps
         self.root = images_dir
 
     def __len__(self):
@@ -89,11 +91,13 @@ class SynthForgery:
     def __getitem__(self, i):
         import cv2
         from PIL import Image
-        fp, mp = self.items[i]
-        im = Image.open(fp).convert("RGB").resize((TRAIN_RES, TRAIN_RES), Image.BILINEAR)
-        m = cv2.imread(str(mp), 0)
-        mask = (m != 0).astype(np.float32)
-        mask = cv2.resize(mask, (TRAIN_RES, TRAIN_RES), interpolation=cv2.INTER_NEAREST)
+        r, tampered = self.items[i]
+        im = Image.open(self.root / r["file"]).convert("RGB").resize((TRAIN_RES, TRAIN_RES), Image.BILINEAR)
+        if tampered:
+            m = cv2.imread(str(self.root / r["mask"]), 0)
+            mask = cv2.resize((m != 0).astype(np.float32), (TRAIN_RES, TRAIN_RES), interpolation=cv2.INTER_NEAREST)
+        else:
+            mask = np.zeros((TRAIN_RES, TRAIN_RES), np.float32)      # clean → empty mask (negative)
         return preprocess(np.asarray(im)), mask[None, :, :]
 
 

@@ -83,25 +83,34 @@ def preprocess(img_rgb: np.ndarray):
 _MODEL_CACHE: dict = {}
 
 
+def _load_model(weights_path: str):
+    import torch
+    key = str(weights_path)
+    model = _MODEL_CACHE.get(key)
+    if model is None:
+        model = build_unet()
+        sd = torch.load(weights_path, map_location="cpu")
+        model.load_state_dict(sd.get("model", sd) if isinstance(sd, dict) else sd)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model.to(device).eval()
+        _MODEL_CACHE[key] = model
+    return model
+
+
 def infer(image_path: str, weights_path: str) -> Optional[np.ndarray]:
     """Load the U-Net (cached) + run it on one image → HxW tamper-probability mask (at TRAIN_RES).
-    Returns None on any failure. The seam's `mask_to_regions` upscales + boxes it."""
+    Whole-image pass (one prediction per page). Tiled inference was tried and reverted — running many
+    overlapping tiles compounds the per-tile false-positive rate into ~100% clean false positives.
+    Returns None on any failure. The seam's `mask_to_regions` thresholds + boxes it."""
     try:
         import torch
         from PIL import Image
 
-        key = str(weights_path)
-        model = _MODEL_CACHE.get(key)
-        if model is None:
-            model = build_unet()
-            sd = torch.load(weights_path, map_location="cpu")
-            model.load_state_dict(sd.get("model", sd) if isinstance(sd, dict) else sd)
-            model.eval()
-            _MODEL_CACHE[key] = model
+        model = _load_model(weights_path)
+        device = next(model.parameters()).device
         img = Image.open(image_path).convert("RGB").resize((TRAIN_RES, TRAIN_RES), Image.BILINEAR)
-        x = torch.from_numpy(preprocess(np.asarray(img))).unsqueeze(0)
+        x = torch.from_numpy(preprocess(np.asarray(img))).unsqueeze(0).to(device)
         with torch.no_grad():
-            prob = torch.sigmoid(model(x))[0, 0].cpu().numpy()
-        return prob
+            return torch.sigmoid(model(x))[0, 0].cpu().numpy()
     except Exception:
         return None

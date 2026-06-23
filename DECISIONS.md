@@ -557,3 +557,28 @@ primary detector. **Caveat:** the U-Net false-fires on 5/10 clean test docs (~50
 This is within-synthetic-domain generalization (shared generator/fonts/edit-method), **not** yet
 synthetic→real. Upgrades next: scale+diversity + tamper-crop/tiled-inference + real-doc eval anchor +
 clean-FP calibration. Full writeup in `results/forgery_training/summary.md`.
+
+### §11 upgrades — what helped, what backfired, the synthetic→real gap (2026-06-23)
+Pushed to improve the §11 fine-tune (baseline: synthetic recall 0.915 but ~50% clean FP). Measured:
+- **Clean negatives (the real fix).** `SynthForgery` only fed *tampered* images, so the model never
+  learned to output nothing → over-fired. Adding clean images as empty-mask negatives (~30%) cut the
+  clean-FP rate (50% → 20% on the synthetic test split). Whole-image inference retained.
+- **Patch-crop training + tiled native-res inference — TRIED then REVERTED.** ~70 overlapping tiles
+  compound the per-tile FP rate into ~100% clean false positives. One whole-image prediction is right.
+- **Scan variety — dialled back.** Per-source blur/noise/JPEG variety is kept (narrow band), but
+  rotation/skew + wide bands tripped the ELA/noise heuristics on CLEAN docs (precision 1.0→0.93) without
+  improving real transfer; reverted to a narrow band → heuristic precision back to **1.0**.
+- **Scale:** 10→19 synthetic applicants (95 clean + 874 tampered).
+- **Scan variety reverted to FIXED** — even a narrow blur/noise/JPEG band tripped the ELA/noise
+  heuristics on the large flat regions of clean docs (Aadhaar SPECIMEN watermark, coloured header bands):
+  6/95 clean FP. Fixed scan → **0/95 clean FP** (heuristic precision back to 1.0, confirmed on the full set).
+- **Final (fixed scan):** heuristics — synthetic P=**1.0**/R=0.185 (**FP 0/95**), real 0/7 FP & 1/7 recall;
+  +U-Net (opt-in) — synthetic P=0.97/R=0.49/IoU 0.30 (~13% clean FP), catches `pro` at 0.29 vs heuristics
+  0.0. The zero-FP guarantee is the priority, so the default stays heuristic.
+- **Decisive — synthetic→real gap (`scripts/eval_real_anchor.py`).** On the REAL PAN/Aadhaar pairs the
+  U-Net flags **7/7 originals AND 7/7 edited** (100% FP) — it learned the synthetic generator's
+  fingerprint and does NOT transfer to real colored-ID photos. Heuristics on real: **0/7 FP**, 1/7
+  recall. So: the §11 dataset is good for synthetic training/eval, but a model trained only on it isn't
+  real-doc-ready; **heuristics + semantic + QR stay the real-doc layer**, U-Net stays opt-in/synthetic.
+  Path to close the gap: real tampered training data + photo-realistic ID synthesis (colored cards +
+  phone-photo capture sim) + domain adaptation. Full writeup: `results/forgery_training/summary.md`.
