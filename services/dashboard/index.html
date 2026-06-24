@@ -5,15 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TrustShield — Local-First Document Fraud Detection</title>
     <style>
-      :root { color-scheme: light; }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-        background: #0f172a;
-        color: #e2e8f0;
-      }
-      a { color: #38bdf8; }
+      /* Pre-paint guard: match index.css so there's no light flash before CSS loads. */
+      html { background: #06080f; }
+      body { margin: 0; background: #06080f; color: #e8eef7; }
     </style>
   </head>
   <body>

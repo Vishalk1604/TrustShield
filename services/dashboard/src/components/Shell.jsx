@@ -34,8 +34,10 @@ export default function Shell() {
       <header
         style={{
           position: "sticky", top: 0, zIndex: 20,
-          background: "rgba(11,18,32,0.92)", backdropFilter: "blur(6px)",
+          background: "rgba(6,8,15,0.72)",
+          backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
           borderBottom: `1px solid ${color.border}`,
+          boxShadow: "0 1px 0 rgba(56,189,248,0.08)",
         }}
       >
         <div
@@ -45,7 +47,9 @@ export default function Shell() {
           }}
         >
           <NavLink to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: color.text }}>
-            <ShieldIcon width={24} height={24} stroke={color.accent} />
+            <span style={{ display: "inline-flex", filter: `drop-shadow(0 0 6px ${color.accent}66)` }}>
+              <ShieldIcon width={24} height={24} stroke={color.accent} />
+            </span>
             <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3 }}>TrustShield</span>
           </NavLink>
 
@@ -84,9 +88,12 @@ export default function Shell() {
         <Outlet />
       </main>
 
-      <footer style={{ borderTop: `1px solid ${color.border}`, marginTop: 40 }}>
-        <div style={{ maxWidth, margin: "0 auto", padding: "20px 24px", display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", fontSize: 12, color: color.textFaint }}>
-          <span>TrustShield — synthetic data, zero PII, 100% local. Scores always carry a full evidence chain.</span>
+      <footer style={{ borderTop: `1px solid ${color.border}`, marginTop: 48, background: "rgba(255,255,255,0.012)" }}>
+        <div style={{ maxWidth, margin: "0 auto", padding: "22px 24px", display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", fontSize: 12, color: color.textFaint }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <ShieldIcon width={14} height={14} stroke={color.accent} />
+            TrustShield — synthetic data, zero PII, 100% on-device. Every score carries a full evidence chain.
+          </span>
           <span>React + Vite · FastAPI forensics (:8001) · FastAPI risk (:8002)</span>
         </div>
       </footer>
