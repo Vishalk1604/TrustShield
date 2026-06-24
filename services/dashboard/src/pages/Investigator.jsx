@@ -1,30 +1,28 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { SERVICES } from "../config.js";
 import { api } from "../api.js";
 import GraphView from "../GraphView.jsx";
-import { maxWidth, sectionTitle } from "../theme.js";
+import {
+  color as C, layer as LY, severity as SEV, action as ACT,
+  hexA, radius, motion, shadow, maxWidth, font,
+} from "../theme.js";
+import Gauge from "../components/ui/Gauge.jsx";
+import PipelineDiagram from "../components/ui/PipelineDiagram.jsx";
+import { Card, Badge, Button } from "../components/ui/primitives.jsx";
+import { DEMO_DECISIONS } from "../data/demoDecisions.js";
+import { CURATED_PACKETS, CURATED_IMAGES } from "../data/curatedCases.js";
 
-// ── palette ──────────────────────────────────────────────────────────────────
-const SEVERITY = {
-  critical: { c: "#ef4444", label: "CRITICAL" },
-  high: { c: "#f97316", label: "HIGH" },
-  medium: { c: "#eab308", label: "MEDIUM" },
-  low: { c: "#38bdf8", label: "LOW" },
-  info: { c: "#64748b", label: "INFO" },
+// ── category → layer mapping ───────────────────────────────────────────────────
+const CAT = {
+  forensic: { label: "Pixel forensics", hue: LY.forensic.hue, spine: "forensic" },
+  semantic: { label: "Semantic ID + QR", hue: LY.semantic.hue, spine: "semantic" },
+  anomaly: { label: "Learned model", hue: LY.model.hue, spine: "anomaly" },
+  graph: { label: "Cross-application graph", hue: LY.graph.hue, spine: "graph" },
 };
-const CATEGORY = {
-  forensic: "Forensic",
-  semantic: "Semantic",
-  anomaly: "Model",
-  graph: "Graph",
-};
-const ACTION = {
-  approve: { c: "#22c55e", label: "APPROVE", icon: "✓" },
-  manual_review: { c: "#eab308", label: "MANUAL REVIEW", icon: "⚠" },
-  freeze: { c: "#ef4444", label: "FREEZE", icon: "⛔" },
-};
+const PIPELINE_ORDER = ["forensic", "semantic", "anomaly", "graph"];
+const VERDICT_C = { EDITED: C.danger, SUSPICIOUS: C.warning, CLEAN: C.success };
 
-// ── service health (kept from Phase 0) ────────────────────────────────────────
+// ── service health ─────────────────────────────────────────────────────────────
 function useHealth(base) {
   const [state, setState] = useState({ status: "loading", detail: "" });
   useEffect(() => {
@@ -44,125 +42,345 @@ function useHealth(base) {
   return state;
 }
 
-function StatusDot({ status }) {
-  const color = status === "ok" ? "#22c55e" : status === "down" ? "#ef4444" : "#eab308";
-  return <span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: color, boxShadow: `0 0 6px ${color}`, marginRight: 6 }} />;
+function Dot({ status }) {
+  const c = status === "ok" ? C.success : status === "down" ? C.danger : C.warning;
+  return <span style={{ width: 8, height: 8, borderRadius: "50%", background: c, boxShadow: `0 0 7px ${c}`, display: "inline-block" }} />;
 }
 
-// ── trust gauge ───────────────────────────────────────────────────────────────
-function TrustGauge({ trust, action }) {
-  const r = 64, stroke = 12, C = 2 * Math.PI * r;
-  const pct = Math.max(0, Math.min(100, trust)) / 100;
-  const color = (ACTION[action] || {}).c || "#38bdf8";
+function ServiceDot({ label, base }) {
+  const { status, detail } = useHealth(base);
   return (
-    <svg width={160} height={160} viewBox="0 0 160 160">
-      <circle cx={80} cy={80} r={r} fill="none" stroke="#1e293b" strokeWidth={stroke} />
-      <circle
-        cx={80} cy={80} r={r} fill="none" stroke={color} strokeWidth={stroke}
-        strokeDasharray={C} strokeDashoffset={C * (1 - pct)} strokeLinecap="round"
-        transform="rotate(-90 80 80)"
-        style={{ transition: "stroke-dashoffset 0.6s ease" }}
-      />
-      <text x={80} y={74} textAnchor="middle" fontSize={36} fontWeight="700" fill="#f1f5f9">{Math.round(trust)}</text>
-      <text x={80} y={98} textAnchor="middle" fontSize={12} fill="#94a3b8">/ 100 trust</text>
-    </svg>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: C.textDim }}>
+      <Dot status={status} />
+      {label.split(" ")[0]} {status === "ok" ? `v${detail}` : status === "down" ? "down" : "…"}
+    </span>
   );
 }
 
-function SubScoreBar({ label, value }) {
-  if (value === null || value === undefined) return null;
-  const c = value >= 70 ? "#22c55e" : value >= 40 ? "#eab308" : "#ef4444";
-  return (
-    <div style={{ marginBottom: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#94a3b8", marginBottom: 3 }}>
-        <span>{label}</span><span>{Math.round(value)}</span>
-      </div>
-      <div style={{ height: 6, background: "#1e293b", borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ width: `${value}%`, height: "100%", background: c }} />
-      </div>
-    </div>
-  );
-}
-
+// ── evidence card (severity strip + inline localization note) ───────────────────
 function EvidenceCard({ item }) {
-  const sev = SEVERITY[item.severity] || SEVERITY.info;
+  const c = SEV[item.severity] || SEV.info;
+  const regions = Array.isArray(item.values?.regions) ? item.values.regions : [];
   return (
-    <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderLeft: `4px solid ${sev.c}`, borderRadius: 8, padding: "12px 14px" }}>
+    <div style={{ background: "rgba(148,163,184,0.04)", border: `1px solid ${C.border}`, borderLeft: `3px solid ${c}`, borderRadius: radius.md, padding: "12px 14px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: sev.c, letterSpacing: 0.5 }}>{sev.label}</span>
-        <span style={{ fontSize: 10, color: "#64748b", border: "1px solid #334155", borderRadius: 4, padding: "1px 6px" }}>
-          {CATEGORY[item.category] || item.category}
-        </span>
-        <span style={{ fontWeight: 600, fontSize: 14, color: "#e2e8f0" }}>{item.title}</span>
+        <span style={{ fontSize: 10, fontWeight: 800, color: c, letterSpacing: 0.6 }}>{(item.severity || "info").toUpperCase()}</span>
+        <span style={{ fontWeight: 700, fontSize: 14, color: C.text, letterSpacing: -0.2 }}>{item.title}</span>
+        {item.confidence != null && item.confidence < 1 && (
+          <span style={{ marginLeft: "auto", fontSize: 10.5, color: C.textFaint }}>conf {Math.round(item.confidence * 100)}%</span>
+        )}
       </div>
-      <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.5 }}>{item.description}</div>
-      {item.source_location && (
-        <div style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>source: {item.source_location}</div>
-      )}
-      {Array.isArray(item.values?.regions) && item.values.regions.length > 0 && (
-        <div style={{ fontSize: 11, color: "#fca5a5", marginTop: 4 }}>
-          📍 localized:{" "}
-          {item.values.regions.map((r, i) => (
-            <span key={i}>
-              {i > 0 ? ", " : ""}page {r.page}
-              {Array.isArray(r.bbox) ? ` (${r.bbox[0]}, ${r.bbox[1]})` : ""}
+      <div style={{ fontSize: 13, color: C.textDim, lineHeight: 1.55 }}>{item.description}</div>
+      {(item.source_location || regions.length > 0) && (
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 7, fontSize: 11, color: C.textFaint }}>
+          {item.source_location && <span>source: {item.source_location}</span>}
+          {regions.length > 0 && (
+            <span style={{ color: hexA(C.danger, 0.85) }}>
+              ◼ localized: {regions.map((r, i) => `${i ? ", " : ""}page ${r.page}${Array.isArray(r.bbox) ? ` (${r.bbox[0]}, ${r.bbox[1]})` : ""}`).join("")}
             </span>
-          ))}
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// ── tamper localization (D3) ───────────────────────────────────────────────────
-function TamperLocalization({ overlays }) {
-  if (!overlays || overlays.length === 0) return null;
+// ── evidence group (one pipeline layer) ─────────────────────────────────────────
+function EvidenceGroup({ cat, items, overlays, innerRef, active }) {
+  const meta = CAT[cat];
   return (
-    <section>
-      <h2 style={sectionTitle}>Tamper localization ({overlays.length})</h2>
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
-        {overlays.map((o, i) => (
-          <figure key={i} style={{ margin: 0, background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: 10 }}>
-            <img
-              src={`data:image/png;base64,${o.image_b64}`}
-              alt={`Edit region on ${o.doc} page ${o.page}`}
-              style={{ width: "100%", borderRadius: 6, border: "1px solid #334155", display: "block" }}
-            />
-            <figcaption style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-              <span style={{ color: "#fca5a5" }}>◼</span> detected edit region — {o.doc}, page {o.page}
-            </figcaption>
-          </figure>
-        ))}
+    <section ref={innerRef} style={{ scrollMarginTop: 80 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <span style={{ width: 9, height: 9, borderRadius: 3, background: meta.hue, boxShadow: shadow.glow(meta.hue, 0.5) }} />
+        <h3 style={{ margin: 0, fontSize: 13.5, fontWeight: 800, letterSpacing: 0.3, color: active ? meta.hue : C.text }}>
+          {meta.label}
+        </h3>
+        <span style={{ fontSize: 11, color: C.textFaint }}>{items.length} finding{items.length === 1 ? "" : "s"}</span>
       </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {items.map((it) => <EvidenceCard key={it.id} item={it} />)}
+      </div>
+      {cat === "forensic" && overlays.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.textDim, marginBottom: 8 }}>Where the edit is — annotated page{overlays.length > 1 ? "s" : ""}</div>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+            {overlays.map((o, i) => (
+              <figure key={i} style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
+                <img src={o.img} alt={`Edit on ${o.doc} page ${o.page}`} style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
+                <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>
+                  <span style={{ color: hexA(C.danger, 0.9) }}>◼</span> {o.doc}, page {o.page}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 
-function GroundTruthChip({ label, fraudTypes }) {
-  if (!label) return null;
-  const isFraud = label === "fraud";
+// ── verdict header (gauge + action + rationale + subscores + export) ────────────
+function MiniBar({ label, value, hue }) {
+  if (value == null) return null;
   return (
-    <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: isFraud ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: isFraud ? "#fca5a5" : "#86efac", border: `1px solid ${isFraud ? "#7f1d1d" : "#14532d"}` }} title={fraudTypes?.join(", ")}>
-      {isFraud ? (fraudTypes?.[0] || "fraud") : "clean"}
-    </span>
+    <div style={{ marginBottom: 9 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: C.textDim, marginBottom: 4 }}>
+        <span>{label}</span><span style={{ color: C.text, fontWeight: 700 }}>{Math.round(value)}</span>
+      </div>
+      <div style={{ height: 6, background: "rgba(148,163,184,0.12)", borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ width: `${value}%`, height: "100%", background: `linear-gradient(90deg, ${hexA(hue, 0.6)}, ${hue})`, transition: `width ${motion.slow} ${motion.ease}` }} />
+      </div>
+    </div>
   );
 }
 
-// ── image edit detection (§10 — pixel forensics on scanned/photo documents) ─────
-const VERDICT_C = { EDITED: "#ef4444", SUSPICIOUS: "#eab308", CLEAN: "#22c55e" };
-const IMG_EXAMPLES = [
-  { label: "Clean Form 16", path: "examples/clean_form16.jpg" },
-  { label: "Edited number", path: "examples/edited_number_form16.jpg" },
-  { label: "Spliced patch", path: "examples/spliced_form16.jpg" },
-  { label: "Digital paint-over", path: "examples/digital_paintover_id.png" },
-];
-const panelCard = { background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12, padding: 18 };
-const exampleBtn = { cursor: "pointer", background: "#1e293b", border: "1px solid #334155", color: "#cbd5e1", borderRadius: 8, padding: "7px 12px", fontSize: 13 };
-const figS = { margin: 0, background: "#0b1220", border: "1px solid #1e293b", borderRadius: 10, padding: 8 };
-const imgS = { width: "100%", borderRadius: 6, border: "1px solid #334155", display: "block" };
-const capS = { fontSize: 11, color: "#94a3b8", marginTop: 6 };
+function VerdictHeader({ decision, onExport, innerRef }) {
+  const ts = decision.trust_score;
+  const act = ACT[decision.recommendation.action] || ACT.manual_review;
+  return (
+    <div ref={innerRef} style={{ scrollMarginTop: 80 }}>
+    <Card tint={act.c} glow pad={20}>
+      <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", display: "grid", placeItems: "center" }}>
+          <Gauge value={ts.overall} accent={act.c} size={170} />
+        </div>
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: hexA(act.c, 0.14), border: `1px solid ${hexA(act.c, 0.6)}`, color: act.c, borderRadius: radius.pill, padding: "6px 15px", fontWeight: 800, fontSize: 14, letterSpacing: 0.4, boxShadow: shadow.glow(act.c, 0.25) }}>
+            <span>{act.glyph}</span>{act.label}
+          </span>
+          <p style={{ color: C.text, fontSize: 14, lineHeight: 1.6, margin: "12px 0 0", maxWidth: 560 }}>{decision.recommendation.rationale}</p>
+          <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+            <Button variant="ghost" onClick={onExport}>⬇ Export evidence report</Button>
+            <span style={{ fontSize: 11.5, color: C.textFaint, alignSelf: "center" }}>
+              scoring v{ts.version} · {decision.evidence_chain.length} evidence items
+            </span>
+          </div>
+        </div>
+        <div style={{ width: 190 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1, color: C.textFaint, marginBottom: 10 }}>SUB-SCORES</div>
+          <MiniBar label="Forensic" value={ts.forensic_subscore} hue={LY.forensic.hue} />
+          <MiniBar label="Semantic" value={ts.semantic_subscore} hue={LY.semantic.hue} />
+          <MiniBar label="Model" value={ts.anomaly_subscore} hue={LY.model.hue} />
+        </div>
+      </div>
+    </Card>
+    </div>
+  );
+}
 
-function ImageForensicsPanel() {
+// ── normalise overlays (live base64 vs baked-in path) ───────────────────────────
+function normOverlays(result) {
+  if (Array.isArray(result?.overlays)) return result.overlays.map((o) => ({ doc: o.doc, page: o.page, img: o.src }));
+  if (Array.isArray(result?.tamper_overlays)) return result.tamper_overlays.map((o) => ({ doc: o.doc, page: o.page, img: `data:image/png;base64,${o.image_b64}` }));
+  return [];
+}
+
+// ── PACKET MODE ─────────────────────────────────────────────────────────────────
+function PacketMode({ live }) {
+  const [packets, setPackets] = useState([]);     // live list (browse all)
+  const [selected, setSelected] = useState(null);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [source, setSource] = useState(null);      // 'live' | 'demo'
+  const [showAll, setShowAll] = useState(false);
+  const [activeLayer, setActiveLayer] = useState(null);
+
+  const groupRefs = useRef({});
+  const verdictRef = useRef(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!live) { setPackets([]); return; }
+      try {
+        const [pk] = await Promise.all([api.listPackets(), api.seedGraph().catch(() => null)]);
+        if (alive) setPackets(pk.packets || []);
+      } catch {
+        /* live list unavailable — curated chips + demo fallback still work */
+      }
+    })();
+    return () => { alive = false; };
+  }, [live]);
+
+  const scoreOne = useCallback(async (pktId) => {
+    setSelected(pktId);
+    setActiveLayer(null);
+    setError(null);
+    setResult(null);
+    // Demo mode (or backend down) → baked-in decision if we have one.
+    const useDemo = !live;
+    if (useDemo) {
+      const d = DEMO_DECISIONS[pktId];
+      if (d) { setResult(d); setSource("demo"); return; }
+      setError("This case isn't in the baked-in demo set — switch to Live to score all packets.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const r = await api.scorePacket(pktId, true);
+      setResult(r); setSource("live");
+    } catch (e) {
+      // graceful fallback to baked-in if available
+      const d = DEMO_DECISIONS[pktId];
+      if (d) { setResult(d); setSource("demo"); }
+      else setError(`Scoring failed: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [live]);
+
+  const exportReport = () => {
+    if (!result?.decision) return;
+    const blob = new Blob([JSON.stringify(result.decision, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${selected}_trustshield_report.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const decision = result?.decision;
+  const overlays = normOverlays(result);
+
+  // spine status + grouped evidence
+  const counts = { forensic: 0, semantic: 0, anomaly: 0, graph: 0 };
+  (decision?.evidence_chain || []).forEach((e) => { if (counts[e.category] != null) counts[e.category]++; });
+  const spineStatus = decision ? {
+    forensic: { fired: counts.forensic > 0, count: counts.forensic },
+    semantic: { fired: counts.semantic > 0, count: counts.semantic },
+    anomaly: { fired: counts.anomaly > 0, count: counts.anomaly },
+    trust: { fired: true, label: `score ${Math.round(decision.trust_score.overall)}` },
+    graph: { fired: counts.graph > 0, count: counts.graph },
+  } : {};
+  const groups = PIPELINE_ORDER
+    .map((cat) => ({ cat, items: (decision?.evidence_chain || []).filter((e) => e.category === cat) }))
+    .filter((g) => g.items.length);
+
+  const onLayerClick = (id) => {
+    setActiveLayer(id);
+    const target = id === "trust" ? verdictRef.current : groupRefs.current[id];
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <div>
+      {/* curated entry points */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+        {CURATED_PACKETS.map((c) => {
+          const on = selected === c.id;
+          const hue = c.tone === "clean" ? C.success : C.danger;
+          return (
+            <button key={c.id} onClick={() => scoreOne(c.id)} title={c.blurb}
+              style={{
+                cursor: "pointer", textAlign: "left", minWidth: 200, flex: "1 1 200px",
+                background: on ? hexA(hue, 0.1) : "rgba(148,163,184,0.04)",
+                border: `1px solid ${on ? hexA(hue, 0.5) : C.border}`,
+                borderRadius: radius.md, padding: "12px 14px",
+                transition: `all ${motion.base} ${motion.ease}`,
+                boxShadow: on ? shadow.glow(hue, 0.2) : "none",
+              }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: hue, boxShadow: `0 0 6px ${hue}` }} />
+                <span style={{ fontWeight: 700, fontSize: 13.5, color: C.text }}>{c.name}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: C.textDim, marginTop: 5, lineHeight: 1.45 }}>{c.blurb}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* browse-all (live only) */}
+      {live && (
+        <div style={{ marginBottom: 14 }}>
+          <button onClick={() => setShowAll((v) => !v)} style={{ cursor: "pointer", background: "none", border: "none", color: C.accent, fontSize: 12.5, fontWeight: 600, padding: 0 }}>
+            {showAll ? "▾ Hide" : "▸ Browse"} all {packets.length || ""} synthetic packets
+          </button>
+          {showAll && (
+            <div style={{ display: "grid", gap: 5, gridTemplateColumns: "repeat(auto-fill, minmax(150px,1fr))", maxHeight: 240, overflowY: "auto", marginTop: 8, paddingRight: 4 }}>
+              {packets.map((p) => {
+                const fraud = p.ground_truth_label === "fraud";
+                return (
+                  <button key={p.packet_id} onClick={() => scoreOne(p.packet_id)}
+                    style={{ cursor: "pointer", textAlign: "left", background: selected === p.packet_id ? hexA(C.accent, 0.1) : "rgba(148,163,184,0.03)", border: `1px solid ${selected === p.packet_id ? hexA(C.accent, 0.5) : C.border}`, borderRadius: radius.sm, padding: "7px 9px", color: C.text }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 5 }}>
+                      <span style={{ fontWeight: 700, fontSize: 12 }}>{p.packet_id}</span>
+                      <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: hexA(fraud ? C.danger : C.success, 0.14), color: fraud ? "#fca5a5" : "#86efac", border: `1px solid ${hexA(fraud ? C.danger : C.success, 0.4)}` }} title={(p.ground_truth_fraud_types || []).join(", ")}>
+                        {fraud ? (p.ground_truth_fraud_types?.[0] || "fraud") : "clean"}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 10, color: C.textFaint, marginTop: 2 }}>{p.applicant_name || "—"} · {p.n_docs} docs</div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {error && <Card style={{ borderColor: hexA(C.danger, 0.4), background: hexA(C.danger, 0.06), color: "#fca5a5", fontSize: 13.5 }} pad={14}>{error}</Card>}
+
+      {!decision && !loading && !error && (
+        <div style={{ color: C.textFaint, padding: "64px 20px", textAlign: "center", border: `1px dashed ${C.borderStrong}`, borderRadius: radius.lg }}>
+          Pick a case above to run the full <span style={{ color: C.textDim }}>forensic → semantic → model → trust → graph</span> pipeline.
+        </div>
+      )}
+      {loading && (
+        <div style={{ color: C.textDim, padding: "64px 20px", textAlign: "center" }}>
+          <span style={{ display: "inline-block", width: 18, height: 18, border: `2px solid ${hexA(C.accent, 0.3)}`, borderTopColor: C.accent, borderRadius: "50%", animation: "ts-spin 0.7s linear infinite", verticalAlign: "middle", marginRight: 10 }} />
+          Analyzing {selected} — forensics, semantics, model, graph…
+        </div>
+      )}
+
+      {decision && (
+        <div style={{ display: "grid", gap: 16 }}>
+          {source === "demo" && (
+            <div style={{ fontSize: 11.5, color: C.warning, display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.warning }} /> Showing baked-in demo data (backend offline) — captured from a real backend run.
+            </div>
+          )}
+          <VerdictHeader decision={decision} onExport={exportReport} innerRef={verdictRef} />
+
+          {/* the 5-layer pipeline spine — click a layer to jump to its evidence */}
+          <Card pad={16}>
+            <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1, color: C.textFaint, marginBottom: 12 }}>5-LAYER DETECTION PIPELINE — click a layer to inspect its findings</div>
+            <PipelineDiagram mode="spine" status={spineStatus} activeId={activeLayer} onLayerClick={onLayerClick} />
+          </Card>
+
+          {/* evidence grouped by layer */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 460px", gap: 16, alignItems: "start" }} className="ts-evidence-grid">
+            <div style={{ display: "grid", gap: 20 }}>
+              {groups.map((g) => (
+                <EvidenceGroup
+                  key={g.cat}
+                  cat={g.cat}
+                  items={g.items}
+                  overlays={overlays}
+                  active={activeLayer === CAT[g.cat].spine}
+                  innerRef={(el) => { groupRefs.current[g.cat] = el; }}
+                />
+              ))}
+            </div>
+            <Card pad={16} style={{ position: "sticky", top: 80 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{ width: 9, height: 9, borderRadius: 3, background: LY.graph.hue, boxShadow: shadow.glow(LY.graph.hue, 0.5) }} />
+                <h3 style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: C.text }}>Cross-application graph</h3>
+              </div>
+              <p style={{ fontSize: 11.5, color: C.textFaint, margin: "0 0 10px", lineHeight: 1.5 }}>
+                Links this applicant to shared PANs, employers, collateral & templates — how rings and double-financing surface.
+              </p>
+              <GraphView subgraph={result.subgraph} focusId={`app:${selected}`} />
+            </Card>
+          </div>
+        </div>
+      )}
+
+      <style>{`@media (max-width: 900px){ .ts-evidence-grid{ grid-template-columns:1fr !important; } }`}</style>
+    </div>
+  );
+}
+
+// ── SINGLE-DOCUMENT MODE ────────────────────────────────────────────────────────
+function SingleDocMode({ live }) {
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState(null);
   const [err, setErr] = useState(null);
@@ -184,261 +402,195 @@ function ImageForensicsPanel() {
   };
   const onUpload = (e) => { const f = e.target.files?.[0]; if (f) analyze(f, f.name); };
 
-  const vc = res ? (VERDICT_C[res.verdict] || "#64748b") : "#64748b";
-  return (
-    <section style={{ ...panelCard, marginTop: 16 }}>
-      <h2 style={{ ...sectionTitle, marginBottom: 6 }}>🖼️ Image edit detection — scanned / photo documents</h2>
-      <p style={{ color: "#94a3b8", fontSize: 13, margin: "0 0 12px" }}>
-        Detect &amp; localize edits in a document image (painted numbers, splices, clones) using pixel
-        forensics — ELA, sensor-noise loss, copy-move — 100% local. Try an example, or edit a number in
-        your own scan/photo and upload it.
-      </p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        {IMG_EXAMPLES.map((ex) => (
-          <button key={ex.path} onClick={() => runExample(ex)} disabled={busy} style={exampleBtn}>{ex.label}</button>
-        ))}
-        <label style={{ ...exampleBtn, cursor: "pointer" }}>
-          Upload image…
-          <input type="file" accept="image/*" onChange={onUpload} style={{ display: "none" }} />
-        </label>
-      </div>
+  const vc = res ? (VERDICT_C[res.verdict] || C.info) : C.info;
 
-      {err && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 14px", color: "#fca5a5", fontSize: 14, marginTop: 10 }}>{err}</div>}
-      {busy && <div style={{ color: "#94a3b8", marginTop: 12 }}>Analyzing {name}…</div>}
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <Card pad={18}>
+        <p style={{ color: C.textDim, fontSize: 13.5, margin: "0 0 14px", lineHeight: 1.6, maxWidth: 720 }}>
+          Drop one scanned or photographed document. TrustShield runs <b style={{ color: LY.forensic.hue }}>pixel forensics</b> (ELA,
+          sensor-noise loss, copy-move), a <b style={{ color: LY.semantic.hue }}>semantic ID check</b> (PAN/Aadhaar validity + QR
+          cross-verify), and reports a verdict with the edit <b>localized</b> — 100% on-device.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          {CURATED_IMAGES.map((ex) => (
+            <Button key={ex.path} variant="ghost" onClick={() => runExample(ex)} disabled={busy || !live}>{ex.label}</Button>
+          ))}
+          <label style={{
+            cursor: live ? "pointer" : "not-allowed", opacity: live ? 1 : 0.5,
+            display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13.5, fontWeight: 700,
+            background: "rgba(148,163,184,0.06)", border: `1px solid ${C.borderStrong}`,
+            color: "#dbe5f1", borderRadius: radius.md, padding: "10px 16px",
+          }}>
+            Upload image…
+            <input type="file" accept="image/*" onChange={onUpload} disabled={!live} style={{ display: "none" }} />
+          </label>
+        </div>
+        {!live && (
+          <div style={{ marginTop: 12, fontSize: 12.5, color: C.warning }}>
+            Live analysis needs the forensics service (:8001). Below are the <b>real</b> results these examples produce.
+          </div>
+        )}
+      </Card>
+
+      {/* offline: show curated examples with their REAL verdicts */}
+      {!live && (
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(240px,1fr))" }}>
+          {CURATED_IMAGES.map((ex) => {
+            const c = VERDICT_C[ex.verdict];
+            return (
+              <Card key={ex.path} pad={10}>
+                <img src={ex.path} alt={ex.label} style={{ width: "100%", borderRadius: 8, border: `1px solid ${C.border}`, display: "block", aspectRatio: "4/3", objectFit: "cover" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+                  <Badge c={c} solid>{ex.verdict}</Badge>
+                  <span style={{ fontSize: 12, color: C.textDim }}>trust {ex.trust}/100</span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginTop: 8 }}>{ex.label}</div>
+                <div style={{ fontSize: 12, color: C.textDim, marginTop: 4, lineHeight: 1.5 }}>{ex.note}</div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {err && <Card pad={14} style={{ borderColor: hexA(C.danger, 0.4), background: hexA(C.danger, 0.06), color: "#fca5a5", fontSize: 13.5 }}>{err}</Card>}
+      {busy && (
+        <div style={{ color: C.textDim, padding: "20px", textAlign: "center" }}>
+          <span style={{ display: "inline-block", width: 16, height: 16, border: `2px solid ${hexA(C.accent, 0.3)}`, borderTopColor: C.accent, borderRadius: "50%", animation: "ts-spin 0.7s linear infinite", verticalAlign: "middle", marginRight: 8 }} />
+          Analyzing {name}…
+        </div>
+      )}
 
       {res && res.ok && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: vc, background: vc + "22", border: `1px solid ${vc}`, borderRadius: 8, padding: "4px 12px" }}>{res.verdict}</span>
-            <span style={{ color: "#94a3b8", fontSize: 13 }}>trust {Math.round(res.image_trust)}/100 · {name}</span>
-          </div>
-          {res.identifier_check?.fields?.pan && (() => {
-            const ok = res.identifier_check.kyc?.pan?.valid;
-            const c = ok ? "#22c55e" : "#ef4444";
-            return (
-              <div style={{ marginTop: 8, fontSize: 13, color: "#94a3b8" }}>
-                Document number check —{" "}
-                <span style={{ color: c, fontWeight: 600 }}>
-                  PAN {res.identifier_check.fields.pan}: {ok ? "valid" : "INVALID"}
-                </span>
-                {!ok && res.identifier_check.kyc?.pan?.reason ? ` (${res.identifier_check.kyc.pan.reason})` : ""}
+        <div style={{ display: "grid", gap: 16 }}>
+          <Card tint={vc} glow pad={18}>
+            <div style={{ display: "flex", gap: 22, alignItems: "center", flexWrap: "wrap" }}>
+              <Gauge value={res.image_trust} accent={vc} size={150} label="image trust" />
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <Badge c={vc} solid style={{ fontSize: 13, padding: "5px 13px" }}>{res.verdict}</Badge>
+                <div style={{ fontSize: 13, color: C.textDim, marginTop: 10 }}>{name}</div>
+                {res.identifier_check?.fields?.pan && (() => {
+                  const ok = res.identifier_check.kyc?.pan?.valid;
+                  return (
+                    <div style={{ marginTop: 8, fontSize: 13, color: C.textDim }}>
+                      Document number — <span style={{ color: ok ? C.success : C.danger, fontWeight: 700 }}>PAN {res.identifier_check.fields.pan}: {ok ? "valid" : "INVALID"}</span>
+                      {!ok && res.identifier_check.kyc?.pan?.reason ? ` (${res.identifier_check.kyc.pan.reason})` : ""}
+                    </div>
+                  );
+                })()}
+                {res.signals?.learned_model && (
+                  <div style={{ marginTop: 6, fontSize: 11.5, color: C.textFaint }}>
+                    Layers: pixel · recapture · semantic ID · QR{res.identifier_check?.qr?.qr_found ? " (read)" : ""}. Learned model:{" "}
+                    <span style={{ color: res.signals.learned_model.available ? C.success : C.textFaint }}>
+                      {res.signals.learned_model.available ? `active (${res.signals.learned_model.backend})` : "heuristics only"}
+                    </span>.
+                  </div>
+                )}
               </div>
-            );
-          })()}
-          {res.signals?.learned_model && (
-            <div style={{ marginTop: 6, fontSize: 12, color: "#64748b" }}>
-              Layers: pixel forensics · recapture · semantic ID check · QR
-              {res.identifier_check?.qr?.qr_found ? " (QR read)" : ""}. Learned model:{" "}
-              <span style={{ color: res.signals.learned_model.available ? "#22c55e" : "#64748b" }}>
-                {res.signals.learned_model.available
-                  ? `active (${res.signals.learned_model.backend})`
-                  : "heuristics only — no model weights loaded"}
-              </span>.
             </div>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-            <figure style={figS}>
-              <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={imgS} />
-              <figcaption style={capS}><span style={{ color: "#fca5a5" }}>◼</span> detected edit region(s)</figcaption>
+          </Card>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="ts-img-grid">
+            <figure style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
+              <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
+              <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}><span style={{ color: hexA(C.danger, 0.9) }}>◼</span> detected edit region(s)</figcaption>
             </figure>
             {res.ela_b64 && (
-              <figure style={figS}>
-                <img src={`data:image/png;base64,${res.ela_b64}`} alt="ELA heatmap" style={imgS} />
-                <figcaption style={capS}>ELA heatmap — compression-error energy</figcaption>
+              <figure style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
+                <img src={`data:image/png;base64,${res.ela_b64}`} alt="ELA heatmap" style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
+                <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>ELA heatmap — compression-error energy</figcaption>
               </figure>
             )}
           </div>
-          <h3 style={{ ...sectionTitle, marginTop: 14 }}>Findings ({res.findings.length})</h3>
-          {res.findings.length === 0
-            ? <div style={{ color: "#86efac", fontSize: 13 }}>No edit signals detected — looks clean.</div>
-            : <div style={{ display: "grid", gap: 6 }}>{res.findings.map((f, i) => <EvidenceCard key={i} item={{ ...f, id: i }} />)}</div>}
+
+          <section>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <span style={{ width: 9, height: 9, borderRadius: 3, background: LY.forensic.hue, boxShadow: shadow.glow(LY.forensic.hue, 0.5) }} />
+              <h3 style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: C.text }}>Findings</h3>
+              <span style={{ fontSize: 11, color: C.textFaint }}>{res.findings.length}</span>
+            </div>
+            {res.findings.length === 0
+              ? <div style={{ color: "#86efac", fontSize: 13 }}>No edit signals detected — looks clean.</div>
+              : <div style={{ display: "grid", gap: 8 }}>{res.findings.map((f, i) => <EvidenceCard key={i} item={{ ...f, id: i }} />)}</div>}
+          </section>
         </div>
       )}
-      {res && !res.ok && <div style={{ color: "#fca5a5", fontSize: 13, marginTop: 10 }}>Could not analyze: {res.error}</div>}
-    </section>
-  );
-}
+      {res && !res.ok && <Card pad={14} style={{ color: "#fca5a5", fontSize: 13 }}>Could not analyze: {res.error}</Card>}
 
-// ── main page ────────────────────────────────────────────────────────────────
-export default function Investigator() {
-  const [packets, setPackets] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [seedInfo, setSeedInfo] = useState(null);
-
-  // Load packet list + seed the graph once on mount.
-  useEffect(() => {
-    (async () => {
-      try {
-        const [pk, seed] = await Promise.all([api.listPackets(), api.seedGraph().catch(() => null)]);
-        setPackets(pk.packets || []);
-        setSeedInfo(seed);
-      } catch (e) {
-        setError(`Could not reach the risk service. Is it running on :8002? (${e.message})`);
-      }
-    })();
-  }, []);
-
-  const scoreOne = useCallback(async (pktId) => {
-    setSelected(pktId);
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const r = await api.scorePacket(pktId, true);
-      setResult(r);
-    } catch (e) {
-      setError(`Scoring failed: ${e.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const exportReport = () => {
-    if (!result) return;
-    const blob = new Blob([JSON.stringify(result.decision, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `${selected}_trustshield_report.json`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const decision = result?.decision;
-  const action = decision?.recommendation?.action;
-  const act = ACTION[action] || {};
-
-  return (
-    <div style={{ maxWidth, margin: "0 auto", padding: "32px 24px" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, letterSpacing: -0.4 }}>Investigator Console</h1>
-          <p style={{ color: "#94a3b8", margin: "4px 0 0" }}>
-            Pick a synthetic loan packet or a sample image to run the full forensic → semantic → model → graph pipeline.
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: 14 }}>
-          {SERVICES.map((s) => <ServiceHealth key={s.key} {...s} />)}
-        </div>
-      </header>
-
-      <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: 10, padding: "9px 14px", margin: "16px 0", fontSize: 13, color: "#bbf7d0" }}>
-        🔒 <strong>All processing on-premise.</strong> No customer data leaves this machine — every analysis is local.
-        {seedInfo && <span style={{ color: "#86efac", marginLeft: 8 }}>· graph: {seedInfo.n_applications} apps, {seedInfo.employer_rings} ring(s), {seedInfo.collateral_clusters} collateral cluster(s)</span>}
-      </div>
-
-      <ImageForensicsPanel />
-
-      {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 14px", margin: "12px 0", color: "#fca5a5", fontSize: 14 }}>
-          {error}
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20, marginTop: 8 }} className="ts-investigator-grid">
-        {/* packet picker */}
-        <aside>
-          <h2 style={sectionTitle}>Loan packets ({packets.length})</h2>
-          <div style={{ display: "grid", gap: 5, maxHeight: 640, overflowY: "auto", paddingRight: 4 }}>
-            {packets.map((p) => (
-              <button
-                key={p.packet_id}
-                onClick={() => scoreOne(p.packet_id)}
-                style={{
-                  textAlign: "left", cursor: "pointer",
-                  background: selected === p.packet_id ? "#1e293b" : "#0f172a",
-                  border: `1px solid ${selected === p.packet_id ? "#38bdf8" : "#1e293b"}`,
-                  borderRadius: 8, padding: "9px 11px", color: "#e2e8f0",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>{p.packet_id}</span>
-                  <GroundTruthChip label={p.ground_truth_label} fraudTypes={p.ground_truth_fraud_types} />
-                </div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-                  {p.applicant_name || "—"} · {p.n_docs} docs
-                </div>
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        {/* decision panel */}
-        <main>
-          {!decision && !loading && (
-            <div style={{ color: "#64748b", padding: "60px 20px", textAlign: "center", border: "1px dashed #334155", borderRadius: 12 }}>
-              Select a loan packet to run the full forensic → semantic → model → graph pipeline.
-            </div>
-          )}
-          {loading && (
-            <div style={{ color: "#94a3b8", padding: "60px 20px", textAlign: "center" }}>
-              Analyzing {selected} — forensics, semantics, model, graph…
-            </div>
-          )}
-
-          {decision && (
-            <div style={{ display: "grid", gap: 16 }}>
-              {/* verdict header */}
-              <div style={{ display: "flex", gap: 20, alignItems: "center", background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12, padding: 18, flexWrap: "wrap" }}>
-                <TrustGauge trust={decision.trust_score.overall} action={action} />
-                <div style={{ flex: 1, minWidth: 240 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: act.c + "22", border: `1px solid ${act.c}`, color: act.c, borderRadius: 8, padding: "6px 12px", fontWeight: 700, fontSize: 15 }}>
-                    <span>{act.icon}</span>{act.label}
-                  </div>
-                  <p style={{ color: "#cbd5e1", fontSize: 13, lineHeight: 1.5, marginTop: 10 }}>
-                    {decision.recommendation.rationale}
-                  </p>
-                  <button onClick={exportReport} style={exportBtn}>⬇ Export evidence report (JSON)</button>
-                </div>
-                <div style={{ width: 200 }}>
-                  <SubScoreBar label="Forensic" value={decision.trust_score.forensic_subscore} />
-                  <SubScoreBar label="Semantic" value={decision.trust_score.semantic_subscore} />
-                  <SubScoreBar label="Model (anomaly)" value={decision.trust_score.anomaly_subscore} />
-                </div>
-              </div>
-
-              {/* tamper localization (D3) */}
-              <TamperLocalization overlays={result.tamper_overlays} />
-
-              {/* evidence + graph */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 480px", gap: 16, alignItems: "start" }} className="ts-evidence-grid">
-                <section>
-                  <h2 style={sectionTitle}>Evidence chain ({decision.evidence_chain.length})</h2>
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {decision.evidence_chain.map((it) => <EvidenceCard key={it.id} item={it} />)}
-                  </div>
-                </section>
-                <section>
-                  <h2 style={sectionTitle}>Cross-application graph</h2>
-                  <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12, padding: 14 }}>
-                    <GraphView subgraph={result.subgraph} focusId={`app:${selected}`} />
-                  </div>
-                </section>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
-
-      <style>{`
-        @media (max-width: 860px) {
-          .ts-investigator-grid { grid-template-columns: 1fr !important; }
-          .ts-evidence-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+      <style>{`@media (max-width: 720px){ .ts-img-grid{ grid-template-columns:1fr !important; } }`}</style>
     </div>
   );
 }
 
-function ServiceHealth({ label, base }) {
-  const { status, detail } = useHealth(base);
-  const text = status === "ok" ? `v${detail}` : status === "down" ? "down" : "…";
+// ── page shell ──────────────────────────────────────────────────────────────────
+export default function Investigator() {
+  const [mode, setMode] = useState("packet");      // 'packet' | 'single'
+  const [live, setLive] = useState(true);           // Live (backend) vs Demo (baked-in)
+  const [autoChecked, setAutoChecked] = useState(false);
+  const risk = useHealth(SERVICES[1].base);
+  const forensics = useHealth(SERVICES[0].base);
+
+  // Auto-pick demo mode once if the relevant backend is down on first health resolve.
+  useEffect(() => {
+    if (autoChecked) return;
+    if (risk.status === "loading") return;
+    if (risk.status === "down") setLive(false);
+    setAutoChecked(true);
+  }, [risk.status, autoChecked]);
+
   return (
-    <span style={{ fontSize: 12, color: "#94a3b8", display: "flex", alignItems: "center" }}>
-      <StatusDot status={status} />{label.split(" ")[0]} {text}
-    </span>
+    <div style={{ maxWidth, margin: "0 auto", padding: "28px 24px 56px", fontFamily: font.sans }}>
+      {/* header row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14, marginBottom: 18 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, letterSpacing: -0.6 }}>Investigator console</h1>
+          <p style={{ color: C.textDim, margin: "6px 0 0", fontSize: 14, maxWidth: 620, lineHeight: 1.55 }}>
+            Run the full detection pipeline on a loan packet, or examine a single document. Every verdict is
+            explainable — trust score, evidence chain, and the edit located on the page.
+          </p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11.5, color: C.textDim, background: hexA(C.success, 0.08), border: `1px solid ${hexA(C.success, 0.3)}`, borderRadius: radius.pill, padding: "5px 11px" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.success, boxShadow: `0 0 7px ${C.success}` }} /> on-device
+          </span>
+          {/* live / demo toggle */}
+          <div style={{ display: "inline-flex", background: "rgba(148,163,184,0.06)", border: `1px solid ${C.border}`, borderRadius: radius.pill, padding: 3 }}>
+            {[["live", "Live"], ["demo", "Demo"]].map(([k, label]) => {
+              const on = (k === "live") === live;
+              return (
+                <button key={k} onClick={() => setLive(k === "live")}
+                  style={{ cursor: "pointer", border: "none", borderRadius: radius.pill, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: on ? "#04131c" : C.textDim, background: on ? C.accent : "transparent", transition: `all ${motion.base} ${motion.ease}` }}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {live && (
+            <span style={{ display: "inline-flex", gap: 12 }}>
+              <ServiceDot label={SERVICES[0].label} base={SERVICES[0].base} />
+              <ServiceDot label={SERVICES[1].label} base={SERVICES[1].base} />
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* mode toggle */}
+      <div style={{ display: "inline-flex", background: "rgba(148,163,184,0.05)", border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 4, marginBottom: 18 }}>
+        {[["packet", "Loan packet", "Full 5-layer pipeline"], ["single", "Single document", "Pixel + semantic forensics"]].map(([k, label, sub]) => {
+          const on = mode === k;
+          return (
+            <button key={k} onClick={() => setMode(k)}
+              style={{ cursor: "pointer", border: "none", borderRadius: radius.sm, padding: "9px 16px", textAlign: "left", background: on ? hexA(C.accent, 0.14) : "transparent", color: on ? C.accent : C.textDim, transition: `all ${motion.base} ${motion.ease}` }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800 }}>{label}</div>
+              <div style={{ fontSize: 10.5, color: on ? hexA(C.accent, 0.8) : C.textFaint, marginTop: 1 }}>{sub}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {mode === "packet"
+        ? <PacketMode live={live && risk.status !== "down"} />
+        : <SingleDocMode live={live && forensics.status !== "down"} />}
+    </div>
   );
 }
-
-const exportBtn = { marginTop: 12, cursor: "pointer", background: "#1e293b", border: "1px solid #334155", color: "#cbd5e1", borderRadius: 8, padding: "7px 12px", fontSize: 13 };

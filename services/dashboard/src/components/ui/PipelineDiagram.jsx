@@ -88,8 +88,8 @@ function LayerGlyph({ layer, size = 22, stroke }) {
 }
 
 // One node in the interactive spine.
-function SpineNode({ layer, fired, count, active, onClick }) {
-  const lit = fired || active;
+function SpineNode({ layer, fired, count, label, active, onClick }) {
+  const lit = fired || active || !!label;
   return (
     <button
       onClick={onClick}
@@ -124,7 +124,11 @@ function SpineNode({ layer, fired, count, active, onClick }) {
         >
           <LayerGlyph layer={layer} size={17} stroke={lit ? layer.hue : C.textFaint} />
         </span>
-        {fired ? (
+        {label ? (
+          <span style={{ fontSize: 10.5, fontWeight: 800, color: layer.hue, background: hexA(layer.hue, 0.14), border: `1px solid ${hexA(layer.hue, 0.4)}`, borderRadius: 999, padding: "2px 8px" }}>
+            {label}
+          </span>
+        ) : fired ? (
           <span style={{ fontSize: 10.5, fontWeight: 800, color: layer.hue, background: hexA(layer.hue, 0.14), border: `1px solid ${hexA(layer.hue, 0.4)}`, borderRadius: 999, padding: "2px 8px" }}>
             {count != null ? `${count} finding${count === 1 ? "" : "s"}` : "fired"}
           </span>
@@ -179,6 +183,7 @@ export default function PipelineDiagram({ mode = "spine", status = {}, activeId 
               layer={ly}
               fired={!!st.fired}
               count={st.count}
+              label={st.label}
               active={activeId === ly.id}
               onClick={() => onLayerClick && onLayerClick(ly.id)}
             />
