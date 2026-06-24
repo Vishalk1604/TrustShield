@@ -79,7 +79,7 @@ and can click one button to watch us catch a forged document."
 - Existing UI to mine for logic: `services/dashboard/src/App.jsx`, `src/api.js`
 
 ## Backlog (ordered — do the first unchecked each run; split if large)
-- [ ] **R1 — Shell + design system.** New routing (Home / Investigator / Examples), brand tokens (palette, type, the local-first badge), responsive layout, vendored fonts/icons. `npm run build` green.
+- [x] **R1 — Shell + design system.** New routing (Home / Investigator / Examples), brand tokens (palette, type, the local-first badge), responsive layout, vendored fonts/icons. `npm run build` green.
 - [ ] **R2 — Home: Hero + Problem.** Copy + the no-network badge + a "spot the edit" before/after using preview crops.
 - [ ] **R3 — Home: How-it-works pipeline.** Interactive 5-layer diagram, each layer card with "what it catches".
 - [ ] **R4 — Home: Key features grid.** All capabilities, icon + blurb; link each to its layer/example.
@@ -93,6 +93,29 @@ and can click one button to watch us catch a forged document."
 
 ## Worklog (append one line per run)
 - 2026-06-23 (setup) — plan created; routine scheduled (01:00 + every ~5h). First run starts at R1.
+- 2026-06-24 — R1 landed: react-router-dom shell (Home/Investigator/Examples), theme.js tokens, inline-SVG
+  icon set, local-first badge, responsive nav; old console moved to pages/Investigator.jsx unchanged — `e4c5605`.
 
 ## Ideas (deep-think log — record, act only on dashboard ones)
-- (none yet — add insights about the project/story/gaps here each run)
+- **[dashboard] Lead with the honest synthetic→real gap, don't hide it.** Most hackathon entries oversell
+  "AI detects fraud." Our actual differentiator is the opposite: we *measured* where heuristics are
+  bulletproof (precision 1.0, zero FP on clean — both synthetic and real anchors) vs where the learned
+  model shines only in-domain (`results/forgery_training/summary.md` §5). R5 (Proof) should frame this as
+  rigor, and Home copy must stay precise — never claim a blanket "AI catches all forgeries"; say
+  heuristics+semantic+QR are the guaranteed-local layer, the U-Net is opt-in/synthetic-domain.
+- **[dashboard] The gallery's most dramatic exhibit is invisibility, not the overlay.** `data/synthetic/
+  _preview/zoom_pro.png` vs `zoom_clean.png` — a seamless "pro"-tier edit a human can't spot at all — is a
+  stronger "spot the edit" hook for the Home hero than the existing `results/image_forensics/samples/*`
+  (which are mostly splice/recompress, the *easy* tier). Pair the hard-to-spot pro example with an honest
+  caption: "even our heuristics miss this one — this is why the semantic/QR layer exists."
+- **[dashboard] R9's cross-application graph (fraud rings / double-financing) is the most unique
+  capability vs typical "tampered PDF detector" hackathon projects** — most competitors stop at
+  single-document checks. Worth a visually strong standalone demo, not just a footnote feature card.
+- **[dashboard] Local-first should be framed as a compliance/data-residency story for judges, not just
+  "fast/private"** — Indian NBFC/bank underwriting data leaving the device is a real regulatory concern;
+  tie the badge's tooltip/expansion to that angle in R2.
+- **[non-dashboard, logged only] The Examples gallery is thin on "pro"-difficulty samples** (only 5 curated
+  PNGs in `results/image_forensics/samples/`, skewed toward splice/recompress). A future generator run
+  producing a handful of curated naive/blended/pro before-after pairs *with ground-truth masks* purely for
+  the gallery (distinct from the eval dataset) would make R6 much stronger — flagging for a forensics/
+  generator session, not this dashboard routine.
