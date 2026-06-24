@@ -1,22 +1,34 @@
 # CLAUDE.md — services/dashboard (Service C)
 
 ## Purpose
-The investigator console (React + Vite, **single page, no routing, no auth** — plain `react`/
-`react-dom`). Lists the synthetic loan packets on the left; selecting one runs the full
-forensic → semantic → model → graph pipeline and shows the **trust gauge + recommendation,
-sub-scores, severity-colored evidence chain, tamper-localization overlays, and the cross-application
-graph** on the right, with JSON report export. Talks only to the LOCAL forensics (8001) + risk (8002).
+The judge-facing dashboard (React + Vite + `react-router-dom`, no auth). Three routes share a common
+`Shell` (top nav with the local-first badge + footer): **Home** (the pitch — problem, 5-layer pipeline,
+features, proof, examples teaser; under active construction, see `DASHBOARD_PLAN.md`), **Investigator**
+(the original working console — packet picker, forensic → semantic → model → graph pipeline, trust
+gauge + recommendation, sub-scores, severity-colored evidence chain, tamper-localization overlays,
+cross-application graph, JSON export, plus the image edit-detection panel), and **Examples** (stub —
+the curated before/after gallery lands in backlog item R6). Talks only to the LOCAL forensics (8001) +
+risk (8002).
 
 > **History:** a multi-page routed app with auth + two roles + purpose-driven upload existed briefly
-> (plan §8/§9, commit `66d9165`) but was **reverted** to this simpler console for the hackathon
-> edit-detection pivot (plan §10). The §8/§9 **backend** (auth/cases/underwriting) still exists and is
-> just unused by this frontend; the routed UI is recoverable from git if ever wanted.
+> (plan §8/§9, commit `66d9165`) but was reverted to a single-page console for the hackathon
+> edit-detection pivot (plan §10). **R1 (this routing shell) reintroduced multi-page routing** — without
+> auth — purpose-built for judges per `DASHBOARD_PLAN.md`. The §8/§9 **backend** (auth/cases/
+> underwriting) still exists and is unused by this frontend.
 
 ## Key files
-- `src/main.jsx` — renders `<App/>` (no router). `src/App.jsx` — the whole single-page console
-  (palette + health polling + trust gauge + sub-scores + evidence cards + tamper-localization + export).
-- `src/GraphView.jsx` — cross-application graph SVG. `src/api.js` — thin fetch wrappers around the
-  LOCAL `/risk/demo/*` + `/health` endpoints (no auth headers).
+- `src/main.jsx` — wraps `<App/>` in `<BrowserRouter>`. `src/App.jsx` — route table (`/`, `/investigator`,
+  `/examples`), all under `components/Shell.jsx`.
+- `src/components/Shell.jsx` — sticky top nav (logo, Home/Investigator/Examples links, local-first
+  badge, responsive hamburger below 860px) + footer; renders `<Outlet/>`.
+- `src/components/LocalFirstBadge.jsx`, `src/components/Icons.jsx` — hand-rolled inline SVG icons (no
+  icon-font / external CDN — local-only contract).
+- `src/theme.js` — design tokens (color/font/radius/spacing/shared style primitives) used by all pages.
+- `src/pages/Home.jsx` — landing page (hero shipped in R1; problem/pipeline/features/proof sections are
+  the next backlog items). `src/pages/Investigator.jsx` — the full working console (moved verbatim from
+  the old `App.jsx`). `src/pages/Examples.jsx` — stub pending R6.
+- `src/GraphView.jsx` — cross-application graph SVG (used by `pages/Investigator.jsx`). `src/api.js` —
+  thin fetch wrappers around the LOCAL `/risk/demo/*` + `/health` endpoints (no auth headers).
 - `src/config.js` — local service URLs (`FORENSICS_URL`, `RISK_URL`) + `SERVICES` list; override via
   `VITE_FORENSICS_URL` / `VITE_RISK_URL`.
 - `vite.config.js` — dev server on `0.0.0.0:5173` (strict port). `Dockerfile` — `node:20-slim`, runs
@@ -55,6 +67,12 @@ The two backend services must be running for the health dots to go green.
 - **Done (Phase 9 — §6.D3):** a **Tamper localization** panel (annotated page images with the edit
   region boxed) + per-finding region badges in the evidence cards, fed by the new `tamper_overlays`
   field on the demo-score response. Still no new npm deps (base64 PNGs rendered server-side by PyMuPDF).
+- **Done (dashboard rebuild R1 — `DASHBOARD_PLAN.md`):** routing shell (Home / Investigator / Examples)
+  via `react-router-dom`; the one new npm dependency (already present in `node_modules` from the §8/§9
+  era, now declared in `package.json` + `package-lock.json`). Brand tokens in `theme.js`; vendored inline
+  SVG icons (no external CDN, no icon-font). The old single-page console moved into `pages/Investigator.jsx`
+  unchanged in behavior. `npm run build` green; `verify_local_only.py` passes; Python suite unaffected
+  (frontend-only change).
 
 ## Phase 9 notes (§6.D3 — tamper localization)
 - `POST /risk/demo/score/{id}` now also returns `tamper_overlays:[{doc,page,image_b64}]` **outside** the

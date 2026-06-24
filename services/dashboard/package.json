@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "TrustShield investigator dashboard (Service C). Phase 0: placeholder + service health.",
+  "description": "TrustShield judge-facing dashboard (Service C) — Home / Investigator / Examples.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
