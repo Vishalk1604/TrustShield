@@ -85,16 +85,23 @@ and can click one button to watch us catch a forged document."
 - [ ] **R4 — Home: Key features grid.** All capabilities, icon + blurb; link each to its layer/example.
 - [ ] **R5 — Home: Proof/results.** Stat cards + small charts from `metrics.json`; the honest synthetic→real note framed as rigor.
 - [ ] **R6 — Annotated examples gallery.** Before/after + overlay + caption per case (Form 16 gross-salary, bank salary-credit, PAN swap); pull from samples/_preview.
-- [ ] **R7 — Live Investigator.** Sample-or-upload → forensics call → verdict/evidence/overlay; demo-mode fallback wired.
-- [ ] **R8 — Trust score + evidence chain + action viz.** Gauge + ordered evidence cards + recommendation banding.
-- [ ] **R9 — Cross-application graph mini-view.** Rings / double-financing (static demo data or from risk `:8002`).
-- [ ] **R10 — Polish + judge tour.** Motion, transitions, mobile, a11y, copy editing, a guided "click-through tour" overlay; capture screenshots for the deck under `docs/`.
+- [x] **R7 — Live Investigator.** Sample-or-upload → forensics call → verdict/evidence/overlay; demo-mode fallback wired. *(Delivered by the user-directed redesign — two modes, Live/Demo toggle + baked-in fallback.)*
+- [x] **R8 — Trust score + evidence chain + action viz.** Gauge + ordered evidence cards + recommendation banding. *(Animated neon gauge + action chip + sub-scores + evidence grouped by pipeline layer.)*
+- [x] **R9 — Cross-application graph mini-view.** Rings / double-financing (static demo data or from risk `:8002`). *(Graph panel in the packet result, live `:8002` or baked-in subgraph.)*
+- [ ] **R10 — Polish + judge tour.** Motion, transitions, mobile, a11y, copy editing, a guided "click-through tour" overlay; capture screenshots for the deck under `docs/`. *(Partial: motion/reveal, focus rings, responsive done in the redesign; guided tour + deck screenshots remain.)*
 - [ ] **R11+ — Iterate.** KYC/underwriting (FOIR) panel; refine weakest screens; demo script in `DEMO.md`.
 
 ## Worklog (append one line per run)
 - 2026-06-23 (setup) — plan created; routine scheduled (01:00 + every ~5h). First run starts at R1.
 - 2026-06-24 — R1 landed: react-router-dom shell (Home/Investigator/Examples), theme.js tokens, inline-SVG
   icon set, local-first badge, responsive nav; old console moved to pages/Investigator.jsx unchanged — `e4c5605`.
+- 2026-06-24 — **Redesign Phase A** (user-directed): premium dark-glass design system — theme.js retuned
+  (near-black + glass() + per-layer hues + glow/motion tokens), vendored Inter (no CDN), index.css, and
+  reusable UI primitives (Gauge, Reveal, PipelineDiagram, Card/Badge/Stat/Button); glassier Shell — `0e46165`.
+- 2026-06-24 — **Redesign Phase B** (user-directed, satisfies R7/R8/R9): Investigator rebuilt first-principles
+  around the 5-layer pipeline spine — two modes (packet / single doc), curated entry chips, neon verdict
+  header, evidence grouped by layer w/ inline localization, graph panel, Live/Demo toggle + baked-in
+  fallback (src/data/demoDecisions.js + public/demo). Verified Live (:5173) + Demo paths — `9837b5c`.
 
 ## Ideas (deep-think log — record, act only on dashboard ones)
 - **[dashboard] Lead with the honest synthetic→real gap, don't hide it.** Most hackathon entries oversell
@@ -119,3 +126,16 @@ and can click one button to watch us catch a forged document."
   producing a handful of curated naive/blended/pro before-after pairs *with ground-truth masks* purely for
   the gallery (distinct from the eval dataset) would make R6 much stronger — flagging for a forensics/
   generator session, not this dashboard routine.
+- **[dashboard] The redesign created a shared visual grammar — reuse it on Home, don't reinvent.** The
+  `PipelineDiagram` (mode="cards") already exists for R3's "how it works"; the `Gauge`/`Card`/`Stat`/`Badge`
+  primitives + per-layer hues should drive R2/R4/R5 so Home and the console look like one product. The
+  Home "spot the edit" (R2) and the Investigator's single-doc mode tell the same story from two angles —
+  keep the captions consistent.
+- **[dashboard] A guided judge tour (R10) is now high-leverage.** The console packs a lot (two modes, the
+  spine, grouped evidence, the graph). A 4-step coachmark overlay ("1 pick a case → 2 read the verdict →
+  3 click a pipeline layer → 4 see the edit located") would let a judge self-drive in 60s. Build it as a
+  reusable overlay so Home can trigger "take the tour" too.
+- **[dashboard, known-gap] The preview-screenshot tool stalls on this app** (likely the 5s health-poll
+  interval never reaching network-idle + backdrop-filter). Verified the redesign via DOM/computed-style
+  inspection instead. For R10's deck screenshots, consider a transient "screenshot mode" that pauses the
+  health poll, or capture from the real browser.

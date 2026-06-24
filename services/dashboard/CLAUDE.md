@@ -4,11 +4,22 @@
 The judge-facing dashboard (React + Vite + `react-router-dom`, no auth). Three routes share a common
 `Shell` (top nav with the local-first badge + footer): **Home** (the pitch — problem, 5-layer pipeline,
 features, proof, examples teaser; under active construction, see `DASHBOARD_PLAN.md`), **Investigator**
-(the original working console — packet picker, forensic → semantic → model → graph pipeline, trust
-gauge + recommendation, sub-scores, severity-colored evidence chain, tamper-localization overlays,
-cross-application graph, JSON export, plus the image edit-detection panel), and **Examples** (stub —
-the curated before/after gallery lands in backlog item R6). Talks only to the LOCAL forensics (8001) +
-risk (8002).
+(redesigned first-principles around the **5-layer pipeline spine** — two modes: *Loan packet* runs the
+full forensic → semantic → model → trust → graph pipeline and *Single document* runs pixel + semantic
+forensics on one image; both share one verdict grammar: neon trust gauge + action chip + rationale +
+sub-scores, evidence **grouped by pipeline layer** with localization inline, and the cross-application
+graph; a **Live/Demo toggle** falls back to baked-in decisions when the backend is down), and
+**Examples** (stub — the curated before/after gallery lands in backlog item R6). Talks only to the
+LOCAL forensics (8001) + risk (8002).
+
+> **Design system (premium dark-glass):** `theme.js` holds the tokens (near-black base, `glass()`
+> surface helper, per-layer hues, glow/motion scales); `index.css` vendors **Inter** (woff2 under
+> `src/assets/fonts/`, no CDN) + the motion keyframes; reusable primitives live in `src/components/ui/`
+> (`Gauge`, `Reveal`, `PipelineDiagram`, and `primitives.jsx` = Card/Badge/Stat/SectionHeader/Button).
+> Baked-in demo data is in `src/data/` (`demoDecisions.js` captured from a real backend run +
+> `curatedCases.js`); overlay PNGs are under `public/demo/`. **No npm deps were added** — a new dep
+> requires a `docker compose up -d --build dashboard` (the image bakes `node_modules`; only `src/`,
+> `public/`, `index.html` are bind-mounted).
 
 > **History:** a multi-page routed app with auth + two roles + purpose-driven upload existed briefly
 > (plan §8/§9, commit `66d9165`) but was reverted to a single-page console for the hackathon
