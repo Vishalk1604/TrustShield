@@ -80,10 +80,10 @@ and can click one button to watch us catch a forged document."
 
 ## Backlog (ordered — do the first unchecked each run; split if large)
 - [x] **R1 — Shell + design system.** New routing (Home / Investigator / Examples), brand tokens (palette, type, the local-first badge), responsive layout, vendored fonts/icons. `npm run build` green.
-- [ ] **R2 — Home: Hero + Problem.** Copy + the no-network badge + a "spot the edit" before/after using preview crops.
-- [ ] **R3 — Home: How-it-works pipeline.** Interactive 5-layer diagram, each layer card with "what it catches".
-- [ ] **R4 — Home: Key features grid.** All capabilities, icon + blurb; link each to its layer/example.
-- [ ] **R5 — Home: Proof/results.** Stat cards + small charts from `metrics.json`; the honest synthetic→real note framed as rigor.
+- [x] **R2 — Home: Hero + Problem.** Hero (badge + headline + 3 stat callouts + CTAs) and an interactive "spot the edit" reveal using the REALISTIC Form 16 clean/edited pair (committed to `public/examples/`).
+- [x] **R3 — Home: How-it-works pipeline.** Reuses `PipelineDiagram mode="cards"` — the 5 layers with "what it catches".
+- [x] **R4 — Home: Key features grid.** 8 capability cards (per-layer icon hues): forensics, semantic+QR, learned model, trust+evidence, graph, KYC/FOIR, explainability, on-device.
+- [x] **R5 — Home: Proof/results.** Honest stat cards (0/95 FP, 5 layers, 0.00→0.29 pro-edit, no-network) + a HONEST-LIMIT callout (synthetic→real gap framed as rigor) + closing CTA.
 - [ ] **R6 — Annotated examples gallery.** Before/after + overlay + caption per case (Form 16 gross-salary, bank salary-credit, PAN swap); pull from samples/_preview.
 - [x] **R7 — Live Investigator.** Sample-or-upload → forensics call → verdict/evidence/overlay; demo-mode fallback wired. *(Delivered by the user-directed redesign — two modes, Live/Demo toggle + baked-in fallback.)*
 - [x] **R8 — Trust score + evidence chain + action viz.** Gauge + ordered evidence cards + recommendation banding. *(Animated neon gauge + action chip + sub-scores + evidence grouped by pipeline layer.)*
@@ -98,6 +98,12 @@ and can click one button to watch us catch a forged document."
 - 2026-06-24 — **Redesign Phase A** (user-directed): premium dark-glass design system — theme.js retuned
   (near-black + glass() + per-layer hues + glow/motion tokens), vendored Inter (no CDN), index.css, and
   reusable UI primitives (Gauge, Reveal, PipelineDiagram, Card/Badge/Stat/Button); glassier Shell — `0e46165`.
+- 2026-06-25 — **R2–R5 landed (user-directed): the judge-facing Home page.** Full narrative — hero
+  (local-first badge + headline + 3 stat callouts + CTAs), interactive "spot the edit" with the realistic
+  Form 16 clean/edited pair (copied into public/examples/), the 5-layer pipeline (cards), an 8-card
+  features grid, and honest proof stats + a synthetic→real "honest limit" callout + closing CTA. Verified
+  in preview (hero/problem/features/proof screenshots, reveal interaction, no console errors); `npm run
+  build` green.
 - 2026-06-24 — **Redesign Phase B** (user-directed, satisfies R7/R8/R9): Investigator rebuilt first-principles
   around the 5-layer pipeline spine — two modes (packet / single doc), curated entry chips, neon verdict
   header, evidence grouped by layer w/ inline localization, graph panel, Live/Demo toggle + baked-in

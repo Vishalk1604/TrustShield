@@ -65,3 +65,6 @@ data/real/**
 !data/real/README.md
 !data/real/**/
 !data/real/**/.gitkeep
+
+# Local Claude agent/preview config (launch.json, settings.local.json)
+.claude/
