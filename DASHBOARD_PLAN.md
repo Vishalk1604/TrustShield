@@ -84,7 +84,7 @@ and can click one button to watch us catch a forged document."
 - [x] **R3 — Home: How-it-works pipeline.** Reuses `PipelineDiagram mode="cards"` — the 5 layers with "what it catches".
 - [x] **R4 — Home: Key features grid.** 8 capability cards (per-layer icon hues): forensics, semantic+QR, learned model, trust+evidence, graph, KYC/FOIR, explainability, on-device.
 - [x] **R5 — Home: Proof/results.** Honest stat cards (0/95 FP, 5 layers, 0.00→0.29 pro-edit, no-network) + a HONEST-LIMIT callout (synthetic→real gap framed as rigor) + closing CTA.
-- [ ] **R6 — Annotated examples gallery.** Before/after + overlay + caption per case (Form 16 gross-salary, bank salary-credit, PAN swap); pull from samples/_preview.
+- [x] **R6 — Annotated examples gallery.** `pages/Examples.jsx` rebuilt: 4 seamless before/after crop cases (Form 16 salary spectrum, PAN swap, bank credit, payslip net-pay) tagged by catching-layer + 2 full-document localization overlays (PKT-0010 / PKT-0028) + an honest-limit note + CTA. Crops copied into `public/examples/` (synthetic).
 - [x] **R7 — Live Investigator.** Sample-or-upload → forensics call → verdict/evidence/overlay; demo-mode fallback wired. *(Delivered by the user-directed redesign — two modes, Live/Demo toggle + baked-in fallback.)*
 - [x] **R8 — Trust score + evidence chain + action viz.** Gauge + ordered evidence cards + recommendation banding. *(Animated neon gauge + action chip + sub-scores + evidence grouped by pipeline layer.)*
 - [x] **R9 — Cross-application graph mini-view.** Rings / double-financing (static demo data or from risk `:8002`). *(Graph panel in the packet result, live `:8002` or baked-in subgraph.)*
@@ -98,6 +98,10 @@ and can click one button to watch us catch a forged document."
 - 2026-06-24 — **Redesign Phase A** (user-directed): premium dark-glass design system — theme.js retuned
   (near-black + glass() + per-layer hues + glow/motion tokens), vendored Inter (no CDN), index.css, and
   reusable UI primitives (Gauge, Reveal, PipelineDiagram, Card/Badge/Stat/Button); glassier Shell — `0e46165`.
+- 2026-06-25 — **R6 landed: annotated examples gallery.** `Examples.jsx` rebuilt from the stub — seamless
+  before/after crops tagged by catching-layer, full-document localization overlays, honest-limit note + CTA;
+  curated crops copied into public/examples/. Verified rendered (DOM + all images load, no console errors);
+  `npm run build` green. (Home CTAs no longer dead-end.)
 - 2026-06-25 — **R2–R5 landed (user-directed): the judge-facing Home page.** Full narrative — hero
   (local-first badge + headline + 3 stat callouts + CTAs), interactive "spot the edit" with the realistic
   Form 16 clean/edited pair (copied into public/examples/), the 5-layer pipeline (cards), an 8-card
