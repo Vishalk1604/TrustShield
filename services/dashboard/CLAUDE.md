@@ -2,15 +2,17 @@
 
 ## Purpose
 The judge-facing dashboard (React + Vite + `react-router-dom`, no auth). Three routes share a common
-`Shell` (top nav with the local-first badge + footer): **Home** (the pitch — problem, 5-layer pipeline,
-features, proof, examples teaser; under active construction, see `DASHBOARD_PLAN.md`), **Investigator**
+`Shell` (top nav with the local-first badge + footer): **Home** (the full judge-facing pitch — hero with
+stat callouts, an interactive "spot the edit" over a realistic Form 16 pair, the 5-layer pipeline, an
+8-card features grid, honest proof stats + a synthetic→real "honest limit" callout, CTA; R2–R5 done), **Investigator**
 (redesigned first-principles around the **5-layer pipeline spine** — two modes: *Loan packet* runs the
 full forensic → semantic → model → trust → graph pipeline and *Single document* runs pixel + semantic
 forensics on one image; both share one verdict grammar: neon trust gauge + action chip + rationale +
 sub-scores, evidence **grouped by pipeline layer** with localization inline, and the cross-application
 graph; a **Live/Demo toggle** falls back to baked-in decisions when the backend is down), and
-**Examples** (stub — the curated before/after gallery lands in backlog item R6). Talks only to the
-LOCAL forensics (8001) + risk (8002).
+**Examples** (the curated annotated gallery — R6 done — seamless before/after crops tagged by catching
+layer + full-document localization overlays + an honest-limit note). Talks only to the LOCAL forensics
+(8001) + risk (8002).
 
 > **Design system (premium dark-glass):** `theme.js` holds the tokens (near-black base, `glass()`
 > surface helper, per-layer hues, glow/motion scales); `index.css` vendors **Inter** (woff2 under
