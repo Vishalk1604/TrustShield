@@ -637,3 +637,21 @@ transfer), while heuristics hold **0/7 false positives**. So the §11 dataset is
 training/eval but not yet enough to make a *real-doc-ready* model — that needs real tampered data +
 photo-realistic ID synthesis (colored cards + phone-photo capture) + domain adaptation. Heuristics +
 semantic + QR remain the guaranteed-local real-doc layer.
+
+### §11.1 Loan-packet realism — a MIGRATION, not a drop-in (attempted + reverted)
+Goal: regenerate the loan **packet** PDFs (`data/synthetic/packets/`) with the §11 realistic builders so
+the packet docs look as real as the image dataset. The builders are backward-compatible, so a regen
+*renders* realistic packets — but it **breaks the tuned PDF pipeline** and was reverted:
+- The dense, multi-table realistic **Form 16** makes the render→OCR→compare **re-OCR cross-check fire
+  FALSE POSITIVES on clean packets** ("visible content contradicts PDF text layer" on PKT-0008/0026/0031)
+  and **miss** the white-box edit on PKT-0010 — i.e. real regressions, not stale assertions. 9 packet
+  tests fail (forensics / re-OCR / extraction / scoring / graph); clean packets gain forensic findings.
+- The committed packets + their hand-captured dashboard data (`demoDecisions.js` + `public/demo/*.png`)
+  are tightly coupled to the old layout.
+**Therefore packet realism is a dedicated migration:** re-tune the re-OCR / entity-extraction for the
+dense layout (or make the realistic Form 16 less OCR-ambiguous), re-validate the whole packet pipeline,
+update the ~9 affected tests + `seed_demo`/`DEMO.md` expectations (note: a pure cross-document
+inconsistency like PKT-0014 should be **manual_review**, not freeze, under the "no freeze without
+document evidence" safeguard), then refresh the baked dashboard packet data with the new
+**`scripts/build_demo_decisions.py`** (re-scores packets in-process + re-renders overlays → demoDecisions.js
++ public/demo/*.png). The image pipeline + the dashboard detection showcase are unaffected.
