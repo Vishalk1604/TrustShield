@@ -152,6 +152,13 @@ button {
   animation: ts-reveal-up 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* DocModal: stack the image + details on narrow screens */
+@media (max-width: 720px) {
+  .ts-docmodal-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
