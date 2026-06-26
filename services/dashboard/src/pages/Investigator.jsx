@@ -187,6 +187,7 @@ function PacketMode({ live }) {
   const [error, setError] = useState(null);
   const [source, setSource] = useState(null);      // 'live' | 'demo'
   const [showAll, setShowAll] = useState(false);
+  const [packetFilter, setPacketFilter] = useState("all"); // all | fraud | clean
   const [activeLayer, setActiveLayer] = useState(null);
 
   const groupRefs = useRef({});
@@ -268,7 +269,10 @@ function PacketMode({ live }) {
   return (
     <div>
       {/* curated entry points */}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+      <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1, color: C.textFaint, marginBottom: 9 }}>
+        START HERE — HIGHLIGHTED CASES
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
         {CURATED_PACKETS.map((c) => {
           const on = selected === c.id;
           const hue = c.tone === "clean" ? C.success : C.danger;
@@ -292,33 +296,65 @@ function PacketMode({ live }) {
         })}
       </div>
 
-      {/* browse-all (live only) */}
-      {live && (
-        <div style={{ marginBottom: 14 }}>
-          <button onClick={() => setShowAll((v) => !v)} style={{ cursor: "pointer", background: "none", border: "none", color: C.accent, fontSize: 12.5, fontWeight: 600, padding: 0 }}>
-            {showAll ? "▾ Hide" : "▸ Browse"} all {packets.length || ""} synthetic packets
-          </button>
-          {showAll && (
-            <div style={{ display: "grid", gap: 5, gridTemplateColumns: "repeat(auto-fill, minmax(150px,1fr))", maxHeight: 240, overflowY: "auto", marginTop: 8, paddingRight: 4 }}>
-              {packets.map((p) => {
-                const fraud = p.ground_truth_label === "fraud";
-                return (
-                  <button key={p.packet_id} onClick={() => scoreOne(p.packet_id)}
-                    style={{ cursor: "pointer", textAlign: "left", background: selected === p.packet_id ? hexA(C.accent, 0.1) : "rgba(148,163,184,0.03)", border: `1px solid ${selected === p.packet_id ? hexA(C.accent, 0.5) : C.border}`, borderRadius: radius.sm, padding: "7px 9px", color: C.text }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 5 }}>
-                      <span style={{ fontWeight: 700, fontSize: 12 }}>{p.packet_id}</span>
-                      <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: hexA(fraud ? C.danger : C.success, 0.14), color: fraud ? "#fca5a5" : "#86efac", border: `1px solid ${hexA(fraud ? C.danger : C.success, 0.4)}` }} title={(p.ground_truth_fraud_types || []).join(", ")}>
-                        {fraud ? (p.ground_truth_fraud_types?.[0] || "fraud") : "clean"}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 10, color: C.textFaint, marginTop: 2 }}>{p.applicant_name || "—"} · {p.n_docs} docs</div>
-                  </button>
-                );
-              })}
+      {/* browse-all (live only) — collapsed by default, calm + filterable when open */}
+      {live && packets.length > 0 && (() => {
+        const nFraud = packets.filter((p) => p.ground_truth_label === "fraud").length;
+        const nClean = packets.length - nFraud;
+        const shown = packets.filter((p) =>
+          packetFilter === "all" ? true
+          : packetFilter === "fraud" ? p.ground_truth_label === "fraud"
+          : p.ground_truth_label !== "fraud");
+        return (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <button onClick={() => setShowAll((v) => !v)}
+                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, background: showAll ? hexA(C.accent, 0.08) : "rgba(148,163,184,0.04)", border: `1px solid ${showAll ? hexA(C.accent, 0.3) : C.border}`, borderRadius: radius.pill, padding: "6px 13px", color: showAll ? C.accent : C.textDim, fontSize: 12, fontWeight: 700, transition: `all ${motion.base} ${motion.ease}` }}>
+                <span style={{ fontSize: 10, opacity: 0.8 }}>{showAll ? "▾" : "▸"}</span>
+                Browse all {packets.length} packets
+                <span style={{ fontSize: 10.5, fontWeight: 600, color: C.textFaint }}>· {nClean} clean · {nFraud} flagged</span>
+              </button>
+              {showAll && (
+                <div style={{ display: "inline-flex", background: "rgba(148,163,184,0.05)", border: `1px solid ${C.border}`, borderRadius: radius.pill, padding: 3 }}>
+                  {[["all", "All"], ["fraud", "Flagged"], ["clean", "Clean"]].map(([k, label]) => {
+                    const on = packetFilter === k;
+                    const hue = k === "fraud" ? C.danger : k === "clean" ? C.success : C.accent;
+                    return (
+                      <button key={k} onClick={() => setPacketFilter(k)}
+                        style={{ cursor: "pointer", border: "none", borderRadius: radius.pill, padding: "4px 12px", fontSize: 11.5, fontWeight: 700, color: on ? "#04131c" : C.textDim, background: on ? hue : "transparent", transition: `all ${motion.base} ${motion.ease}` }}>
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+            {showAll && (
+              <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fill, minmax(190px,1fr))", maxHeight: 320, overflowY: "auto", marginTop: 12, paddingRight: 4 }}>
+                {shown.map((p) => {
+                  const fraud = p.ground_truth_label === "fraud";
+                  const on = selected === p.packet_id;
+                  const hue = fraud ? C.danger : C.success;
+                  const ftype = fraud ? (p.ground_truth_fraud_types?.[0] || "fraud").replace(/_/g, " ") : null;
+                  return (
+                    <button key={p.packet_id} onClick={() => scoreOne(p.packet_id)}
+                      title={(p.ground_truth_fraud_types || []).join(", ")}
+                      style={{ cursor: "pointer", textAlign: "left", background: on ? hexA(C.accent, 0.1) : "rgba(148,163,184,0.03)", border: `1px solid ${on ? hexA(C.accent, 0.5) : C.border}`, borderRadius: radius.md, padding: "9px 11px", color: C.text, transition: `all ${motion.base} ${motion.ease}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: "50%", background: hue, boxShadow: `0 0 6px ${hexA(hue, 0.7)}`, flexShrink: 0 }} />
+                        <span style={{ fontWeight: 700, fontSize: 12.5 }}>{p.packet_id}</span>
+                      </div>
+                      <div style={{ fontSize: 10.5, color: C.textFaint, marginTop: 4 }}>{p.applicant_name || "—"} · {p.n_docs} docs</div>
+                      <div style={{ fontSize: 10, color: fraud ? hexA(C.danger, 0.85) : C.textFaint, marginTop: 3, textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {ftype || "no findings expected"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {error && <Card style={{ borderColor: hexA(C.danger, 0.4), background: hexA(C.danger, 0.06), color: "#fca5a5", fontSize: 13.5 }} pad={14}>{error}</Card>}
 
