@@ -30,33 +30,14 @@ export const CURATED_PACKETS = [
   },
 ];
 
-export const CURATED_IMAGES = [
-  {
-    label: "Clean Form 16",
-    path: "examples/clean_form16.jpg",
-    verdict: "CLEAN",
-    trust: 100,
-    note: "No edit signals — the page's sensor-noise floor is intact everywhere. Zero false positives is the heuristics' guarantee (precision 1.0).",
-  },
-  {
-    label: "Edited number",
-    path: "examples/edited_number_form16.jpg",
-    verdict: "EDITED",
-    trust: 0,
-    note: "A salary figure was repainted. The repaint erased the local noise residual; the detector localizes it to the edited box.",
-  },
-  {
-    label: "Spliced patch",
-    path: "examples/spliced_form16.jpg",
-    verdict: "EDITED",
-    trust: 15,
-    note: "A patch pasted from elsewhere. Splice detection on the eval set: hit-rate 1.0, IoU 0.82.",
-  },
-  {
-    label: "Digital paint-over (ID)",
-    path: "examples/digital_paintover_id.png",
-    verdict: "EDITED",
-    trust: 15,
-    note: "A PAN digit painted in a drawing app — caught by the flat-fill detector plus the invalid-PAN semantic check.",
-  },
-];
+// Single-document entry examples — the NEW realistic synthetic docs, carrying their REAL baked
+// detection (verdict / trust / method / region box) so Demo mode shows the actual result and Live mode
+// re-analyzes the same file. Derived from demoExamples.js (see scripts/build_demo_examples.py).
+import { DEMO_EXAMPLES } from "./demoExamples.js";
+
+export const CURATED_IMAGES = DEMO_EXAMPLES.map((e) => ({
+  ...e,
+  label: e.title,
+  path: e.edited_img,   // the file to fetch + analyze in Live mode
+  note: e.blurb,
+}));

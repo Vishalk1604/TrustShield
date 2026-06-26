@@ -9,6 +9,9 @@ import {
 import Gauge from "../components/ui/Gauge.jsx";
 import PipelineDiagram from "../components/ui/PipelineDiagram.jsx";
 import { Card, Badge, Button } from "../components/ui/primitives.jsx";
+import BoxedImage from "../components/ui/BoxedImage.jsx";
+import DocModal from "../components/ui/DocModal.jsx";
+import { METHOD } from "../data/methods.js";
 import { DEMO_DECISIONS } from "../data/demoDecisions.js";
 import { CURATED_PACKETS, CURATED_IMAGES } from "../data/curatedCases.js";
 
@@ -385,6 +388,7 @@ function SingleDocMode({ live }) {
   const [res, setRes] = useState(null);
   const [err, setErr] = useState(null);
   const [name, setName] = useState(null);
+  const [openEx, setOpenEx] = useState(null);   // baked-detection lightbox (Demo mode)
 
   const analyze = async (file, label) => {
     setBusy(true); setErr(null); setRes(null); setName(label);
@@ -414,7 +418,10 @@ function SingleDocMode({ live }) {
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           {CURATED_IMAGES.map((ex) => (
-            <Button key={ex.path} variant="ghost" onClick={() => runExample(ex)} disabled={busy || !live}>{ex.label}</Button>
+            <Button key={ex.key} variant="ghost" disabled={busy}
+              onClick={() => (live ? runExample(ex) : setOpenEx(ex))}>
+              {`${ex.doc_type.replace("_", " ")} · ${ex.difficulty}`}
+            </Button>
           ))}
           <label style={{
             cursor: live ? "pointer" : "not-allowed", opacity: live ? 1 : 0.5,
@@ -433,20 +440,23 @@ function SingleDocMode({ live }) {
         )}
       </Card>
 
-      {/* offline: show curated examples with their REAL verdicts */}
+      {/* offline: the new realistic docs with their REAL baked detection — click to open boxed */}
       {!live && (
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(240px,1fr))" }}>
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(250px,1fr))" }}>
           {CURATED_IMAGES.map((ex) => {
-            const c = VERDICT_C[ex.verdict];
+            const c = VERDICT_C[ex.verdict] || C.info;
+            const m = METHOD[ex.method] || METHOD.none;
+            const caught = ex.boxes.length > 0 && ex.method !== "clean" && ex.method !== "none";
             return (
-              <Card key={ex.path} pad={10}>
-                <img src={ex.path} alt={ex.label} style={{ width: "100%", borderRadius: 8, border: `1px solid ${C.border}`, display: "block", aspectRatio: "4/3", objectFit: "cover" }} />
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+              <Card key={ex.key} pad={10} style={{ cursor: "pointer" }} onClick={() => setOpenEx(ex)}>
+                <BoxedImage src={ex.edited_img} alt={ex.label} boxes={caught ? ex.boxes : []} imgW={ex.w} imgH={ex.h}
+                  hue={m.hue} label={caught ? "detected" : null} style={{ maxHeight: 180 }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, flexWrap: "wrap" }}>
                   <Badge c={c} solid>{ex.verdict}</Badge>
-                  <span style={{ fontSize: 12, color: C.textDim }}>trust {ex.trust}/100</span>
+                  <Badge c={m.hue}>{m.label}</Badge>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginTop: 8 }}>{ex.label}</div>
-                <div style={{ fontSize: 12, color: C.textDim, marginTop: 4, lineHeight: 1.5 }}>{ex.note}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginTop: 8 }}>{ex.label}</div>
+                <div style={{ fontSize: 11.5, color: C.textFaint, marginTop: 4 }}>Click to open · trust {ex.trust}/100</div>
               </Card>
             );
           })}
@@ -517,6 +527,7 @@ function SingleDocMode({ live }) {
       )}
       {res && !res.ok && <Card pad={14} style={{ color: "#fca5a5", fontSize: 13 }}>Could not analyze: {res.error}</Card>}
 
+      {openEx && <DocModal ex={openEx} onClose={() => setOpenEx(null)} />}
       <style>{`@media (max-width: 720px){ .ts-img-grid{ grid-template-columns:1fr !important; } }`}</style>
     </div>
   );
