@@ -80,6 +80,26 @@ def ocr_page(page: "fitz.Page", dpi: int = 200) -> str:
         return ""
 
 
+def ocr_region(page: "fitz.Page", rect: "fitz.Rect", dpi: int = 300, pad: float = 4.0) -> str:
+    """OCR a small clip of a page (e.g. one value's bbox + a little padding), at high DPI since the
+    crop is tiny. Used by the re-OCR cross-check to confirm whether a specific value is actually
+    rendered at its location (full-page OCR can drop a small number on a dense page). Returns '' on
+    failure / when OCR is unavailable."""
+    if not tesseract_available():
+        return ""
+    try:
+        import pytesseract
+        from PIL import Image
+
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+        clip = fitz.Rect(rect.x0 - pad, rect.y0 - pad, rect.x1 + pad, rect.y1 + pad)
+        pix = page.get_pixmap(clip=clip, dpi=dpi)
+        img = Image.open(io.BytesIO(pix.tobytes("png")))
+        return pytesseract.image_to_string(img, config="--psm 7")   # treat the crop as a single line
+    except Exception:
+        return ""
+
+
 def ocr_pdf(path: str, dpi: int = 200) -> str:
     """OCR every page of a PDF at `path` and join the text. Returns '' on failure."""
     if not tesseract_available():

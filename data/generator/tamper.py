@@ -80,11 +80,15 @@ def edit_money_figure(
     rects = page.search_for(old_text)
     if not rects:
         return False
-    r = rects[0]
-    # Cover the original number with a white box, then draw the new value over it.
-    pad = fitz.Rect(r.x0 - 2, r.y0 - 2, r.x1 + 30, r.y1 + 2)
-    page.draw_rect(pad, color=WHITE, fill=WHITE, width=0)
-    page.insert_text((r.x0, r.y1 - 1), _money(new_amount), fontname=font, fontsize=12)
+    new_text = _money(new_amount)
+    # Cover EVERY printed occurrence of the original number (a realistic Form 16 shows the gross figure
+    # in more than one place — Part A summary + Part B), then redraw the forged value on top of each.
+    # Covering them all is what a real forger does AND is what makes the edit detectable: the original
+    # survives only in the text layer, so the render→OCR cross-check sees it nowhere on the page.
+    for r in rects:
+        size = max(7.0, min(13.0, (r.y1 - r.y0) * 0.92))   # match the local font size
+        page.draw_rect(fitz.Rect(r.x0 - 2, r.y0 - 2, r.x1 + 30, r.y1 + 2), color=WHITE, fill=WHITE, width=0)
+        page.insert_text((r.x0, r.y1 - 1), new_text, fontname=font, fontsize=size)
     return True
 
 

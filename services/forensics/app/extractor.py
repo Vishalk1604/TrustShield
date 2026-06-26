@@ -90,13 +90,20 @@ def _extract_identity(text: str) -> dict:
 
 def _extract_form16(text: str) -> dict:
     result: dict[str, Any] = {"doc_type": "form16"}
-    m = re.search(r"Employee:\s+(.+)", text)
+    # Name: old flat layout ("Employee: X") OR realistic TRACES block ("Name and address of the Employee\nX").
+    m = re.search(r"Employee:\s+(.+)", text) or re.search(r"Name and address of the Employee\s*\n\s*(.+)", text)
     if m:
         result["name"] = m.group(1).strip()
+    # PAN: old "PAN: X"; realistic shows the deductor PAN then the EMPLOYEE PAN (last one) in the Part A row.
     m = re.search(r"PAN:\s+([A-Z]{5}\d{4}[A-Z])", text)
     if m:
         result["pan"] = m.group(1)
-    m = re.search(r"Employer:\s+(.+)", text)
+    else:
+        pans = re.findall(r"[A-Z]{5}\d{4}[A-Z]", text)
+        if pans:
+            result["pan"] = pans[-1]            # employee PAN follows the deductor PAN in Part A
+    # Employer: old "Employer: X" OR realistic "Name and address of the Employer\nX".
+    m = re.search(r"Employer:\s+(.+)", text) or re.search(r"Name and address of the Employer\s*\n\s*(.+)", text)
     if m:
         result["employer"] = m.group(1).strip()
     # Gross income: label and amount may be on same line or adjacent lines
@@ -118,16 +125,16 @@ def _extract_form16(text: str) -> dict:
 
 def _extract_salary_slip(text: str) -> dict:
     result: dict[str, Any] = {"doc_type": "salary_slip"}
-    m = re.search(r"Employee:\s+(.+)", text)
+    m = re.search(r"Employee:\s+(.+)", text) or re.search(r"Employee Name:\s+(.+)", text)
     if m:
         result["name"] = m.group(1).strip()
-    # Net monthly pay — label and value on same or adjacent lines
+    # Net monthly pay — label and value on same or adjacent lines (old + realistic "Net Pay (take-home)")
     v = _find_money(r"Net Pay[^\n]*(?:\n[^\n]*)?\bRs\.\s*([\d,]+)", text)
     if v is None:
         v = _find_money(r"Net Pay.*?Rs\.\s*([\d,]+)", text)
     result["net_monthly"] = v
-    # Employer: extracted from header line "EMPLOYER  |  MONTH" or "Employee: ..." line
-    m = re.search(r"SALARY SLIP\s*\n(.+?)\s*\|", text)
+    # Employer: old "SALARY SLIP\nEMPLOYER | MONTH" OR realistic header band (line above "Payslip for the month")
+    m = re.search(r"SALARY SLIP\s*\n(.+?)\s*\|", text) or re.search(r"(.+?)\n[^\n]*\nPayslip for the month", text)
     if m:
         result["employer"] = m.group(1).strip()
     return result
@@ -143,8 +150,11 @@ def _extract_bank_statement(text: str) -> dict:
     m = re.search(r"Account:\s+(\S+)", text)
     if m:
         result["masked_account"] = m.group(1)
-    # All salary credit amounts
+    # All salary-credit amounts. Old flat layout had "SALARY CREDIT … Rs. X" on one line; the realistic
+    # statement is a table, so the Credit amount is the first Rs. value on the line(s) AFTER the narration.
     credits = re.findall(r"SALARY CREDIT[^\n]*Rs\.\s*([\d,]+)", text, re.IGNORECASE)
+    if not credits:
+        credits = re.findall(r"SALARY CREDIT[^\n]*\n\s*Rs\.\s*([\d,]+)", text, re.IGNORECASE)
     parsed = [_parse_money(c) for c in credits if _parse_money(c) is not None]
     result["salary_credits"] = parsed
     if parsed:

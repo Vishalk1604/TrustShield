@@ -461,7 +461,7 @@ class DocumentAnalyzer:
 
         Degrades gracefully: returns [] if Tesseract is unavailable or OCR is empty.
         """
-        from services.forensics.app.ocr import ocr_page, tesseract_available
+        from services.forensics.app.ocr import ocr_page, ocr_region, tesseract_available
 
         items: list[EvidenceItem] = []
         if not tesseract_available():
@@ -489,17 +489,32 @@ class DocumentAnalyzer:
                 else:
                     ocr_tokens = set(_sensitive_tokens(visible, "pan").keys())
                 emb_norms = set(emb)
-                hidden = {
-                    n for n in emb
-                    if not _is_visible(n, ocr_tokens, emb_norms)
-                }
-                if not hidden:
+                candidates = {n for n in emb if not _is_visible(n, ocr_tokens, emb_norms)}
+                # Spatial confirmation: a value only counts as HIDDEN if a high-DPI crop of its OWN
+                # bbox does not show it. On a dense page (a real Form 16 has ~16 table amounts) full-page
+                # OCR can drop a small number, and a different-but-close value elsewhere then "explains it
+                # away" — a false positive. The crop settles it: a genuine whiteout shows a different value
+                # (or blank) at that location, while a merely-mis-OCR'd value is plainly rendered there.
+                hidden_rects: dict[str, "fitz.Rect"] = {}
+                for n in candidates:
+                    try:
+                        rects = page.search_for(emb[n])
+                    except Exception:
+                        rects = []
+                    if not rects:
+                        continue  # can't locate the text-layer value → conservative: don't flag
+                    rect = rects[0]
+                    region_txt = ocr_region(page, rect)
+                    region_tokens = _digit_runs(region_txt) | set(_sensitive_tokens(region_txt, "pan").keys())
+                    if any(_edit_distance_le1(n, t) for t in region_tokens):
+                        continue  # the value IS rendered at its own location → OCR miss, not hidden
+                    hidden_rects[n] = rect
+                if not hidden_rects:
                     continue
-                visible_literals = sorted({emb[n] for n in emb if n not in hidden})
-                for n in sorted(hidden):
+                visible_literals = sorted({emb[x] for x in emb if x not in hidden_rects})
+                for n, rect in sorted(hidden_rects.items()):
                     literal = emb[n]
-                    bbox = _first_search_bbox(page, literal)
-                    region = {"page": page_num + 1, "bbox": bbox}
+                    region = {"page": page_num + 1, "bbox": _round_bbox(rect)}
                     items.append(EvidenceItem(
                         category=EvidenceCategory.FORENSIC,
                         severity=Severity.HIGH,

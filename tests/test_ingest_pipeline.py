@@ -43,7 +43,7 @@ def test_loader_reads_embedded_text():
         pytest.skip("no synthetic form16 found")
     ld = load_text(str(path))
     assert ld.ok and ld.source == "embedded" and not ld.ocr_used
-    assert "FORM 16" in ld.text.upper()
+    assert "FORM NO. 16" in ld.text.upper()   # realistic TRACES title ("FORM NO. 16 [See rule 31(1)(a)]")
 
 
 def test_loader_password_protected(tmp_path):

@@ -638,20 +638,23 @@ training/eval but not yet enough to make a *real-doc-ready* model — that needs
 photo-realistic ID synthesis (colored cards + phone-photo capture) + domain adaptation. Heuristics +
 semantic + QR remain the guaranteed-local real-doc layer.
 
-### §11.1 Loan-packet realism — a MIGRATION, not a drop-in (attempted + reverted)
-Goal: regenerate the loan **packet** PDFs (`data/synthetic/packets/`) with the §11 realistic builders so
-the packet docs look as real as the image dataset. The builders are backward-compatible, so a regen
-*renders* realistic packets — but it **breaks the tuned PDF pipeline** and was reverted:
-- The dense, multi-table realistic **Form 16** makes the render→OCR→compare **re-OCR cross-check fire
-  FALSE POSITIVES on clean packets** ("visible content contradicts PDF text layer" on PKT-0008/0026/0031)
-  and **miss** the white-box edit on PKT-0010 — i.e. real regressions, not stale assertions. 9 packet
-  tests fail (forensics / re-OCR / extraction / scoring / graph); clean packets gain forensic findings.
-- The committed packets + their hand-captured dashboard data (`demoDecisions.js` + `public/demo/*.png`)
-  are tightly coupled to the old layout.
-**Therefore packet realism is a dedicated migration:** re-tune the re-OCR / entity-extraction for the
-dense layout (or make the realistic Form 16 less OCR-ambiguous), re-validate the whole packet pipeline,
-update the ~9 affected tests + `seed_demo`/`DEMO.md` expectations (note: a pure cross-document
-inconsistency like PKT-0014 should be **manual_review**, not freeze, under the "no freeze without
-document evidence" safeguard), then refresh the baked dashboard packet data with the new
-**`scripts/build_demo_decisions.py`** (re-scores packets in-process + re-renders overlays → demoDecisions.js
-+ public/demo/*.png). The image pipeline + the dashboard detection showcase are unaffected.
+### §11.1 Loan-packet realism — MIGRATION (DONE)
+The loan **packet** PDFs (`data/synthetic/packets/`) now render with the §11 realistic builders (TRACES
+Form 16, realistic bank statement / salary slip). A naive regen broke the tuned PDF pipeline (clean-doc
+re-OCR false positives + a missed edit + stale extraction), so it was a real migration, not a drop-in.
+What the migration did:
+- **re-OCR cross-check robustness** (`analyzer._check_reocr_mismatch` + new `ocr.ocr_region`): added
+  **spatial confirmation** — before calling a text-layer value "hidden", OCR a high-DPI crop of its OWN
+  bbox. On a dense page full-page OCR can drop a small number (and a different-but-close value then
+  "explains it away" → a false positive); the crop settles it (a genuine whiteout shows a different value
+  there, a mis-OCR'd value is plainly rendered). Kills the clean-packet FP without losing edit detection.
+- **`tamper.edit_money_figure` covers EVERY occurrence** of the figure (the realistic Form 16 prints the
+  gross in Part A + Part B); covering only the first left it visible elsewhere → the edit went undetected.
+- **`extractor`** got realistic-layout patterns (TRACES employer/employee/PAN blocks; bank table where the
+  Credit amount is on the line after the narration) alongside the old ones.
+- **Tests/expectations** updated for the realistic title ("FORM NO. 16") etc.; PKT-0014 stays **freeze**
+  (with extraction fixed, the income inconsistency is strong semantic evidence again — the manual_review
+  seen mid-migration was an artifact of broken extraction).
+- **Baked dashboard packet data refreshed** via `scripts/build_demo_decisions.py` (re-scores the 15 demo
+  packets in-process + re-renders the tamper overlays → `demoDecisions.js` + `public/demo/*.png`).
+Full pytest suite green; `seed_demo` replay OK; `verify_local_only` passes.
