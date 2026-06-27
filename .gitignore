@@ -57,6 +57,15 @@ data/synthetic/images/
 # Throwaway generator-v2 QA previews (rendered by data/generator/_preview_*.py) — not committed.
 data/synthetic/_preview/
 
+# Synthetic loan packets + their ground-truth labels — DATASET, never committed.
+# Regenerate locally:  python -m data.generator.generate   (writes packets/ + labels.json)
+data/synthetic/packets/
+data/synthetic/labels.json
+
+# Browsable, cross-verified demo corpus — DATASET, never committed.
+# Rebuild locally:  python scripts/build_demo_folder.py
+demo/
+
 # data/real/ holds REAL, PII-bearing documents used ONLY for local validation of the real-document
 # pipeline. NEVER commit them. data/real/.gitignore keeps just the folder structure + README.
 # (Belt-and-suspenders: also ignored here at the repo root.)

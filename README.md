@@ -62,9 +62,39 @@ to manual review, never an auto-reject.
 
 ---
 
-## Quick start (Docker)
+## Quick start — one command (Windows)
 
-The fastest path — boots all three services (trained risk models are committed, so no setup needed):
+This runs everything **locally** (no Docker) and enables the learned-model **deep scan on your GPU**:
+
+```powershell
+.\start.ps1          # or just double-click start.bat
+```
+
+It starts forensics (:8001), risk (:8002) and the dashboard (:5173), waits for the backends, and opens
+**http://localhost:5173** in your browser. Stop everything by closing the windows or running `.\stop.ps1`.
+
+> **No data ships in this repo.** Neither real nor synthetic documents are committed. The launcher
+> auto-generates the synthetic loan packets on first run (`python -m data.generator.generate`); the
+> dashboard's offline **Demo** mode works immediately from baked results. To rebuild the full image
+> dataset / demo corpus, see *Datasets* below.
+
+**First-time setup** (once): create the virtualenv and install dependencies, including PyTorch for the
+GPU deep scan.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -r services\forensics\requirements.txt -r services\risk\requirements.txt -r data\generator\requirements.txt
+.\.venv\Scripts\python -m pip install -r services\forensics\requirements-models.txt   # PyTorch — GPU deep scan
+```
+
+> **Prerequisites:** Python 3.11+, Node 18+. For the GPU deep scan, an NVIDIA GPU with a CUDA build of
+> PyTorch (it falls back to CPU automatically if CUDA isn't available). Tesseract OCR is optional.
+
+---
+
+## Alternative — Docker
+
+Boots all three services (trained risk models are committed, so no setup needed):
 
 ```bash
 docker compose up --build
@@ -73,40 +103,30 @@ docker compose up --build
 #   dashboard  → http://localhost:5173
 ```
 
-Open **http://localhost:5173**. The two health dots go green when the backends are up.
+> **Note:** the Docker images are intentionally lightweight and **do not include PyTorch or the model
+> weights**, so the learned-model **deep scan is unavailable under Docker** (the single-document tool
+> runs the heuristics only). Use the one-command local launcher above to get the GPU deep scan. Also
+> generate the synthetic packets first (`python -m data.generator.generate`) — datasets aren't committed.
 
 ---
 
-## Run locally (without Docker)
+## Run locally — manual
 
-> **Prerequisites:** Python 3.11+, Node 18+. Tesseract OCR is optional (enables OCR-based checks; the
-> pipeline degrades gracefully without it).
+If you prefer to start services yourself (run all Python commands **from the repo root**):
 
 ```bash
-# 1. Create a virtualenv and install dependencies
-python -m venv .venv
-. .venv/Scripts/activate                 # Windows PowerShell: .venv\Scripts\Activate.ps1
-                                         # macOS/Linux:        source .venv/bin/activate
-pip install -r services/forensics/requirements.txt
-pip install -r services/risk/requirements.txt
-pip install -r data/generator/requirements.txt
-pip install pytest
-
-# 2. Start the two backend services (run from the repo root so `shared` imports resolve)
+# backends
 python -m uvicorn services.forensics.app.main:app --port 8001 &
 python -m uvicorn services.risk.app.main:app --port 8002 &
-
-# 3. Start the dashboard
+# dashboard
 cd services/dashboard && npm install && npm run dev      # → http://localhost:5173
 ```
 
-Run all Python commands **from the repo root** (the repo root is the import root).
-
-### Optional: the learned forgery model ("deep scan")
+### The learned forgery model ("deep scan")
 
 The single-document tool runs the zero-false-positive **heuristics by default**. When a document looks
 clean, a **“Run learned model (deep scan)”** button runs the opt-in U-Net, which localizes seamless
-edits the heuristics miss. The deep scan needs PyTorch and the model weights present locally:
+edits the heuristics miss. The deep scan needs PyTorch + the model weights present locally:
 
 ```bash
 pip install -r services/forensics/requirements-models.txt   # installs torch
@@ -131,9 +151,6 @@ python scripts/seed_demo.py            # prints "Demo replay OK" when every pack
 # Build the browsable, cross-verified demo corpus (clean+edited docs across difficulty + curated packets)
 python scripts/build_demo_folder.py    # → demo/
 
-# (Optional) regenerate the synthetic packets — they are already committed
-python -m data.generator.generate
-
 # Prove there are no network calls at runtime
 python scripts/verify_local_only.py
 
@@ -143,14 +160,30 @@ pytest tests/
 
 ---
 
+## Datasets (not committed — generate locally)
+
+No documents — real **or** synthetic — are committed to this repo; only the generators are. Recreate
+what you need locally:
+
+```bash
+python -m data.generator.generate          # synthetic loan packets → data/synthetic/packets/ + labels.json
+python -m data.generator.build_image_dataset   # the single-document image dataset → data/synthetic/images/
+python scripts/build_demo_folder.py        # browsable, cross-verified demo corpus → demo/
+```
+
+Real, PII-bearing documents (if you supply any for local validation) live under `data/real/` and are
+**never** committed. The one-command launcher generates the packets automatically on first run.
+
+---
+
 ## Repository layout
 
 ```
 README.md          PROGRESS.md (build log) · DECISIONS.md (why-log) · DEMO.md (walkthrough)
+start.ps1 / .bat   one-command local launcher · stop.ps1
 services/          forensics · risk · dashboard
 shared/            schemas (the contract) · mocks (local verification adapters) · privacy (PII redaction)
-data/              generator (synthetic packets) · synthetic (output + labels.json)
-demo/              browsable, cross-verified demo corpus (documents + packets)
+data/              generator (code) → synthetic/ datasets are generated locally, not committed
 scripts/           verify_local_only.py · seed_demo.py · build_demo_folder.py
 tests/             pytest suite
 ```
