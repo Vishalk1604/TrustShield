@@ -421,17 +421,21 @@ function PacketMode({ live }) {
 // ── SINGLE-DOCUMENT MODE ────────────────────────────────────────────────────────
 function SingleDocMode({ live }) {
   const [busy, setBusy] = useState(false);
+  const [deepBusy, setDeepBusy] = useState(false);   // the opt-in learned-model re-run
   const [res, setRes] = useState(null);
   const [err, setErr] = useState(null);
   const [name, setName] = useState(null);
+  const [lastFile, setLastFile] = useState(null);    // kept so a deep scan can re-run the same file
   const [openEx, setOpenEx] = useState(null);   // baked-detection lightbox (Demo mode)
 
-  const analyze = async (file, label) => {
-    setBusy(true); setErr(null); setRes(null); setName(label);
-    try { setRes(await api.analyzeImage(file)); }
+  const analyze = async (file, label, deep = false) => {
+    if (deep) setDeepBusy(true); else { setBusy(true); setRes(null); }
+    setErr(null); setName(label); setLastFile(file);
+    try { setRes(await api.analyzeImage(file, deep)); }
     catch (e) { setErr(e.message); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setDeepBusy(false); }
   };
+  const deepScan = () => { if (lastFile) analyze(lastFile, name, true); };
   const runExample = async (ex) => {
     try {
       const r = await fetch(ex.path, { cache: "no-store" });
@@ -524,12 +528,34 @@ function SingleDocMode({ live }) {
                     </div>
                   );
                 })()}
-                {res.signals?.learned_model && (
-                  <div style={{ marginTop: 6, fontSize: 11.5, color: C.textFaint }}>
-                    Layers: pixel · recapture · semantic ID · QR{res.identifier_check?.qr?.qr_found ? " (read)" : ""}. Learned model:{" "}
-                    <span style={{ color: res.signals.learned_model.available ? C.success : C.textFaint }}>
-                      {res.signals.learned_model.available ? `active (${res.signals.learned_model.backend})` : "heuristics only"}
-                    </span>.
+                <div style={{ marginTop: 6, fontSize: 11.5, color: C.textFaint }}>
+                  Layers: pixel · recapture · semantic ID · QR{res.identifier_check?.qr?.qr_found ? " (read)" : ""}
+                  {res.deep_used ? <> · <span style={{ color: LY.model.hue }}>learned model (deep scan)</span></> : " (heuristics)"}.
+                </div>
+
+                {/* deep scan: opt-in learned model — higher recall on seamless edits, ~19% clean-doc FP */}
+                {!res.deep_used && res.deep_available && (
+                  <div style={{ marginTop: 12 }}>
+                    <Button variant="ghost" c={LY.model.hue} disabled={deepBusy} onClick={deepScan}>
+                      {deepBusy
+                        ? <><span style={{ display: "inline-block", width: 13, height: 13, border: `2px solid ${hexA(LY.model.hue, 0.3)}`, borderTopColor: LY.model.hue, borderRadius: "50%", animation: "ts-spin 0.7s linear infinite", verticalAlign: "middle", marginRight: 7 }} />Running learned model…</>
+                        : "🔬 Run learned model (deep scan)"}
+                    </Button>
+                    <div style={{ fontSize: 11, color: C.textFaint, marginTop: 6, lineHeight: 1.5, maxWidth: 360 }}>
+                      Catches seamless edits the pixel heuristics miss — but the model has a measured
+                      <b style={{ color: C.warning }}> ~19% false-positive rate on clean docs</b>, so it's opt-in, never the default.
+                    </div>
+                  </div>
+                )}
+                {res.deep_used && (
+                  <div style={{ marginTop: 12, fontSize: 11.5, color: C.textDim, lineHeight: 1.55, maxWidth: 380, borderLeft: `2px solid ${hexA(LY.model.hue, 0.5)}`, paddingLeft: 10 }}>
+                    Learned model {res.findings?.some((f) => f.values?.detector === "forgery_model") ? "flagged a region above" : "found nothing"}.
+                    Treat with care — it false-flags <b style={{ color: C.warning }}>~19%</b> of clean documents (it over-flags the Form-16 salary area).
+                  </div>
+                )}
+                {!res.deep_used && !res.deep_available && res.verdict === "CLEAN" && (
+                  <div style={{ marginTop: 10, fontSize: 11, color: C.textFaint, maxWidth: 360, lineHeight: 1.5 }}>
+                    Learned-model deep scan unavailable here (needs torch/weights) — heuristics only.
                   </div>
                 )}
               </div>

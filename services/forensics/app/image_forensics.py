@@ -499,12 +499,20 @@ SEVERITY_COLOR = {"critical": (220, 38, 38), "high": (239, 68, 68), "medium": (2
                   "low": (56, 189, 248), "info": (100, 116, 139)}
 
 
-def analyze_image(path: str) -> dict:
+def analyze_image(path: str, learned: str = "env") -> dict:
     """Run the full image-forensics suite on one raster image.
 
     Returns a dict with `ok`, image dimensions, EvidenceItem-shaped `findings` (forensic
     category, each with `values.regions` boxes), an `annotated_b64` overlay + an `ela_b64`
     heatmap, raw per-detector `signals`, and a 0–100 `image_trust` / verdict. Never raises.
+
+    `learned` controls the learned forgery-localization model that runs *alongside* the heuristics:
+      - "env"  (default): honour `TRUSTSHIELD_FORGERY_BACKEND` (default `dtd`). Keeps the offline baker
+               (`build_demo_examples.py`) + eval harness behaviour identical.
+      - "auto" (the live endpoints): always run our U-Net when its weights + torch are present locally,
+               so the live tool catches the seamless edits the baked Examples advertise. Degrades to
+               heuristics-only (and says so in `signals.learned_model`) when torch/weights are absent.
+      - "off": skip the learned model entirely (heuristics only).
     """
     try:
         img, fmt = _load_rgb(path)
@@ -515,17 +523,21 @@ def analyze_image(path: str) -> dict:
     findings: list[dict] = []
     signals: dict = {"format": fmt, "cv2": _CV2}
 
-    # Learned forgery-localization model (dtd / trufor / catnet) — the primary localizer WHEN its
-    # weights + torch are present locally; otherwise None and the heuristics below are the live path.
-    # Status is always surfaced for honesty.
-    signals["learned_model"] = forgery_model.status()
+    # Learned forgery-localization model — runs alongside the heuristics and localizes seamless edits
+    # the hand-tuned detectors miss. `learned="auto"` (the live endpoints) always uses our U-Net when
+    # present; "env" honours TRUSTSHIELD_FORGERY_BACKEND; "off" skips it. Status is always surfaced.
     dt_regions: list[Region] = []
-    try:
-        dt = forgery_model.localize(path)
-        if dt and dt.get("regions"):
-            dt_regions = [Region(tuple(b), "forgery_model", 0.9) for b in dt["regions"]]
-    except Exception as exc:  # pragma: no cover
-        signals["learned_model_error"] = str(exc)
+    if learned == "off":
+        signals["learned_model"] = {"backend": None, "available": False, "reason": "disabled for this run"}
+    else:
+        lm_backend = "unet" if learned == "auto" else None   # None → env-resolved (default dtd)
+        signals["learned_model"] = forgery_model.status(lm_backend)
+        try:
+            dt = forgery_model.localize(path, backend=lm_backend)
+            if dt and dt.get("regions"):
+                dt_regions = [Region(tuple(b), "forgery_model", 0.9) for b in dt["regions"]]
+        except Exception as exc:  # pragma: no cover
+            signals["learned_model_error"] = str(exc)
 
     # Detectors (each guarded — one failure never sinks the analysis).
     ela_regions: list[Region] = []

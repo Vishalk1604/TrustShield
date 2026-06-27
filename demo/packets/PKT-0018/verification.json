@@ -1,0 +1,38 @@
+{
+  "packet_id": "PKT-0018",
+  "ground_truth": {
+    "label": "fraud",
+    "fraud_types": [
+      "template_reuse",
+      "behavioral_velocity"
+    ],
+    "reasons": [
+      "Documents reuse a shared template and identical figures across applicants (employer 'QuickCash Finance Pvt Ltd'); submitted within 20 minutes of creation."
+    ],
+    "affected_docs": [
+      "form16.pdf",
+      "bank_statement.pdf",
+      "salary_slip.pdf",
+      "identity.pdf"
+    ],
+    "applicant_pan": "ZZAPK1111A",
+    "employer": "QuickCash Finance Pvt Ltd",
+    "template_group": "ring_quickcash",
+    "property_group": null,
+    "property_id": null
+  },
+  "trust_score": 13.7,
+  "action": "freeze",
+  "evidence_chain": [
+    {
+      "severity": "critical",
+      "category": "graph",
+      "title": "Application-fraud ring"
+    },
+    {
+      "severity": "high",
+      "category": "anomaly",
+      "title": "Learned risk model assessment"
+    }
+  ]
+}

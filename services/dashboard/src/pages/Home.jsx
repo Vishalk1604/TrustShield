@@ -4,7 +4,9 @@ import { color as C, layer as L, maxWidth, hexA, radius, shadow, motion } from "
 import { Card, Badge, Stat, SectionHeader, Button } from "../components/ui/primitives.jsx";
 import PipelineDiagram from "../components/ui/PipelineDiagram.jsx";
 import Reveal from "../components/ui/Reveal.jsx";
+import HoverLoupe from "../components/ui/HoverLoupe.jsx";
 import LocalFirstBadge from "../components/LocalFirstBadge.jsx";
+import { HOME_REVEAL } from "../data/homeReveal.js";
 
 const wrap = { maxWidth, margin: "0 auto", padding: "0 24px" };
 
@@ -34,33 +36,6 @@ const FEATURES = [
   { icon: "list", hue: C.success, title: "Always explainable", body: "Never a score without an evidence chain. Every verdict cites the exact finding, severity, and the region it came from." },
   { icon: "lock", hue: "#a7f3d0", title: "100% on-device", body: "No document, number, or byte leaves the machine. External verifications are local mock adapters — provably no network." },
 ];
-
-// One image card in the "spot the edit" reveal.
-function DocShot({ src, label, edited, revealed }) {
-  const lit = revealed && edited;
-  return (
-    <div style={{ flex: "1 1 240px", minWidth: 220 }}>
-      <div style={{
-        position: "relative", borderRadius: radius.lg, overflow: "hidden",
-        background: "#11161f",
-        border: `1px solid ${lit ? hexA(C.danger, 0.6) : C.border}`,
-        boxShadow: lit ? shadow.glow(C.danger, 0.3) : shadow.md,
-        transition: `all ${motion.slow} ${motion.ease}`,
-      }}>
-        <img src={src} alt={label} style={{ display: "block", width: "100%", height: 320, objectFit: "contain", objectPosition: "center", opacity: revealed && !edited ? 0.92 : 1 }} />
-        {revealed && (
-          <div style={{
-            position: "absolute", top: 10, left: 10,
-            background: edited ? hexA(C.danger, 0.94) : hexA(C.success, 0.94),
-            color: "#04131c", fontWeight: 800, fontSize: 11.5, letterSpacing: 0.4,
-            padding: "4px 10px", borderRadius: radius.pill,
-          }}>{edited ? "EDITED — gross salary inflated" : "GENUINE"}</div>
-        )}
-      </div>
-      <div style={{ textAlign: "center", marginTop: 8, fontSize: 12, color: C.textFaint, fontWeight: 600 }}>{label}</div>
-    </div>
-  );
-}
 
 export default function Home() {
   const [revealed, setRevealed] = useState(false);
@@ -106,16 +81,16 @@ export default function Home() {
         <Reveal>
           <SectionHeader eyebrow="The problem" accent={C.danger}
             title="A seamless edit slips past the human eye"
-            subtitle="Fraudsters inflate income on a Form 16, a bank statement, a payslip — or swap a digit on a PAN/Aadhaar — with no hard edges and matched fonts. One of the two pages below has a repainted salary figure. Can you tell which?" />
+            subtitle="Fraudsters inflate income on a Form 16, a bank statement, a payslip — or swap a digit on a PAN/Aadhaar — with no hard edges and matched fonts. One of the two pages below has a repainted salary figure. Hover to magnify the same spot on both — can you tell which?" />
         </Reveal>
         <Reveal delay={80} style={{ marginTop: 22 }}>
-          <Card pad={20} style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
-            <DocShot src="examples/realistic_form16_clean.jpg" label="Document A" edited={false} revealed={revealed} />
-            <DocShot src="examples/realistic_form16_edited.jpg" label="Document B" edited={true} revealed={revealed} />
+          <Card pad={20} style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
+            <HoverLoupe data={HOME_REVEAL} revealed={revealed} />
             <div style={{ flex: "1 1 220px", minWidth: 220 }}>
               <p style={{ margin: "0 0 14px", color: C.textDim, fontSize: 13.5, lineHeight: 1.6 }}>
                 The repaint erased the page's microscopic sensor-noise floor inside the edited box — invisible
-                to you, a fingerprint to us. TrustShield localizes it to the exact figure.
+                to you, a fingerprint to us. <strong style={{ color: C.text }}>Hover either page</strong> to
+                compare the same area side-by-side; reveal the answer to see exactly where our model localized it.
               </p>
               <Button variant={revealed ? "ghost" : "primary"} c={C.danger} onClick={() => setRevealed((r) => !r)}>
                 {revealed ? "Hide the answer" : "Reveal the edit"}

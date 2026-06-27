@@ -1,0 +1,163 @@
+{
+  "doc_type": "salary_slip",
+  "label": "Salary slip",
+  "source": "rahul_salary_slip",
+  "clean": {
+    "file": "clean.jpg",
+    "cross_verified": {
+      "heuristics": {
+        "verdict": "CLEAN",
+        "trust": 100
+      },
+      "model": {
+        "verdict": "CLEAN",
+        "trust": 100,
+        "box": null,
+        "available": true
+      },
+      "method": "pixel"
+    }
+  },
+  "edits": {
+    "naive": {
+      "file": "naive_edited.jpg",
+      "tamper_type": "net_pay",
+      "difficulty": "naive",
+      "old_value": "Rs. 124,367",
+      "new_value": "Rs. 171,265",
+      "ground_truth_box": [
+        883,
+        534,
+        1012,
+        557
+      ],
+      "cross_verified": {
+        "heuristics": {
+          "verdict": "CLEAN",
+          "trust": 100
+        },
+        "model": {
+          "verdict": "CLEAN",
+          "trust": 100,
+          "box": null,
+          "available": true
+        },
+        "method": "pixel"
+      }
+    },
+    "blended": {
+      "file": "blended_edited.jpg",
+      "tamper_type": "net_pay",
+      "difficulty": "blended",
+      "old_value": "Rs. 124,367",
+      "new_value": "Rs. 186,746",
+      "ground_truth_box": [
+        883,
+        534,
+        1012,
+        557
+      ],
+      "cross_verified": {
+        "heuristics": {
+          "verdict": "CLEAN",
+          "trust": 100
+        },
+        "model": {
+          "verdict": "CLEAN",
+          "trust": 100,
+          "box": null,
+          "available": true
+        },
+        "method": "pixel"
+      }
+    },
+    "pro": {
+      "file": "pro_edited.jpg",
+      "tamper_type": "net_pay",
+      "difficulty": "pro",
+      "old_value": "Rs. 124,367",
+      "new_value": "Rs. 196,709",
+      "ground_truth_box": [
+        883,
+        534,
+        1012,
+        557
+      ],
+      "cross_verified": {
+        "heuristics": {
+          "verdict": "CLEAN",
+          "trust": 100
+        },
+        "model": {
+          "verdict": "CLEAN",
+          "trust": 100,
+          "box": null,
+          "available": true
+        },
+        "method": "pixel"
+      }
+    },
+    "splice": {
+      "file": "splice_edited.jpg",
+      "tamper_type": "splice",
+      "difficulty": "geom",
+      "old_value": null,
+      "new_value": null,
+      "ground_truth_box": [
+        640,
+        128,
+        888,
+        233
+      ],
+      "cross_verified": {
+        "heuristics": {
+          "verdict": "EDITED",
+          "trust": 15
+        },
+        "model": {
+          "verdict": "EDITED",
+          "trust": 10,
+          "box": [
+            644,
+            103,
+            896,
+            254
+          ],
+          "available": true
+        },
+        "method": "model"
+      }
+    },
+    "recompress": {
+      "file": "recompress_edited.jpg",
+      "tamper_type": "recompress",
+      "difficulty": "geom",
+      "old_value": null,
+      "new_value": null,
+      "ground_truth_box": [
+        432,
+        96,
+        704,
+        218
+      ],
+      "cross_verified": {
+        "heuristics": {
+          "verdict": "SUSPICIOUS",
+          "trust": 50
+        },
+        "model": {
+          "verdict": "SUSPICIOUS",
+          "trust": 50,
+          "box": [
+            432,
+            96,
+            624,
+            160
+          ],
+          "available": true
+        },
+        "method": "pixel"
+      }
+    }
+  }
+}

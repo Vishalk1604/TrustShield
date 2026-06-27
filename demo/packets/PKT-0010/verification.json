@@ -1,0 +1,44 @@
+{
+  "packet_id": "PKT-0010",
+  "ground_truth": {
+    "label": "fraud",
+    "fraud_types": [
+      "edited_income_figure"
+    ],
+    "reasons": [
+      "Form 16 gross income was white-boxed and redrawn from 1450000 to 2755000; original value remains in the text layer."
+    ],
+    "affected_docs": [
+      "form16.pdf"
+    ],
+    "applicant_pan": "CDNPV5678L",
+    "employer": "Tata Consultancy Services",
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
+  },
+  "trust_score": 26.2,
+  "action": "freeze",
+  "evidence_chain": [
+    {
+      "severity": "high",
+      "category": "anomaly",
+      "title": "Learned risk model assessment"
+    },
+    {
+      "severity": "high",
+      "category": "forensic",
+      "title": "White-box edit detected (covered text)"
+    },
+    {
+      "severity": "high",
+      "category": "forensic",
+      "title": "Visible content contradicts PDF text layer (re-OCR cross-check)"
+    },
+    {
+      "severity": "info",
+      "category": "graph",
+      "title": "Repeat applicant"
+    }
+  ]
+}

@@ -66,5 +66,10 @@ data/real/**
 !data/real/**/
 !data/real/**/.gitkeep
 
-# Local Claude agent/preview config (launch.json, settings.local.json)
+# Local agent/editor/preview config (launch.json, settings.local.json) + planning notes.
+# Kept out of the public repo; recreate locally as needed.
 .claude/
+**/CLAUDE.md
+CLAUDE.md
+plan.md
+DASHBOARD_PLAN.md

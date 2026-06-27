@@ -1,6 +1,6 @@
 # TrustShield — Progress
 
-Resume protocol: read [`plan.md`](plan.md) then this file; continue from the first unchecked phase.
+A phase-by-phase log of what was built and the checks that passed at each step.
 
 | ✓ | Phase | Title | Completed (date) | Commit |
 |---|---|---|---|---|
@@ -18,14 +18,14 @@ Resume protocol: read [`plan.md`](plan.md) then this file; continue from the fir
 ## Phase notes
 
 ### Phase 0 — Foundation, scaffolding, synthetic data ✅ (2026-06-13)
-Delivered: full folder tree with CLAUDE.md everywhere; root docs (plan/README/PROGRESS/DECISIONS); docker-compose booting forensics+risk+dashboard with `/health`; shared Pydantic schemas; synthetic data generator (clean + every fraud type) + `labels.json`; mock external-verification adapters (zero network); `scripts/verify_local_only.py`; pytest suite.
+Delivered: full folder tree + per-folder docs; root docs (README/PROGRESS/DECISIONS); docker-compose booting forensics+risk+dashboard with `/health`; shared Pydantic schemas; synthetic data generator (clean + every fraud type) + `labels.json`; mock external-verification adapters (zero network); `scripts/verify_local_only.py`; pytest suite.
 
 **Verified checks:**
 - `docker compose up` → all 3 containers report **(healthy)**; `/health` returns 200 on 8001 (forensics) & 8002 (risk); dashboard serves on 5173. Responses: `{"status":"ok","service":"forensics"...}`, `{"status":"ok","service":"risk"...}`.
 - Generator produced **24 packets** (8 clean + 16 fraud) covering all 9 fraud types + valid `labels.json`.
 - `verify_local_only.py` → **PASS** (31 source files scanned, 0 violations; negative-tested to confirm it bites).
 - `pytest tests/` → **17 passed**.
-- Every required folder has a non-empty CLAUDE.md.
+- Every required folder has non-empty local documentation.
 
 ### Phase 1 — Document Integrity / Forensics ✅ (2026-06-14)
 Delivered: `services/forensics/app/analyzer.py` — DocumentAnalyzer with 5 forensic checks

@@ -1,0 +1,46 @@
+{
+  "packet_id": "PKT-0014",
+  "ground_truth": {
+    "label": "fraud",
+    "fraud_types": [
+      "cross_document_inconsistency"
+    ],
+    "reasons": [
+      "Form 16 declares 1250000 but bank credits imply ~562500 and the salary slip implies ~624996 annually."
+    ],
+    "affected_docs": [
+      "form16.pdf",
+      "bank_statement.pdf",
+      "salary_slip.pdf"
+    ],
+    "applicant_pan": "KLMPS7777N",
+    "employer": "Singh Traders",
+    "template_group": null,
+    "property_group": null,
+    "property_id": null
+  },
+  "trust_score": 33.2,
+  "action": "freeze",
+  "evidence_chain": [
+    {
+      "severity": "high",
+      "category": "anomaly",
+      "title": "Learned risk model assessment"
+    },
+    {
+      "severity": "high",
+      "category": "semantic",
+      "title": "Income declared on Form 16 inconsistent with bank credits"
+    },
+    {
+      "severity": "high",
+      "category": "semantic",
+      "title": "Income declared on Form 16 inconsistent with salary slip"
+    },
+    {
+      "severity": "info",
+      "category": "graph",
+      "title": "Repeat applicant"
+    }
+  ]
+}

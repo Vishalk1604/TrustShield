@@ -1,6 +1,6 @@
 """PII redaction for logs — Phase 7.
 
-The product rule (CLAUDE.md): **never log raw PII** — PAN, account numbers, names,
+The product rule: **never log raw PII** — PAN, account numbers, names,
 and property/title IDs. Evidence items shown to the investigator legitimately contain
 these values (that is the product), but anything written to a *log* must be scrubbed.
 

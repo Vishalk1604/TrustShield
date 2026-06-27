@@ -1,0 +1,35 @@
+{
+  "packet_id": "PKT-0031",
+  "ground_truth": {
+    "label": "fraud",
+    "fraud_types": [
+      "double_financing"
+    ],
+    "reasons": [
+      "Property SY-911/2C (Plot 23 Whitefield, Bengaluru 560066) is pledged as collateral across multiple loan applications \u2014 the same asset financed more than once."
+    ],
+    "affected_docs": [
+      "sale_deed.pdf",
+      "property_valuation.pdf"
+    ],
+    "applicant_pan": "ZZEPS5555E",
+    "employer": "Shaikh Trading Co",
+    "template_group": null,
+    "property_group": "prop_ring_sy911",
+    "property_id": "SY-911/2C"
+  },
+  "trust_score": 12.9,
+  "action": "freeze",
+  "evidence_chain": [
+    {
+      "severity": "critical",
+      "category": "graph",
+      "title": "Collateral pledged across multiple applications"
+    },
+    {
+      "severity": "high",
+      "category": "anomaly",
+      "title": "Learned risk model assessment"
+    }
+  ]
+}

@@ -1,8 +1,7 @@
 """TrustShield shared schema contract (Pydantic v2).
 
 These models are the single contract every service depends on. The forensics and risk
-services import them; the dashboard mirrors them in TypeScript. Keep changes backward-compatible
-and update `shared/schemas/CLAUDE.md` when the contract changes.
+services import them; the dashboard mirrors them in TypeScript. Keep changes backward-compatible.
 
 Local-only note: nothing here makes a network call. Models are pure data.
 """

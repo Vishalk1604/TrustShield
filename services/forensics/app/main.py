@@ -22,6 +22,7 @@ from shared.privacy import install_log_redaction
 from shared.schemas import EvidenceCategory
 from services.forensics.app.analyzer import analyze_pdf
 from services.forensics.app.image_forensics import analyze_image, compute_verdict
+from services.forensics.app.ingest import forgery_model
 from services.forensics.app.ingest.loader import _IMAGE_EXTS
 from services.forensics.app.ingest.pipeline import ingest_document
 
@@ -184,7 +185,7 @@ def _identifier_check(tmp_path: str) -> tuple[list[dict], dict]:
 
 
 @app.post("/forensics/analyze-image")
-async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
+async def analyze_image_upload(file: UploadFile = File(...), deep: bool = False) -> dict:
     """Analyze an uploaded raster image (JPG/PNG/TIFF…) for tampering.
 
     Two complementary layers: (1) PIXEL forensics — ELA + noise-loss + copy-move + JPEG-ghost +
@@ -192,6 +193,12 @@ async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
     identifier check — OCR the image and validate any PAN/Aadhaar, which catches value edits the
     pixels can't see (e.g. a painted-out PAN character making the number invalid). Returns the merged
     findings + a combined verdict + trust. All local, no network.
+
+    `deep=true` additionally runs our learned forgery U-Net (the "deep scan"). It localizes seamless
+    edits the pixel heuristics miss, but it has a measured ~19% false-positive rate on clean documents
+    (it over-flags the Form-16 salary region), so it is OPT-IN, never the default — the default path
+    keeps the heuristics' zero-false-positive guarantee. `deep_available` reports whether the U-Net
+    (torch + weights) can run here at all.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="filename is required")
@@ -208,7 +215,7 @@ async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
         tmp.write(content)
         tmp_path = tmp.name
     try:
-        result = analyze_image(tmp_path)
+        result = analyze_image(tmp_path, learned="auto" if deep else "env")
         # Semantic identifier check — merge any invalid-ID findings + recompute the combined verdict.
         id_findings, id_info = _identifier_check(tmp_path)
         result["identifier_check"] = id_info
@@ -216,6 +223,8 @@ async def analyze_image_upload(file: UploadFile = File(...)) -> dict:
             result["findings"] = id_findings + result.get("findings", [])
             result["verdict"], result["image_trust"] = compute_verdict(result["findings"])
         result["filename"] = file.filename
+        result["deep_used"] = deep
+        result["deep_available"] = forgery_model.available("unet")
         return result
     finally:
         Path(tmp_path).unlink(missing_ok=True)
@@ -247,7 +256,7 @@ def _ingest_one(content: bytes, filename: str, password: Optional[str]) -> dict:
                 result["forensic"] = {"findings": [], "error": str(exc)}
         elif suffix in _IMAGE_SUFFIXES:
             try:
-                ia = analyze_image(tmp_path)
+                ia = analyze_image(tmp_path)   # heuristics (zero-FP); deep scan is opt-in on /analyze-image
                 result["forensic"] = {"findings": ia.get("findings", [])}
                 # The pixel-level detail (overlay, heatmap, verdict) rides alongside.
                 result["image_forensics"] = {

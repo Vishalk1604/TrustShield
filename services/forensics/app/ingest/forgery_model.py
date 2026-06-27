@@ -45,6 +45,15 @@ def backend_name() -> str:
     return b if b in BACKENDS else DEFAULT_BACKEND
 
 
+def _resolve_backend(backend: Optional[str]) -> str:
+    """An explicit backend override (e.g. the live path requesting `unet`) or the env-selected default.
+    Lets a caller pick a backend per-request without mutating os.environ (not thread-safe under uvicorn)."""
+    if backend:
+        b = backend.lower().strip()
+        return b if b in BACKENDS else DEFAULT_BACKEND
+    return backend_name()
+
+
 def _backend_dir(backend: str) -> Path:
     return model_store_dir() / "forgery" / backend
 
@@ -71,9 +80,9 @@ def _torch_available() -> bool:
         return False
 
 
-def available() -> bool:
-    """True only if the selected backend can actually run (code + weights + torch, all local)."""
-    b = backend_name()
+def available(backend: Optional[str] = None) -> bool:
+    """True only if the (optionally overridden) backend can actually run (code + weights + torch, all local)."""
+    b = _resolve_backend(backend)
     if b == "dtd":
         return doctamper.available()
     if b == "unet":  # our own model — inference lives in-repo (forgery_unet.py), no vendored adapter
@@ -83,9 +92,9 @@ def available() -> bool:
             and _torch_available())
 
 
-def status() -> dict:
+def status(backend: Optional[str] = None) -> dict:
     """Transparent status surfaced in the analysis signals (so the UI/report is honest)."""
-    b = backend_name()
+    b = _resolve_backend(backend)
     if b == "dtd":
         s = doctamper.status()
         s["backend"] = "dtd"
@@ -93,31 +102,32 @@ def status() -> dict:
     if b == "unet":
         return {
             "backend": "unet",
-            "available": available(),
+            "available": available("unet"),
             "weights_present": weights_path("unet") is not None,
             "torch": _torch_available(),
-            "reason": None if available()
+            "reason": None if available("unet")
             else ("forgery U-Net not trained yet — run "
                   "`python services/forensics/train_forgery.py` (trains on the DocTamper data we hold; "
                   "writes models/forgery/unet/weights/forgery.pth, which this seam then auto-loads)"),
         }
     return {
         "backend": b,
-        "available": available(),
+        "available": available(b),
         "weights_present": weights_path(b) is not None,
         "adapter_present": (_backend_dir(b) / "code" / "trustshield_infer.py").exists(),
         "torch": _torch_available(),
-        "reason": None if available()
+        "reason": None if available(b)
         else (f"forgery model '{b}' not enabled — run `python scripts/setup_forgery_model.py {b}` "
               f"(downloads the repo + weights into models/forgery/{b}/ and installs torch)"),
     }
 
 
-def localize(image_path: str) -> Optional[dict]:
-    """Run the selected backend → {"regions": [(x0,y0,x1,y1), …], "mask_b64": str} or None. Never raises."""
-    if not available():
+def localize(image_path: str, backend: Optional[str] = None) -> Optional[dict]:
+    """Run the (optionally overridden) backend → {"regions": [(x0,y0,x1,y1), …], "mask_b64": str} or None.
+    Never raises. `backend="unet"` lets the live path request our learned model regardless of the env default."""
+    b = _resolve_backend(backend)
+    if not available(b):
         return None
-    b = backend_name()
     try:
         if b == "dtd":
             return doctamper.localize(image_path)

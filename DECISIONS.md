@@ -582,3 +582,22 @@ Pushed to improve the §11 fine-tune (baseline: synthetic recall 0.915 but ~50% 
   real-doc-ready; **heuristics + semantic + QR stay the real-doc layer**, U-Net stays opt-in/synthetic.
   Path to close the gap: real tampered training data + photo-realistic ID synthesis (colored cards +
   phone-photo capture sim) + domain adaptation. Full writeup: `results/forgery_training/summary.md`.
+
+### Live single-document model parity → "deep scan" (opt-in), not always-on (2026-06-27)
+The Examples gallery shows the U-Net catching a seamless Form-16 edit, but uploading the same file in
+the Investigator single-document tool returned **CLEAN**. Root cause: the gallery is baked offline with
+the U-Net escalated (`build_demo_examples.analyze_layered`), while the live `/forensics/analyze-image`
+ran heuristics only (default `dtd`) and never invoked the model. The model isn't broken — it localizes
+the edit correctly (`form16_pro`: CLEAN/100 heuristics → EDITED/15 + box `[940,768,1061,788]` with the U-Net).
+- **Measured the cost of "always run the model" first.** Over the canonical 95 clean docs the U-Net
+  false-flags **18/95 (≈19%)** — and it fires on **nearly every clean Form 16** (it has learned the
+  salary region is "suspicious" rather than that *this* one was edited; it boxes the clean `form16_pro`
+  identically to the edited one). Always-on would mislabel ~1 in 5 genuine documents and break the
+  headline 0/95 clean-FP guarantee.
+- **Decision: opt-in "deep scan".** Default upload stays heuristics (zero-FP). `/forensics/analyze-image`
+  gains `?deep=true` → `analyze_image(learned="auto")` runs the U-Net; the dashboard shows a
+  "Run learned model (deep scan)" button on a CLEAN result (when `deep_available`), clearly labelled
+  higher-recall but **~19% clean-doc FP**. `analyze_image(learned=...)`: "env" (default, unchanged for
+  the baker/eval/tests) · "auto" (live deep scan, force U-Net) · "off" (heuristics only).
+  `forgery_model.{available,status,localize}` gained a `backend` override so a request can select `unet`
+  without mutating `os.environ` (not thread-safe under uvicorn).

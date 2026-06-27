@@ -1,0 +1,109 @@
+{
+  "id": "PKT-0031",
+  "applicant_name": "Imran Shaikh",
+  "documents": [
+    {
+      "id": "identity",
+      "filename": "identity.pdf",
+      "doc_type": "identity",
+      "path": "data/synthetic/packets/PKT-0031/identity.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "75d2f96c0ab15cfb366c9db3b3fe6c42cb83a55cccac32b1ad9db4e0846d0027"
+    },
+    {
+      "id": "form16",
+      "filename": "form16.pdf",
+      "doc_type": "form16",
+      "path": "data/synthetic/packets/PKT-0031/form16.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "cd8429e69485fb5a004dd1a6d5868bb78b7485f4861f818f24c86c96bdaab6ac"
+    },
+    {
+      "id": "bank_statement",
+      "filename": "bank_statement.pdf",
+      "doc_type": "bank_statement",
+      "path": "data/synthetic/packets/PKT-0031/bank_statement.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "b1cb477ddc78b615be8a65096b5c8fa9d8733024ecbdf3c4fd4cac963653159f"
+    },
+    {
+      "id": "sale_deed",
+      "filename": "sale_deed.pdf",
+      "doc_type": "sale_deed",
+      "path": "data/synthetic/packets/PKT-0031/sale_deed.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "83e9305ad5756c7ebe6c31a99776feaca2be1ef4c98bc5c535fa80652492e717"
+    },
+    {
+      "id": "encumbrance_certificate",
+      "filename": "encumbrance_certificate.pdf",
+      "doc_type": "encumbrance_certificate",
+      "path": "data/synthetic/packets/PKT-0031/encumbrance_certificate.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "2d60b157d2ec640f88a4ee5a1660d8e3c96ae46120fe078a94170f25261496fd"
+    },
+    {
+      "id": "property_valuation",
+      "filename": "property_valuation.pdf",
+      "doc_type": "property_valuation",
+      "path": "data/synthetic/packets/PKT-0031/property_valuation.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "77f6388a908e64da63837b3ce177796d39f98e5f26264bb523f553ad7caada01"
+    },
+    {
+      "id": "legal_opinion",
+      "filename": "legal_opinion.pdf",
+      "doc_type": "legal_opinion",
+      "path": "data/synthetic/packets/PKT-0031/legal_opinion.pdf",
+      "mime_type": "application/pdf",
+      "page_count": 1,
+      "sha256": "170a3c67906f71739f6e982b17db1a3a4a36cabce8fab637372c05d4bb5e2ab6"
+    }
+  ],
+  "extracted": null,
+  "created_at": "2024-08-20T10:00:00+00:00",
+  "submitted_at": "2024-08-25T10:00:00+00:00",
+  "source": "synthetic_generator",
+  "ground_truth": {
+    "applicant_pan": "ZZEPS5555E",
+    "employer": "Shaikh Trading Co",
+    "claims": {
+      "identity.pdf": {
+        "pan": "ZZEPS5555E",
+        "name": "Imran Shaikh"
+      },
+      "form16.pdf": {
+        "gross_income": 1300000
+      },
+      "bank_statement.pdf": {
+        "monthly_credit": 97500
+      },
+      "sale_deed.pdf": {
+        "property_id": "SY-911/2C",
+        "owner": "Imran Shaikh",
+        "consideration": 7500000
+      },
+      "encumbrance_certificate.pdf": {
+        "property_id": "SY-911/2C",
+        "charges": []
+      },
+      "property_valuation.pdf": {
+        "property_id": "SY-911/2C",
+        "valuation": 7500000,
+        "loan_amount": 5000000
+      },
+      "legal_opinion.pdf": {
+        "property_id": "SY-911/2C"
+      }
+    },
+    "property_id": "SY-911/2C",
+    "market_value": 7500000,
+    "loan_amount": 5000000
+  }
+}
