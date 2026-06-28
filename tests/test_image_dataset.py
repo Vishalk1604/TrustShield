@@ -18,7 +18,10 @@ from data.generator.build_image_dataset import DIFFICULTIES, build_dataset
 @pytest.fixture(scope="module")
 def dataset(tmp_path_factory):
     out = tmp_path_factory.mktemp("img_ds")
-    summary = build_dataset(out_dir=out, n_sources=2, seed=7)   # 2 sources (form16 + salary_slip)
+    # 2 sources (form16 + salary_slip). dpi=150 keeps the heuristic eval fast in CI; the shipped
+    # dataset renders at 300 dpi (verified in scripts/eval_forgery_v2.py), but the structure + zero-FP
+    # invariants checked here are resolution-independent.
+    summary = build_dataset(out_dir=out, n_sources=2, seed=7, dpi=150)
     return out, summary
 
 

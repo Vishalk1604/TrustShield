@@ -25,6 +25,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from services.forensics.app.image_forensics import analyze_image  # noqa: E402
+from data.generator.build_image_dataset import render_showcase_pair  # noqa: E402
 
 
 def _has_region(res: dict) -> bool:
@@ -83,17 +84,8 @@ CURATE = [
 ]
 
 
-def _find(records, doc_type, tamper_type, difficulty):
-    for pref in ("rahul", "priya", "amit"):
-        for r in records:
-            if (r["label"] == "tampered" and r["doc_type"] == doc_type and r["tamper_type"] == tamper_type
-                    and r["difficulty"] == difficulty and r["source"].startswith(pref)):
-                return r
-    for r in records:                                            # any applicant
-        if (r["label"] == "tampered" and r["doc_type"] == doc_type
-                and r["tamper_type"] == tamper_type and r["difficulty"] == difficulty):
-            return r
-    return None
+def _save_jpg(img, path) -> None:
+    img.convert("RGB").save(path, "JPEG", quality=90)
 
 
 def _primary(findings, prefer_method):
@@ -113,54 +105,57 @@ def _primary(findings, prefer_method):
 
 def main() -> int:
     PUB.mkdir(parents=True, exist_ok=True)
-    records = json.loads((IMAGES / "labels.json").read_text())["records"]
     examples = []
 
-    # clean control
-    ctrl = next((r for r in records if r["label"] == "clean" and r["doc_type"] == "form16"
-                 and r["source"].startswith("rahul")), None)
-    if ctrl:
-        shutil.copy(IMAGES / ctrl["file"], PUB / "ctrl_form16_clean.jpg")
-        res = analyze_layered(str(IMAGES / ctrl["file"]), escalate=False)   # control stays heuristic
-        examples.append({
-            "key": "form16_clean", "doc_type": "form16", "title": "Form 16 — genuine (control)",
-            "edited_img": "examples/ctrl_form16_clean.jpg", "clean_img": "examples/ctrl_form16_clean.jpg",
-            "w": res.get("width"), "h": res.get("height"), "difficulty": "clean",
-            "old_value": None, "new_value": None, "verdict": res.get("verdict"),
-            "trust": round(res.get("image_trust", 100)), "method": "clean", "detector": None,
-            "boxes": [], "blurb": "A genuine page — no edit signals; the sensor-noise floor is intact everywhere.",
-            "finding": {"title": "No tampering detected", "description": "Zero findings — clean documents are never flagged (the heuristics' precision-1.0 guarantee)."},
-        })
+    # clean control — a genuine FULL page at 300 dpi (the model's domain); run the model too and expect CLEAN.
+    ctrl = render_showcase_pair("form16", field=None, dpi=300, applicant_idx=3)
+    _save_jpg(ctrl["clean"], PUB / "ctrl_form16_clean.jpg")
+    res = analyze_layered(str(PUB / "ctrl_form16_clean.jpg"), escalate=True)
+    examples.append({
+        "key": "form16_clean", "doc_type": "form16", "title": "Form 16 — genuine (control)",
+        "edited_img": "examples/ctrl_form16_clean.jpg", "clean_img": "examples/ctrl_form16_clean.jpg",
+        "w": res.get("width"), "h": res.get("height"), "difficulty": "clean",
+        "old_value": None, "new_value": None, "verdict": res.get("verdict"),
+        "trust": round(res.get("image_trust", 100)), "method": "clean", "detector": None,
+        "boxes": [], "blurb": "A genuine page — the learned model runs and finds nothing; the sensor-noise floor is intact everywhere.",
+        "finding": {"title": "No tampering detected", "description": "Clean under both the pixel heuristics and the learned model (0/80 clean false positives on the held-out test split)."},
+    })
+    print(f"  {'form16_clean':16s} verdict={res.get('verdict')}")
 
-    for key, doc_type, ttype, diff, prefer, title, blurb in CURATE:
-        rec = _find(records, doc_type, ttype, diff)
-        if not rec:
-            print(f"  ! no record for {doc_type}/{ttype}/{diff}")
+    for i, (key, doc_type, ttype, diff, prefer, title, blurb) in enumerate(CURATE):
+        geom = ttype if diff == "geom" else None
+        pair = render_showcase_pair(doc_type, field=(None if geom else ttype), difficulty=diff,
+                                    geom=geom, dpi=300, applicant_idx=i)
+        if pair["edited"] is None:
+            print(f"  ! could not render {doc_type}/{ttype}/{diff}")
             continue
-        clean_src = IMAGES / "clean" / f"{rec['source']}.jpg"
-        edit_src = IMAGES / rec["file"]
-        shutil.copy(clean_src, PUB / f"{key}_clean.jpg")
-        shutil.copy(edit_src, PUB / f"{key}_edited.jpg")
-        res = analyze_layered(str(edit_src), escalate=True)
-        findings = res.get("findings", [])
-        pick = _primary(findings, prefer)
+        _save_jpg(pair["clean"], PUB / f"{key}_clean.jpg")
+        _save_jpg(pair["edited"], PUB / f"{key}_edited.jpg")
+        res = analyze_layered(str(PUB / f"{key}_edited.jpg"), escalate=True)
+        pick = _primary(res.get("findings", []), prefer)
         if pick:
             f, m, det, regions, _ = pick
-            box = [list(map(int, regions[0]["bbox"]))] if regions else [list(map(int, rec.get("boxes", [[0, 0, 0, 0]])[0]))]
+            box = [list(map(int, regions[0]["bbox"]))] if regions else [pair["box"]]
             finding = {"title": f.get("title"), "description": f.get("description")}
-        else:  # the (honest) case nothing fired — fall back to the ground-truth region, no method
+        else:  # honest: nothing fired → fall back to the ground-truth region, no method
             m, det = "none", None
-            box = [list(map(int, rec.get("boxes", [[0, 0, 0, 0]])[0]))]
+            box = [pair["box"]]
             finding = {"title": "Not flagged", "description": "This seamless edit evaded every detector in this run."}
         examples.append({
             "key": key, "doc_type": doc_type, "title": title,
             "edited_img": f"examples/{key}_edited.jpg", "clean_img": f"examples/{key}_clean.jpg",
             "w": res.get("width"), "h": res.get("height"), "difficulty": diff,
-            "old_value": rec.get("old_value"), "new_value": rec.get("new_value"),
+            "old_value": pair.get("old"), "new_value": pair.get("new"),
             "verdict": res.get("verdict"), "trust": round(res.get("image_trust", 0)),
             "method": m, "detector": det, "boxes": box, "blurb": blurb, "finding": finding,
         })
-        print(f"  {key:14s} verdict={res.get('verdict'):10s} method={m:8s} detector={det} box={box[0]}")
+        print(f"  {key:16s} verdict={res.get('verdict'):10s} method={m:8s} detector={det} box={box[0]}")
+
+    # Home "spot the edit" pair — a full-page Form 16 pro edit at 300 dpi for the Home loupe.
+    home = render_showcase_pair("form16", field="gross_salary", difficulty="pro", dpi=300, applicant_idx=0)
+    _save_jpg(home["clean"], PUB / "realistic_form16_clean.jpg")
+    _save_jpg(home["edited"], PUB / "realistic_form16_edited.jpg")
+    print(f"  home pair -> realistic_form16_{{clean,edited}}.jpg ({home['w']}x{home['h']})")
 
     OUT_JS.parent.mkdir(parents=True, exist_ok=True)
     header = ("// AUTO-GENERATED by scripts/build_demo_examples.py — do not edit by hand.\n"

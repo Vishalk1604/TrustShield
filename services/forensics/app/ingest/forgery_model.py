@@ -150,14 +150,34 @@ def _vendored_localize(backend: str, image_path: str) -> Optional[dict]:  # prag
     return mask_to_regions(mask, image_path)
 
 
+def _calibration() -> dict:
+    """Operating point chosen on the val split by the trainer (tau_mask + min_area_frac). Falls back to
+    the module defaults when no calibration.json sits next to the unet weights."""
+    wp = weights_path("unet")
+    if wp is not None:
+        cal_path = Path(wp).with_name("calibration.json")
+        if cal_path.exists():
+            try:
+                import json
+                return json.loads(cal_path.read_text())
+            except Exception:
+                pass
+    return {"tau_mask": MASK_THRESHOLD, "min_area_frac": MIN_REGION_FRAC}
+
+
 def mask_to_regions(mask, image_path: str) -> Optional[dict]:
     """Convert a model tamper-probability mask (HxW, the model's resolution) into image-space bounding
-    boxes + a base64 overlay-ready mask PNG. Pure numpy/PIL/cv2 (no torch). Returns None if empty."""
+    boxes + a base64 overlay-ready mask PNG. Pure numpy/PIL/cv2 (no torch). Returns None if empty.
+    Thresholds (tau_mask, min_area_frac) come from the val-calibrated `calibration.json` when present."""
     import base64
     import io
 
     import numpy as np
     from PIL import Image
+
+    cal = _calibration()
+    tau_mask = float(cal.get("tau_mask", MASK_THRESHOLD))
+    min_area_frac = float(cal.get("min_area_frac", MIN_REGION_FRAC))
 
     arr = np.asarray(mask, dtype=np.float32)
     if arr.ndim == 3:
@@ -166,7 +186,7 @@ def mask_to_regions(mask, image_path: str) -> Optional[dict]:
         return None
     img = Image.open(image_path).convert("RGB")
     W, H = img.size
-    binm = (arr >= MASK_THRESHOLD).astype(np.uint8)
+    binm = (arr >= tau_mask).astype(np.uint8)
     # upscale the mask to the original image size
     if binm.shape != (H, W):
         binm = np.asarray(Image.fromarray(binm * 255).resize((W, H), Image.NEAREST)) > 127
@@ -175,7 +195,7 @@ def mask_to_regions(mask, image_path: str) -> Optional[dict]:
         return None
 
     regions: list[tuple[int, int, int, int]] = []
-    min_area = MIN_REGION_FRAC * W * H
+    min_area = min_area_frac * W * H
     try:
         import cv2
         n, _, stats, _ = cv2.connectedComponentsWithStats(binm, connectivity=8)

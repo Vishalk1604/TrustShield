@@ -601,3 +601,39 @@ the edit correctly (`form16_pro`: CLEAN/100 heuristics → EDITED/15 + box `[940
   the baker/eval/tests) · "auto" (live deep scan, force U-Net) · "off" (heuristics only).
   `forgery_model.{available,status,localize}` gained a `backend` override so a request can select `unet`
   without mutating `os.environ` (not thread-safe under uvicorn).
+
+### Forgery model v2 — native-resolution noise-stream localizer (2026-06-28)
+v1 over-fired on ~19% of clean docs (esp. clean Form 16s) because it trained/inferred on the **whole
+page downscaled to 256²**, which erases the seamless edit's sub-pixel noise signal — so it could only
+learn content/position. v2 (synthetic-only target; real-doc transfer explicitly out of scope) fixes the
+root cause:
+- **Dataset (generator v3).** `pdf_builder.build_*_v2` are seeded layout *families* (variable formats,
+  table row counts, column widths, fonts, bands, wording); `build_image_dataset.py` uses **procedural
+  identities** (hundreds) at **300 dpi**, editing a **randomized subset of many fields at varied
+  positions** (kills the position prior — Form 16 edits now span ~15 fields / 24 y-positions), volume
+  weighted to the hard `blended`/`pro` tiers → ~10k tampered.
+- **Disk → crop storage.** Storing 10k full 300-dpi pages overran the 92 GB disk (`Errno 28`, with the
+  24 GB DocTamper LMDB also resident). A patch localizer only needs windows, so **tampered are saved as
+  ~512² crops** around each edit (crop-relative boxes + masks); **clean stay full pages** (needed for the
+  doc-level clean-FP eval + as negative-patch sources). Footprint dropped from ~28 GB → ~2.7 GB.
+- **Architecture.** `forgery_unet.py` v2: two-stream **RGB + SRM (fixed high-pass) + BayarConv
+  (learned, constrained)** input so the net keys on noise statistics, U-Net mask head **plus a per-patch
+  tamper classifier** head. `train_forgery.py` trains on native-resolution **patches** (positives on
+  edits + heavy clean hard-negatives) with Dice+BCE+Tversky + classifier BCE.
+- **Calibrated tiled inference (fixes the FP-compounding that reverted the earlier patch attempt).**
+  Overlapping native tiles, **logit averaging** (not mask-OR), **classifier gate** per tile, and a
+  `calibration.json` (tau_cls/tau_mask/min_area chosen on the **val** split to a ≤1.5% clean-FP budget),
+  loaded by `forgery_unet.infer` + `forgery_model.mask_to_regions`. Seam API unchanged.
+- **Result (20 epochs, RTX 5060, ~2 h).** On the held-out **test** split (80 clean / 480 tampered),
+  calibrated on val to ≤1.5% FP: **clean FP 0/80 (0.0%)**, recall **naive 1.00 / blended 1.00 / pro 1.00
+  (IoU 0.97) / geom 0.925**; val clean-FP 0.0, recall 0.99. The Form-16 discrimination is fixed (clean
+  `form16_pro` → CLEAN, edited → EDITED). Vs the v1 baseline (R=0.49, pro 0.29, ~13–19% clean FP) this is
+  a decisive win **on synthetic** (real phone-photo transfer remains out of scope by design).
+- **Dashboard re-bake — DEFERRED (follow-up).** Baking the showcase at 300 dpi surfaced a separate issue:
+  the **pixel heuristics over-fire on the new 300-dpi layout-family renders** (`flat_fill` fires on a clean
+  300-dpi Form 16 → SUSPICIOUS), because their thresholds were tuned for the v1 150-dpi docs. The *model*
+  is clean at 300 dpi (0/80); only the heuristic layer regresses at the higher DPI. So the heuristic-first
+  baker (`build_demo_examples` → `analyze_layered`) shows junk on the 300-dpi pairs. Fix options for next
+  pass: make the heuristics resolution-aware (scale thresholds by image size), or showcase the model layer
+  directly. Until then the committed dashboard demo stays the working v1 bake; v2 weights are gitignored, so
+  a fresh clone runs heuristics-only (deep scan inert) until trained.
