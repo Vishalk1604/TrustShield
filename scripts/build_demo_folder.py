@@ -35,6 +35,11 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from services.forensics.app.image_forensics import analyze_image  # noqa: E402
+from data.generator.build_image_dataset import render_showcase_pair  # noqa: E402
+
+
+def _save_jpg(img, path) -> None:
+    img.convert("RGB").save(path, "JPEG", quality=90)
 
 IMAGES = REPO / "data" / "synthetic" / "images"
 PACKETS_DIR = REPO / "data" / "synthetic" / "packets"
@@ -140,46 +145,49 @@ def _find(records, doc_type, tamper_type, difficulty, source=None):
     return None
 
 
-def build_documents(records) -> list[dict]:
+# distinct procedural applicant per doc type → varied, judge-friendly showcase documents
+_DOC_APPLICANT = {"form16": 0, "salary_slip": 1, "bank_statement": 2, "identity": 3, "aadhaar": 4}
+
+
+def build_documents() -> list[dict]:
+    """Render matched **full-page** clean+edited pairs at 300 dpi (judges open the whole document, not a
+    crop), each cross-verified by the detector. Uses render_showcase_pair so the showcase matches the
+    trained-on distribution exactly; the clean page is the shared base for every edited variant."""
     out = []
     docs_root = DEMO / "documents"
     for doc_type, plan in DOC_PLAN.items():
-        src = _pick_source(records, doc_type, plan["figure"])
-        if not src:
-            print(f"  ! no figure edits for {doc_type}")
-            continue
+        idx = _DOC_APPLICANT.get(doc_type, 0)
         d = docs_root / doc_type
         d.mkdir(parents=True, exist_ok=True)
-        # clean
-        clean_src = IMAGES / "clean" / f"{src}.jpg"
-        shutil.copy(clean_src, d / "clean.jpg")
+        base = render_showcase_pair(doc_type, field=None, dpi=300, applicant_idx=idx)
+        _save_jpg(base["clean"], d / "clean.jpg")              # full page
         clean_v = verify_doc(d / "clean.jpg")
         edits = {}
-        # figure edits across difficulty
-        variants = [(diff, plan["figure"], diff) for diff in FIGURE_DIFFS]
-        variants += [(g, g, "geom") for g in GEOM_TYPES]
-        for out_key, ttype, diff in variants:
-            rec = _find(records, doc_type, ttype, diff, source=src)
-            if not rec:
+        variants = [(diff, plan["figure"], diff, None) for diff in FIGURE_DIFFS]
+        variants += [(g, None, "geom", g) for g in GEOM_TYPES]
+        for out_key, field, diff, geom in variants:
+            pair = render_showcase_pair(doc_type, field=field, difficulty=diff, geom=geom,
+                                        dpi=300, applicant_idx=idx)
+            if pair["edited"] is None:
                 continue
             fname = f"{out_key}_edited.jpg"
-            shutil.copy(IMAGES / rec["file"], d / fname)
+            _save_jpg(pair["edited"], d / fname)               # full page (matches clean.jpg)
             v = verify_doc(d / fname)
             edits[out_key] = {
-                "file": fname, "tamper_type": ttype, "difficulty": diff,
-                "old_value": rec.get("old_value"), "new_value": rec.get("new_value"),
-                "ground_truth_box": (rec.get("boxes") or [None])[0],
+                "file": fname, "tamper_type": (geom or field), "difficulty": diff,
+                "old_value": pair.get("old"), "new_value": pair.get("new"),
+                "ground_truth_box": pair.get("box"),
                 "cross_verified": v,
             }
         manifest = {
-            "doc_type": doc_type, "label": plan["label"], "source": src,
+            "doc_type": doc_type, "label": plan["label"], "applicant_idx": idx,
             "clean": {"file": "clean.jpg", "cross_verified": clean_v},
             "edits": edits,
         }
         (d / "manifest.json").write_text(json.dumps(manifest, indent=2))
         out.append(manifest)
         caught = sum(1 for e in edits.values() if e["cross_verified"]["model"]["verdict"] != "CLEAN")
-        print(f"  documents/{doc_type:14s} src={src:18s} edits={len(edits)} model-caught={caught} "
+        print(f"  documents/{doc_type:14s} full-page edits={len(edits)} model-caught={caught} "
               f"clean-model={clean_v['model']['verdict']}")
     return out
 
@@ -248,11 +256,10 @@ def main() -> int:
     if DEMO.exists():
         shutil.rmtree(DEMO)
     DEMO.mkdir(parents=True)
-    records = _records()
     labels = json.loads(LABELS_PATH.read_text())
 
-    print("[1/4] Building demo/documents (cross-verified per document) ...")
-    docs = build_documents(records)
+    print("[1/4] Building demo/documents (full-page pairs, cross-verified) ...")
+    docs = build_documents()
     print("\n[2/4] Building demo/packets (full-pipeline + graph reconciliation) ...")
     packets = build_packets(labels)
     print("\n[3/4] Baking Home reveal box ...")
