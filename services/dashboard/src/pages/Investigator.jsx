@@ -533,7 +533,7 @@ function SingleDocMode({ live }) {
                   {res.deep_used ? <> · <span style={{ color: LY.model.hue }}>learned model (deep scan)</span></> : " (heuristics)"}.
                 </div>
 
-                {/* deep scan: opt-in learned model — higher recall on seamless edits, ~19% clean-doc FP */}
+                {/* deep scan: opt-in learned model (v2) — ~100% recall on synthetic seamless edits, ~2-3% clean FP */}
                 {!res.deep_used && res.deep_available && (
                   <div style={{ marginTop: 12 }}>
                     <Button variant="ghost" c={LY.model.hue} disabled={deepBusy} onClick={deepScan}>
@@ -542,15 +542,16 @@ function SingleDocMode({ live }) {
                         : "🔬 Run learned model (deep scan)"}
                     </Button>
                     <div style={{ fontSize: 11, color: C.textFaint, marginTop: 6, lineHeight: 1.5, maxWidth: 360 }}>
-                      Catches seamless edits the pixel heuristics miss — but the model has a measured
-                      <b style={{ color: C.warning }}> ~19% false-positive rate on clean docs</b>, so it's opt-in, never the default.
+                      Localizes seamless edits the pixel heuristics miss. On held-out <b>synthetic</b> docs:
+                      <b style={{ color: LY.model.hue }}> ~100% recall</b>, <b style={{ color: C.warning }}>~2–3% clean false-positive</b>
+                      {" "}— not yet validated on real phone-photos, so it's opt-in.
                     </div>
                   </div>
                 )}
                 {res.deep_used && (
                   <div style={{ marginTop: 12, fontSize: 11.5, color: C.textDim, lineHeight: 1.55, maxWidth: 380, borderLeft: `2px solid ${hexA(LY.model.hue, 0.5)}`, paddingLeft: 10 }}>
                     Learned model {res.findings?.some((f) => f.values?.detector === "forgery_model") ? "flagged a region above" : "found nothing"}.
-                    Treat with care — it false-flags <b style={{ color: C.warning }}>~19%</b> of clean documents (it over-flags the Form-16 salary area).
+                    Strong on <b>synthetic</b> docs (~100% recall, ~2–3% clean FP); not yet validated on real phone-photos.
                   </div>
                 )}
                 {!res.deep_used && !res.deep_available && res.verdict === "CLEAN" && (

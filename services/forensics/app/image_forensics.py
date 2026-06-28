@@ -275,6 +275,14 @@ def _flat_fill_regions(img: Image.Image) -> list[Region]:
     # cards rely on noise-loss (real photos carry sensor noise an edit destroys) + the learned model.
     if float((gray > 225).mean()) < FILL_MIN_WHITE_FRAC:
         return []
+    # flat-fill targets PRISTINE digital docs (paint-overs that leave no sensor-noise/JPEG trace). On a
+    # scanned/photographed page (a real noise floor) a uniform region is usually template chrome (header /
+    # label bands), and a genuine paint-over there is caught by noise-loss + the learned model — so defer
+    # to those and don't false-flag the chrome.
+    sig = _block_noise_sigma(img)
+    valid = sig[~np.isnan(sig)]
+    if valid.size and float(np.median(valid)) >= NOISE_MIN_FLOOR:
+        return []
     h, w = gray.shape
     gh, gw = h // BLOCK, w // BLOCK
     if gh == 0 or gw == 0:
@@ -535,7 +543,14 @@ def analyze_image(path: str, learned: str = "env") -> dict:
         try:
             dt = forgery_model.localize(path, backend=lm_backend)
             if dt and dt.get("regions"):
-                dt_regions = [Region(tuple(b), "forgery_model", 0.9) for b in dt["regions"]]
+                # The model localizes on the ORIGINAL file (native resolution = the v2 signal), so its
+                # boxes are in original-pixel space. analyze_image works in the (possibly MAX_DIM-downscaled)
+                # analysis space — rescale the model boxes to it so all findings + the overlay + width/height
+                # share one coordinate system.
+                ow, oh = Image.open(path).size
+                sx, sy = (w / ow if ow else 1.0), (h / oh if oh else 1.0)
+                dt_regions = [Region((int(b[0] * sx), int(b[1] * sy), int(b[2] * sx), int(b[3] * sy)),
+                                     "forgery_model", 0.9) for b in dt["regions"]]
         except Exception as exc:  # pragma: no cover
             signals["learned_model_error"] = str(exc)
 

@@ -9,8 +9,8 @@ export const DEMO_EXAMPLES = [
     "title": "Form 16 \u2014 genuine (control)",
     "edited_img": "examples/ctrl_form16_clean.jpg",
     "clean_img": "examples/ctrl_form16_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "clean",
     "old_value": null,
     "new_value": null,
@@ -19,10 +19,10 @@ export const DEMO_EXAMPLES = [
     "method": "clean",
     "detector": null,
     "boxes": [],
-    "blurb": "A genuine page \u2014 no edit signals; the sensor-noise floor is intact everywhere.",
+    "blurb": "A genuine page \u2014 the learned model runs and finds nothing; the sensor-noise floor is intact everywhere.",
     "finding": {
       "title": "No tampering detected",
-      "description": "Zero findings \u2014 clean documents are never flagged (the heuristics' precision-1.0 guarantee)."
+      "description": "Clean under both the pixel heuristics and the learned model (0/80 clean false positives on the held-out test split)."
     }
   },
   {
@@ -31,21 +31,21 @@ export const DEMO_EXAMPLES = [
     "title": "Form 16 \u2014 gross salary, seamless edit",
     "edited_img": "examples/form16_pro_edited.jpg",
     "clean_img": "examples/form16_pro_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "pro",
-    "old_value": "Rs. 1,820,000",
-    "new_value": "Rs. 2,672,155",
+    "old_value": "Rs. 2,900,000",
+    "new_value": "Rs. 4,247,523",
     "verdict": "EDITED",
     "trust": 15,
     "method": "model",
     "detector": "forgery_model",
     "boxes": [
       [
-        940,
-        768,
-        1061,
-        788
+        1039,
+        906,
+        1148,
+        928
       ]
     ],
     "blurb": "The salary figure inflated seamlessly \u2014 matched font, tone and scan noise.",
@@ -60,21 +60,21 @@ export const DEMO_EXAMPLES = [
     "title": "Form 16 \u2014 gross salary, obvious edit",
     "edited_img": "examples/form16_naive_edited.jpg",
     "clean_img": "examples/form16_naive_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "naive",
-    "old_value": "Rs. 1,820,000",
-    "new_value": "Rs. 2,848,331",
+    "old_value": "Rs. 1,600,000",
+    "new_value": "Rs. 2,343,461",
     "verdict": "EDITED",
     "trust": 15,
     "method": "model",
     "detector": "forgery_model",
     "boxes": [
       [
-        940,
-        768,
-        1061,
-        788
+        1028,
+        906,
+        1148,
+        928
       ]
     ],
     "blurb": "The same figure painted over with a flat fill.",
@@ -89,21 +89,21 @@ export const DEMO_EXAMPLES = [
     "title": "Form 16 \u2014 spliced patch",
     "edited_img": "examples/form16_splice_edited.jpg",
     "clean_img": "examples/form16_splice_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "geom",
     "old_value": null,
     "new_value": null,
-    "verdict": "EDITED",
-    "trust": 15,
+    "verdict": "SUSPICIOUS",
+    "trust": 50,
     "method": "pixel",
     "detector": "noise",
     "boxes": [
       [
-        240,
-        688,
-        480,
-        784
+        736,
+        224,
+        1008,
+        336
       ]
     ],
     "blurb": "A patch pasted in from elsewhere on the page.",
@@ -118,27 +118,27 @@ export const DEMO_EXAMPLES = [
     "title": "Form 16 \u2014 recompressed region",
     "edited_img": "examples/form16_recompress_edited.jpg",
     "clean_img": "examples/form16_recompress_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "geom",
     "old_value": null,
     "new_value": null,
-    "verdict": "SUSPICIOUS",
-    "trust": 55,
-    "method": "pixel",
-    "detector": "noise",
+    "verdict": "EDITED",
+    "trust": 15,
+    "method": "model",
+    "detector": "forgery_model",
     "boxes": [
       [
-        352,
-        224,
-        400,
-        272
+        711,
+        218,
+        1031,
+        363
       ]
     ],
     "blurb": "A region re-saved at a different JPEG quality.",
     "finding": {
-      "title": "Region lost the page's noise pattern (likely edited)",
-      "description": "This region no longer carries the document's sensor/scan noise \u2014 the hallmark of content that was painted over, pasted in, or re-compressed after the original scan."
+      "title": "Tampered region (learned forgery model)",
+      "description": "A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
     }
   },
   {
@@ -147,27 +147,27 @@ export const DEMO_EXAMPLES = [
     "title": "Payslip \u2014 net pay, seamless edit",
     "edited_img": "examples/salary_pro_edited.jpg",
     "clean_img": "examples/salary_pro_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "pro",
-    "old_value": "Rs. 124,367",
-    "new_value": "Rs. 196,709",
-    "verdict": "CLEAN",
-    "trust": 100,
-    "method": "none",
-    "detector": null,
+    "old_value": "Rs. 198,167",
+    "new_value": "Rs. 290,248",
+    "verdict": "EDITED",
+    "trust": 15,
+    "method": "model",
+    "detector": "forgery_model",
     "boxes": [
       [
-        883,
-        534,
-        1012,
-        557
+        1039,
+        709,
+        1148,
+        717
       ]
     ],
     "blurb": "Take-home pay repainted, bold weight + scan softness matched.",
     "finding": {
-      "title": "Not flagged",
-      "description": "This seamless edit evaded every detector in this run."
+      "title": "Tampered region (learned forgery model)",
+      "description": "A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
     }
   },
   {
@@ -176,27 +176,27 @@ export const DEMO_EXAMPLES = [
     "title": "Bank statement \u2014 salary credit, seamless edit",
     "edited_img": "examples/bank_pro_edited.jpg",
     "clean_img": "examples/bank_pro_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "pro",
-    "old_value": "Rs. 124,367",
-    "new_value": "Rs. 195,921",
-    "verdict": "CLEAN",
-    "trust": 100,
-    "method": "none",
-    "detector": null,
+    "old_value": "Rs. 170,833",
+    "new_value": "Rs. 250,213",
+    "verdict": "EDITED",
+    "trust": 15,
+    "method": "model",
+    "detector": "forgery_model",
     "boxes": [
       [
-        829,
-        742,
-        918,
-        758
+        950,
+        893,
+        1011,
+        910
       ]
     ],
     "blurb": "A monthly salary credit raised, running balance recomputed.",
     "finding": {
-      "title": "Not flagged",
-      "description": "This seamless edit evaded every detector in this run."
+      "title": "Tampered region (learned forgery model)",
+      "description": "A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
     }
   },
   {
@@ -205,27 +205,27 @@ export const DEMO_EXAMPLES = [
     "title": "PAN \u2014 digit swapped, seamless edit",
     "edited_img": "examples/pan_pro_edited.jpg",
     "clean_img": "examples/pan_pro_clean.jpg",
-    "w": 1240,
-    "h": 1755,
+    "w": 1413,
+    "h": 2000,
     "difficulty": "pro",
-    "old_value": "ABMPS1234F",
-    "new_value": "ABMPS1254F",
-    "verdict": "CLEAN",
-    "trust": 100,
-    "method": "none",
-    "detector": null,
+    "old_value": "ASGPM0383D",
+    "new_value": "ASGPM0883D",
+    "verdict": "EDITED",
+    "trust": 15,
+    "method": "model",
+    "detector": "forgery_model",
     "boxes": [
       [
-        415,
-        495,
-        593,
-        523
+        492,
+        504,
+        656,
+        539
       ]
     ],
     "blurb": "One PAN character changed and seamlessly re-rendered.",
     "finding": {
-      "title": "Not flagged",
-      "description": "This seamless edit evaded every detector in this run."
+      "title": "Tampered region (learned forgery model)",
+      "description": "A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
     }
   }
 ];

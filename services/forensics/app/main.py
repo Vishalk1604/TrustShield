@@ -195,9 +195,9 @@ async def analyze_image_upload(file: UploadFile = File(...), deep: bool = False)
     findings + a combined verdict + trust. All local, no network.
 
     `deep=true` additionally runs our learned forgery U-Net (the "deep scan"). It localizes seamless
-    edits the pixel heuristics miss, but it has a measured ~19% false-positive rate on clean documents
-    (it over-flags the Form-16 salary region), so it is OPT-IN, never the default — the default path
-    keeps the heuristics' zero-false-positive guarantee. `deep_available` reports whether the U-Net
+    edits the pixel heuristics miss (v2: ~100% recall on held-out synthetic docs, ~2-3% clean
+    false-positive; not yet validated on real phone-photos), so it is OPT-IN, never the default — the
+    default path keeps the heuristics' zero-false-positive guarantee. `deep_available` reports whether the U-Net
     (torch + weights) can run here at all.
     """
     if not file.filename:

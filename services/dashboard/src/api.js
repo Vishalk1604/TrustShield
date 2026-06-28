@@ -38,7 +38,7 @@ export const api = {
     postJSON(`${RISK_URL}/risk/demo/score/${packetId}?use_graph=${useGraph}`, {}),
   clusters: () => getJSON(`${RISK_URL}/risk/graph/clusters`),
   // §10 image/pixel forensics — detect & localize edits in a scanned/photo document.
-  // `deep` opts into the learned U-Net (higher recall on seamless edits, ~19% clean FP — opt-in only).
+  // `deep` opts into the learned U-Net (v2: ~100% recall on synthetic seamless edits, ~2-3% clean FP — opt-in).
   analyzeImage: (file, deep = false) =>
     postFile(`${FORENSICS_URL}/forensics/analyze-image${deep ? "?deep=true" : ""}`, file),
 };

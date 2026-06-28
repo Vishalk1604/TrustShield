@@ -37,7 +37,10 @@ from services.forensics.app.ingest.model_registry import model_store_dir
 DEFAULT_BACKEND = "dtd"
 BACKENDS = ("unet", "dtd", "trufor", "catnet")
 MASK_THRESHOLD = 0.5       # binarize the model's tamper-probability mask
-MIN_REGION_FRAC = 0.0008   # ignore connected components smaller than this fraction of the image
+MIN_REGION_PX = 300        # ignore connected components below this many pixels. ABSOLUTE (not a fraction
+                           # of the page): an edit is a fixed pixel size at 300 dpi, so an absolute floor
+                           # transfers from val crops to full-page uploads (a fraction does NOT — it would
+                           # be ~33× larger on a full page than on a 512² crop and suppress real edits).
 
 
 def backend_name() -> str:
@@ -162,7 +165,7 @@ def _calibration() -> dict:
                 return json.loads(cal_path.read_text())
             except Exception:
                 pass
-    return {"tau_mask": MASK_THRESHOLD, "min_area_frac": MIN_REGION_FRAC}
+    return {"tau_mask": MASK_THRESHOLD, "min_area_px": MIN_REGION_PX}
 
 
 def mask_to_regions(mask, image_path: str) -> Optional[dict]:
@@ -177,7 +180,11 @@ def mask_to_regions(mask, image_path: str) -> Optional[dict]:
 
     cal = _calibration()
     tau_mask = float(cal.get("tau_mask", MASK_THRESHOLD))
-    min_area_frac = float(cal.get("min_area_frac", MIN_REGION_FRAC))
+    # absolute px floor (transfers across page sizes). Back-compat: an old fraction-based calibration is
+    # converted to an absolute floor against a 300-dpi A4 reference so it doesn't over-suppress.
+    min_area = float(cal.get("min_area_px", cal["min_area_frac"] * 1240 * 1750)
+                     if "min_area_frac" in cal and "min_area_px" not in cal
+                     else cal.get("min_area_px", MIN_REGION_PX))
 
     arr = np.asarray(mask, dtype=np.float32)
     if arr.ndim == 3:
@@ -195,7 +202,6 @@ def mask_to_regions(mask, image_path: str) -> Optional[dict]:
         return None
 
     regions: list[tuple[int, int, int, int]] = []
-    min_area = min_area_frac * W * H
     try:
         import cv2
         n, _, stats, _ = cv2.connectedComponentsWithStats(binm, connectivity=8)

@@ -211,24 +211,28 @@ def calibrate(args) -> None:
     tamp_m = doc_probs(tamp)
     target_fp = args.target_fp
     best = None
+    # ABSOLUTE min-area px (page-size invariant — clean val = full pages, tampered val = crops; an absolute
+    # floor judges both fairly and transfers to full-page uploads). An edit at 300 dpi is ~1-7k px.
     for tau_mask in (0.5, 0.6, 0.7, 0.8, 0.9):
-        for min_area_frac in (0.0005, 0.001, 0.002, 0.004):
+        for min_area_px in (128, 256, 512, 1024, 2048):
             def flagged(m):
-                W = m.shape[1] * m.shape[0]
                 binm = (m >= tau_mask)
                 if binm.sum() == 0:
                     return False
                 import cv2
                 n, lab, stats, _ = cv2.connectedComponentsWithStats(binm.astype(np.uint8), 8)
-                return any(stats[k, cv2.CC_STAT_AREA] >= min_area_frac * W for k in range(1, n))
+                return any(stats[k, cv2.CC_STAT_AREA] >= min_area_px for k in range(1, n))
             fp = sum(flagged(m) for m in clean_m) / max(1, len(clean_m))
             rec = sum(flagged(m) for m in tamp_m) / max(1, len(tamp_m))
-            if fp <= target_fp and (best is None or rec > best[0]):
-                best = (rec, tau_mask, min_area_frac, fp)
+            # maximize recall within the FP budget; on a tie, prefer the more conservative (larger
+            # min-area → lower clean-FP) operating point so it generalizes to the test/live set.
+            if fp <= target_fp and (best is None or rec > best[0]
+                                    or (rec == best[0] and min_area_px > best[2])):
+                best = (rec, tau_mask, min_area_px, fp)
     if best is None:                       # nothing met the budget → take the lowest-FP point
-        best = (0.0, 0.9, 0.004, 1.0)
-    rec, tau_mask, min_area_frac, fp = best
-    cal = {"tau_cls": args.tau_cls, "tau_mask": tau_mask, "min_area_frac": min_area_frac,
+        best = (0.0, 0.9, 2048, 1.0)
+    rec, tau_mask, min_area_px, fp = best
+    cal = {"tau_cls": args.tau_cls, "tau_mask": tau_mask, "min_area_px": min_area_px,
            "val_clean_fp": round(fp, 4), "val_recall": round(rec, 4), "target_fp": target_fp}
     (WEIGHTS_OUT / "calibration.json").write_text(json.dumps(cal, indent=2))
     fu._MODEL_CACHE.clear()

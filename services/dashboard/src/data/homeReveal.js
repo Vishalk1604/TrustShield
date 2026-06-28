@@ -4,13 +4,13 @@
 export const HOME_REVEAL = {
   "clean_img": "examples/realistic_form16_clean.jpg",
   "edited_img": "examples/realistic_form16_edited.jpg",
-  "w": 1240,
-  "h": 1755,
+  "w": 1413,
+  "h": 2000,
   "box": [
-    940,
-    768,
-    1061,
-    788
+    1039,
+    906,
+    1148,
+    928
   ],
   "method": "model"
 };

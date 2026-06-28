@@ -317,9 +317,9 @@ def _write_readme(docs, packets):
         "## `MANIFEST.json`",
         "An index of everything plus a caught/missed summary.",
         "",
-        "> Honest note: the learned U-Net has a measured **~19% false-positive rate on clean documents**",
-        "> (it over-flags the Form-16 salary region), which is why it is opt-in (the deep scan) and never",
-        "> the default detection path. The heuristics hold a 0/95 clean false-positive rate.",
+        "> Honest note: on held-out **synthetic** docs the v2 learned U-Net scores **~100% recall** at a",
+        "> **~2-3% clean false-positive** rate, but it is not yet validated on real phone-photos — so it is",
+        "> opt-in (the deep scan), never the default. The heuristics hold a 0 clean false-positive rate.",
     ]
     (DEMO / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

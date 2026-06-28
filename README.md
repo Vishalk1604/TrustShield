@@ -133,11 +133,11 @@ pip install -r services/forensics/requirements-models.txt   # installs torch
 python services/forensics/train_forgery.py                  # trains weights → models/forgery/unet/weights/
 ```
 
-> **Honest limit:** the U-Net is strong at *localizing* edits on synthetic documents, but has a
-> measured **~19% false-positive rate on clean documents** (it over-flags the Form-16 salary region)
-> and does not yet transfer to real phone-photos of ID cards. That is exactly why it is **opt-in**,
-> never the default detection path. The guaranteed-local layer is heuristics + semantic + QR, which
-> hold a **0/95** false-positive rate on clean documents.
+> **Honest limit:** on held-out **synthetic** docs the v2 U-Net is strong — **~100% recall** on
+> naive/blended/pro edits at a **~2–3% clean-doc false-positive** rate (vs the old whole-page model's
+> ~0.29 pro-recall and ~19% FP). But it is **not yet validated on real phone-photos of ID cards**, so it
+> stays **opt-in** (the "deep scan"), never the default. The guaranteed-local default layer is heuristics
+> + semantic + QR, which hold a **0 false-positive** rate on clean documents.
 
 ---
 

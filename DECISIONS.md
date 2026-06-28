@@ -629,11 +629,19 @@ root cause:
   (IoU 0.97) / geom 0.925**; val clean-FP 0.0, recall 0.99. The Form-16 discrimination is fixed (clean
   `form16_pro` → CLEAN, edited → EDITED). Vs the v1 baseline (R=0.49, pro 0.29, ~13–19% clean FP) this is
   a decisive win **on synthetic** (real phone-photo transfer remains out of scope by design).
-- **Dashboard re-bake — DEFERRED (follow-up).** Baking the showcase at 300 dpi surfaced a separate issue:
-  the **pixel heuristics over-fire on the new 300-dpi layout-family renders** (`flat_fill` fires on a clean
-  300-dpi Form 16 → SUSPICIOUS), because their thresholds were tuned for the v1 150-dpi docs. The *model*
-  is clean at 300 dpi (0/80); only the heuristic layer regresses at the higher DPI. So the heuristic-first
-  baker (`build_demo_examples` → `analyze_layered`) shows junk on the 300-dpi pairs. Fix options for next
-  pass: make the heuristics resolution-aware (scale thresholds by image size), or showcase the model layer
-  directly. Until then the committed dashboard demo stays the working v1 bake; v2 weights are gitignored, so
-  a fresh clone runs heuristics-only (deep scan inert) until trained.
+- **Dashboard re-bake — DONE, after two integration fixes the 300-dpi re-bake surfaced:**
+  - **`flat_fill` over-fired on 300-dpi renders** (low-contrast header chrome on the v2 layout families read
+    as "fills" → clean Form 16 / PAN / Aadhaar flagged). Fix: `flat_fill` now runs only on **pristine
+    digital** docs (no sensor-noise floor); on scanned/photographed pages (a real noise floor) it defers to
+    noise-loss + the model — which is where genuine paint-overs are caught anyway. All 5 clean doc types →
+    CLEAN under heuristics; the pristine-paint test still passes.
+  - **Full-page deep-scan missed some edits** that the crop-eval caught: `min_area` was a **fraction of the
+    page** (`0.0005×W×H` ≈ 131 px on a 512² val crop but ≈ 4350 px on a full page — and calibrate/inference
+    used different formulas), suppressing a real 2006-px salary edit. Fix: an **absolute** `min_area_px`
+    (calibrated on val, default 300) everywhere — page-size invariant. Also: `analyze_image` now **rescales
+    the model's boxes** (localized on the native-res original) into its MAX_DIM analysis space so findings +
+    overlay + width/height share one coordinate system (v1 was masked because 150-dpi images were < MAX_DIM).
+  - Re-calibrated → `{tau_mask 0.5, min_area_px 256}`; test split **clean FP 2/80 (2.5%)**, recall
+    naive/blended/pro **1.00**, geom 0.908, Form-16 discrimination 0% FP. The dashboard is re-baked at
+    300 dpi (`build_demo_examples` / `build_demo_folder` / `homeReveal`): control CLEAN, every seamless edit
+    EDITED by the model; UI/README copy updated from "~19%" to the measured ~100% recall / ~2–3% clean FP.
