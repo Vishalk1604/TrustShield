@@ -120,6 +120,65 @@ def edit_text(
     return True
 
 
+def flatten_and_repaint(
+    doc: "fitz.Document",
+    old_amount: float,
+    new_amount: float,
+    *,
+    page_index: int = 0,
+    dpi: int = 300,
+    seed: int = 0,
+) -> Optional[dict]:
+    """Forge a **flattened/repainted** page: rasterise the page (with a simulated scan-noise floor),
+    seamlessly repaint the money figure(s) at the PIXEL level, and rebuild the page as a full-page
+    IMAGE (no text layer). This is the forgery the text-layer detectors CANNOT see — nothing remains
+    in the content stream — so only the learned forgery model (run on the rendered raster) catches it.
+    Mutates `doc` in place (replaces the page). Returns {'box','w','h'} (render px) or None if not found.
+    """
+    import io
+
+    import numpy as np
+    from PIL import Image, ImageFilter
+
+    from data.generator import seamless_edit as se
+
+    page = doc[page_index]
+    rects = page.search_for(_money(old_amount))
+    if not rects:
+        return None
+    new_text = _money(new_amount)
+    scale = dpi / 72.0
+    rng = np.random.default_rng(seed)
+
+    # render → simulate a scan-noise floor (puts the page in the model's domain; the repaint mismatches it)
+    pix = page.get_pixmap(dpi=dpi)
+    img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
+    a = np.asarray(img, dtype=np.float32)
+    h, w, _ = a.shape
+    gy = np.linspace(rng.uniform(0.90, 0.96), 1.0, h)[:, None]
+    gx = np.linspace(rng.uniform(0.95, 1.0), 1.0, w)[None, :]
+    a *= (gy * gx)[:, :, None]
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.6))
+    a = np.asarray(img, dtype=np.float32) + rng.normal(0.0, 12.0, (h, w, 3))
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    buf = io.BytesIO(); img.save(buf, "JPEG", quality=90)
+    img = Image.open(io.BytesIO(buf.getvalue())).convert("RGB")          # compression history
+
+    box = None
+    for r in rects:                                                      # repaint every occurrence
+        bx = (int(r.x0 * scale), int(r.y0 * scale), int(r.x1 * scale), int(r.y1 * scale))
+        fpx = max(7, int((r.y1 - r.y0) * scale * 0.9))
+        img, _ = se.edit_field(img, bx, new_text, difficulty="pro", font_px=fpx, rng=rng)
+        box = list(bx)
+
+    out = io.BytesIO(); img.save(out, "JPEG", quality=90)                # rebuild as an image-PDF (no text layer)
+    pr = page.rect
+    doc.delete_page(page_index)
+    newpage = doc.new_page(pno=page_index, width=pr.width, height=pr.height)
+    newpage.insert_image(pr, stream=out.getvalue())
+    return {"box": box, "w": img.width, "h": img.height}
+
+
 def duplicate_seal(
     doc: "fitz.Document", seal_png: bytes, *, page_index: int = 0
 ) -> None:

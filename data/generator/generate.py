@@ -593,6 +593,46 @@ def build_property() -> list[PacketSpec]:
     return specs
 
 
+def build_raster() -> list[PacketSpec]:
+    """Flattened/repainted forgeries: a page is rasterised and a money figure **seamlessly repainted at
+    the pixel level**, then re-embedded as a full-page image (no text layer). The text-layer detectors
+    (white-box redaction, re-OCR cross-check) are structurally **blind** to it — nothing remains in the
+    content stream — so the learned forgery model (run on the rendered page, Part B) is what catches it.
+    Standalone synthetic applicants (no cross-application graph entanglement)."""
+    roster = [
+        Applicant("Ramesh Pillai", "AAAPP1234R", "Zenith Systems", "7012345601", 1_500_000, "1989-03-14"),
+        Applicant("Sunita Rao", "BBBPR5678S", "Crescent Retail", "7012345602", 1_250_000, "1991-08-21"),
+        Applicant("Manoj Gupta", "CCCPG9012M", "Nova Logistics", "7012345603", 1_700_000, "1987-11-05"),
+    ]
+    # (doc index in _clean_docs, filename, the printed figure to repaint)
+    plans = [
+        (1, "form16.pdf", lambda app: app.income),                     # Form 16 gross salary
+        (3, "bank_statement.pdf", lambda app: _monthly_credit(app.income)),  # bank salary-credit
+        (2, "salary_slip.pdf", lambda app: _monthly_credit(app.income)),     # payslip net pay
+    ]
+    specs: list[PacketSpec] = []
+    for k, (app, (doc_idx, fname, valfn)) in enumerate(zip(roster, plans)):
+        created = datetime(2024, 6, 22, 10, 0, 0) + timedelta(days=k * 2)
+        docs = _clean_docs(app, created)
+        old_v = float(valfn(app))
+        new_v = round(old_v * 1.6)
+        res = tp.flatten_and_repaint(docs[doc_idx].doc, old_v, new_v, seed=4242 + k)
+        if res is None:                                                # figure not found → fall back to Form 16 gross
+            doc_idx, fname, old_v, new_v = 1, "form16.pdf", float(app.income), round(app.income * 1.6)
+            res = tp.flatten_and_repaint(docs[doc_idx].doc, old_v, new_v, seed=4242 + k)
+        docs[doc_idx].claimed["raster_repainted_to"] = new_v
+        specs.append(PacketSpec(
+            "", app.name, app.pan, app.employer, docs, created, created + timedelta(days=4),
+            label="fraud", fraud_types=["raster_forgery"],
+            reasons=[f"{fname} is a flattened image (no text layer); the figure was seamlessly repainted "
+                     f"from {int(old_v)} to {int(new_v)} — invisible to the text-layer checks, caught by "
+                     f"the learned forgery model."],
+            affected_docs=[fname],
+            ground_truth={"declared_income": app.income, "displayed_income": new_v, "raster_forgery": True},
+        ))
+    return specs
+
+
 def main() -> None:
     PACKETS_DIR.mkdir(parents=True, exist_ok=True)
     # Wipe previously generated packets for a clean, deterministic rebuild.
@@ -602,7 +642,7 @@ def main() -> None:
 
     all_specs: list[PacketSpec] = (
         build_clean() + build_forensic() + build_cross_doc() + build_template_reuse()
-        + build_behavioral() + build_property()
+        + build_behavioral() + build_property() + build_raster()
     )
 
     labels: dict[str, Any] = {}

@@ -29,7 +29,7 @@ class TestDemoEndpoints:
         resp = client.get("/risk/demo/packets")
         assert resp.status_code == 200
         body = resp.json()
-        assert body["count"] == 33
+        assert body["count"] == 36
         sample = body["packets"][0]
         assert "packet_id" in sample
         assert "ground_truth_label" in sample
@@ -40,7 +40,7 @@ class TestDemoEndpoints:
         resp = client.post("/risk/demo/seed")
         assert resp.status_code == 200
         body = resp.json()
-        assert body["n_applications"] == 33
+        assert body["n_applications"] == 36
         assert body["employer_rings"] >= 1
         assert body["collateral_clusters"] >= 1
 

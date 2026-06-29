@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 from shared.privacy import install_log_redaction
 from shared.schemas import EvidenceCategory
+from services.forensics.app.analysis import analyze_document
 from services.forensics.app.analyzer import analyze_pdf
 from services.forensics.app.image_forensics import analyze_image, compute_verdict
 from services.forensics.app.ingest import forgery_model
@@ -186,27 +187,26 @@ def _identifier_check(tmp_path: str) -> tuple[list[dict], dict]:
 
 @app.post("/forensics/analyze-image")
 async def analyze_image_upload(file: UploadFile = File(...), deep: bool = False) -> dict:
-    """Analyze an uploaded raster image (JPG/PNG/TIFF…) for tampering.
+    """Analyze an uploaded document — **image OR PDF** — for tampering (format-agnostic).
 
-    Two complementary layers: (1) PIXEL forensics — ELA + noise-loss + copy-move + JPEG-ghost +
-    flat-fill + EXIF (annotated overlay + ELA heatmap + per-detector signals); and (2) a SEMANTIC
-    identifier check — OCR the image and validate any PAN/Aadhaar, which catches value edits the
-    pixels can't see (e.g. a painted-out PAN character making the number invalid). Returns the merged
-    findings + a combined verdict + trust. All local, no network.
+    Images run pixel forensics (ELA + noise-loss + copy-move + JPEG-ghost + flat-fill + EXIF) + a
+    SEMANTIC identifier check (PAN/Aadhaar validity + QR). PDFs additionally get text-layer/structural
+    forensics (white-box redaction, font swap, re-OCR, metadata) AND every page rasterised + run through
+    the pixel/U-Net path (so a flattened/repainted PDF is caught too) — see `analyze_document`; the
+    per-page renders + boxes come back in `pages`. Returns merged findings + a combined verdict + trust.
 
-    `deep=true` additionally runs our learned forgery U-Net (the "deep scan"). It localizes seamless
-    edits the pixel heuristics miss (v2: ~100% recall on held-out synthetic docs, ~2-3% clean
-    false-positive; not yet validated on real phone-photos), so it is OPT-IN, never the default — the
-    default path keeps the heuristics' zero-false-positive guarantee. `deep_available` reports whether the U-Net
-    (torch + weights) can run here at all.
+    `deep=true` additionally runs our learned forgery U-Net (the "deep scan") on the raster pass. It
+    localizes seamless edits the pixel heuristics miss (v2: ~100% recall on held-out synthetic docs,
+    ~2-3% clean false-positive; not yet validated on real phone-photos), so it is OPT-IN, never the
+    default. `deep_available` reports whether the U-Net (torch + weights) can run here.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="filename is required")
     suffix = Path(file.filename).suffix.lower()
-    if suffix and suffix not in _IMAGE_SUFFIXES:
+    if suffix and suffix not in _IMAGE_SUFFIXES and suffix not in _PDF_SUFFIXES:
         raise HTTPException(
             status_code=400,
-            detail=f"not an image ({suffix}); use /forensics/analyze for PDFs")
+            detail=f"unsupported file ({suffix}); upload an image or a PDF")
     content = await file.read()
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file uploaded")
@@ -215,13 +215,14 @@ async def analyze_image_upload(file: UploadFile = File(...), deep: bool = False)
         tmp.write(content)
         tmp_path = tmp.name
     try:
-        result = analyze_image(tmp_path, learned="auto" if deep else "env")
-        # Semantic identifier check — merge any invalid-ID findings + recompute the combined verdict.
-        id_findings, id_info = _identifier_check(tmp_path)
-        result["identifier_check"] = id_info
-        if id_findings:
-            result["findings"] = id_findings + result.get("findings", [])
-            result["verdict"], result["image_trust"] = compute_verdict(result["findings"])
+        result = analyze_document(tmp_path, deep=deep, filename=file.filename)
+        # Semantic identifier check (PAN/Aadhaar QR) applies to single images, not PDFs.
+        if result.get("kind") != "pdf":
+            id_findings, id_info = _identifier_check(tmp_path)
+            result["identifier_check"] = id_info
+            if id_findings:
+                result["findings"] = id_findings + result.get("findings", [])
+                result["verdict"], result["image_trust"] = compute_verdict(result["findings"])
         result["filename"] = file.filename
         result["deep_used"] = deep
         result["deep_available"] = forgery_model.available("unet")

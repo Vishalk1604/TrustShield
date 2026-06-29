@@ -28,6 +28,12 @@ export const CURATED_PACKETS = [
     blurb: "The same collateral is pledged across three applications — only the graph sees it.",
     tone: "fraud",
   },
+  {
+    id: "PKT-0034",
+    name: "Flattened forgery (image PDF)",
+    blurb: "A Form 16 repainted then flattened to an image — no text layer to check. The learned model localizes it.",
+    tone: "fraud",
+  },
 ];
 
 // Single-document entry examples — the NEW realistic synthetic docs, carrying their REAL baked

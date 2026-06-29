@@ -31,6 +31,11 @@ other and roll up into one auditable score:
 On top of that, a **KYC + underwriting** pass establishes identity & address, reconciles declared vs.
 proven income across documents, and computes FOIR / affordability.
 
+Analysis is **format-agnostic**: drop a single **image or PDF** into the document tool, or a whole loan
+packet. PDFs get text-layer/structural forensics **and** every page rasterised through the pixel + learned
+model — so a *flattened/repainted* PDF (no text layer for re-OCR to bite) is still caught and localized by
+the model. The demo runs on **held-out** synthetic identities the model never trained on.
+
 Every score comes with a human-readable **evidence chain** — never a black-box number. A *freeze*
 always requires concrete document or graph evidence; a model hunch with nothing to point at is routed
 to manual review, never an auto-reject.

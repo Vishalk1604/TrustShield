@@ -12,11 +12,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:37.234010Z"
+        "computed_at": "2026-06-29T15:47:46.517480Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_8d81b68588be",
+          "id": "ev_7da11e7a303a",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -30,10 +30,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:36.115232Z"
+          "created_at": "2026-06-29T15:47:43.701758Z"
         },
         {
-          "id": "ev_2504216eeee4",
+          "id": "ev_3f26c7f73043",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -56,7 +56,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:37.234010Z"
+          "created_at": "2026-06-29T15:47:46.517480Z"
         }
       ],
       "recommendation": {
@@ -78,6 +78,21 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "app:PKT-0017",
+          "kind": "app",
+          "label": "PKT-0017"
+        },
+        {
+          "id": "employer:Infosys Limited",
+          "kind": "employer",
+          "label": "Infosys Limited"
+        },
+        {
+          "id": "app:PKT-0009",
+          "kind": "app",
+          "label": "PKT-0009"
+        },
+        {
           "id": "pan:ABMPS1234F",
           "kind": "pan",
           "label": "ABMPS1234F"
@@ -86,21 +101,6 @@ export const DEMO_DECISIONS = {
           "id": "app:PKT-0001",
           "kind": "app",
           "label": "PKT-0001"
-        },
-        {
-          "id": "app:PKT-0009",
-          "kind": "app",
-          "label": "PKT-0009"
-        },
-        {
-          "id": "employer:Infosys Limited",
-          "kind": "employer",
-          "label": "Infosys Limited"
-        },
-        {
-          "id": "app:PKT-0017",
-          "kind": "app",
-          "label": "PKT-0017"
         }
       ],
       "edges": [
@@ -195,11 +195,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:39.286111Z"
+        "computed_at": "2026-06-29T15:47:50.902737Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_66c1325d46e9",
+          "id": "ev_0d3d23f8bc4a",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -213,10 +213,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:39.279245Z"
+          "created_at": "2026-06-29T15:47:50.878911Z"
         },
         {
-          "id": "ev_b3963c5bef74",
+          "id": "ev_68907a41308f",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -239,7 +239,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:39.286111Z"
+          "created_at": "2026-06-29T15:47:50.902737Z"
         }
       ],
       "recommendation": {
@@ -261,9 +261,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0010",
+          "id": "app:PKT-0002",
           "kind": "app",
-          "label": "PKT-0010"
+          "label": "PKT-0002"
+        },
+        {
+          "id": "app:PKT-0025",
+          "kind": "app",
+          "label": "PKT-0025"
         },
         {
           "id": "pan:CDNPV5678L",
@@ -271,19 +276,14 @@ export const DEMO_DECISIONS = {
           "label": "CDNPV5678L"
         },
         {
-          "id": "app:PKT-0002",
+          "id": "app:PKT-0010",
           "kind": "app",
-          "label": "PKT-0002"
+          "label": "PKT-0010"
         },
         {
           "id": "employer:Tata Consultancy Services",
           "kind": "employer",
           "label": "Tata Consultancy Services"
-        },
-        {
-          "id": "app:PKT-0025",
-          "kind": "app",
-          "label": "PKT-0025"
         }
       ],
       "edges": [
@@ -378,11 +378,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:41.375047Z"
+        "computed_at": "2026-06-29T15:47:55.327993Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_d8eb7a9411b3",
+          "id": "ev_95406535fdbd",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -396,10 +396,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:41.366438Z"
+          "created_at": "2026-06-29T15:47:55.301041Z"
         },
         {
-          "id": "ev_e35b18917687",
+          "id": "ev_f5d81a6494df",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -422,7 +422,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:41.375047Z"
+          "created_at": "2026-06-29T15:47:55.327993Z"
         }
       ],
       "recommendation": {
@@ -444,6 +444,11 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "app:PKT-0012",
+          "kind": "app",
+          "label": "PKT-0012"
+        },
+        {
           "id": "app:PKT-0028",
           "kind": "app",
           "label": "PKT-0028"
@@ -454,19 +459,14 @@ export const DEMO_DECISIONS = {
           "label": "GHJPR3456M"
         },
         {
-          "id": "app:PKT-0012",
-          "kind": "app",
-          "label": "PKT-0012"
+          "id": "employer:HDFC Bank",
+          "kind": "employer",
+          "label": "HDFC Bank"
         },
         {
           "id": "app:PKT-0004",
           "kind": "app",
           "label": "PKT-0004"
-        },
-        {
-          "id": "employer:HDFC Bank",
-          "kind": "employer",
-          "label": "HDFC Bank"
         }
       ],
       "edges": [
@@ -561,11 +561,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.3,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:43.391027Z"
+        "computed_at": "2026-06-29T15:47:59.522617Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_25edd9327718",
+          "id": "ev_1ce695f2cd19",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -584,10 +584,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 0.997,
-          "created_at": "2026-06-29T03:32:43.391027Z"
+          "created_at": "2026-06-29T15:47:59.522617Z"
         },
         {
-          "id": "ev_e38e3d0b304c",
+          "id": "ev_b9a1203f99a6",
           "category": "forensic",
           "severity": "high",
           "title": "Suspicious producer software detected",
@@ -599,10 +599,10 @@ export const DEMO_DECISIONS = {
             "creator": "Adobe Photoshop 24.0 (Windows)"
           },
           "confidence": 0.9,
-          "created_at": "2026-06-29T03:32:42.771884Z"
+          "created_at": "2026-06-29T15:47:58.247943Z"
         },
         {
-          "id": "ev_912795924cac",
+          "id": "ev_00bd894cb20f",
           "category": "forensic",
           "severity": "medium",
           "title": "Document modified long after creation",
@@ -615,10 +615,10 @@ export const DEMO_DECISIONS = {
             "gap_days": 41
           },
           "confidence": 0.8,
-          "created_at": "2026-06-29T03:32:42.771884Z"
+          "created_at": "2026-06-29T15:47:58.247943Z"
         },
         {
-          "id": "ev_41662e807047",
+          "id": "ev_15cf4286576b",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -632,7 +632,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:43.384192Z"
+          "created_at": "2026-06-29T15:47:59.502274Z"
         }
       ],
       "recommendation": {
@@ -654,6 +654,21 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "app:PKT-0017",
+          "kind": "app",
+          "label": "PKT-0017"
+        },
+        {
+          "id": "employer:Infosys Limited",
+          "kind": "employer",
+          "label": "Infosys Limited"
+        },
+        {
+          "id": "app:PKT-0009",
+          "kind": "app",
+          "label": "PKT-0009"
+        },
+        {
           "id": "pan:ABMPS1234F",
           "kind": "pan",
           "label": "ABMPS1234F"
@@ -664,24 +679,9 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0001"
         },
         {
-          "id": "app:PKT-0009",
-          "kind": "app",
-          "label": "PKT-0009"
-        },
-        {
-          "id": "employer:Infosys Limited",
-          "kind": "employer",
-          "label": "Infosys Limited"
-        },
-        {
           "id": "template:e17eb6fff2dde0d2477c2cc4deaf1b89",
           "kind": "template",
           "label": "e17eb6fff2dde0d2477c2cc4deaf1b89"
-        },
-        {
-          "id": "app:PKT-0017",
-          "kind": "app",
-          "label": "PKT-0017"
         }
       ],
       "edges": [
@@ -780,11 +780,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:45.561023Z"
+        "computed_at": "2026-06-29T15:48:03.990362Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_6ab1da6204ce",
+          "id": "ev_a3a6ab17a87b",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -811,10 +811,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:45.561023Z"
+          "created_at": "2026-06-29T15:48:03.990362Z"
         },
         {
-          "id": "ev_9ddf70ef0ea5",
+          "id": "ev_4ce1e39b53de",
           "category": "forensic",
           "severity": "high",
           "title": "White-box edit detected (covered text)",
@@ -846,10 +846,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.88,
-          "created_at": "2026-06-29T03:32:43.822394Z"
+          "created_at": "2026-06-29T15:48:00.468378Z"
         },
         {
-          "id": "ev_d887401e7adb",
+          "id": "ev_570bbf7e1b0a",
           "category": "forensic",
           "severity": "high",
           "title": "Visible content contradicts PDF text layer (re-OCR cross-check)",
@@ -888,10 +888,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.85,
-          "created_at": "2026-06-29T03:32:44.511341Z"
+          "created_at": "2026-06-29T15:48:01.916153Z"
         },
         {
-          "id": "ev_6933cb7b13a9",
+          "id": "ev_5c38d49ff7bd",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -905,7 +905,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:45.554016Z"
+          "created_at": "2026-06-29T15:48:03.969716Z"
         }
       ],
       "recommendation": {
@@ -927,14 +927,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0010",
-          "kind": "app",
-          "label": "PKT-0010"
-        },
-        {
-          "id": "pan:CDNPV5678L",
-          "kind": "pan",
-          "label": "CDNPV5678L"
+          "id": "template:3e299a62425eb1a0b4ecc61589a9c17b",
+          "kind": "template",
+          "label": "3e299a62425eb1a0b4ecc61589a9c17b"
         },
         {
           "id": "app:PKT-0002",
@@ -942,19 +937,24 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0002"
         },
         {
-          "id": "template:3e299a62425eb1a0b4ecc61589a9c17b",
-          "kind": "template",
-          "label": "3e299a62425eb1a0b4ecc61589a9c17b"
+          "id": "app:PKT-0025",
+          "kind": "app",
+          "label": "PKT-0025"
+        },
+        {
+          "id": "pan:CDNPV5678L",
+          "kind": "pan",
+          "label": "CDNPV5678L"
+        },
+        {
+          "id": "app:PKT-0010",
+          "kind": "app",
+          "label": "PKT-0010"
         },
         {
           "id": "employer:Tata Consultancy Services",
           "kind": "employer",
           "label": "Tata Consultancy Services"
-        },
-        {
-          "id": "app:PKT-0025",
-          "kind": "app",
-          "label": "PKT-0025"
         }
       ],
       "edges": [
@@ -1081,11 +1081,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:47.648936Z"
+        "computed_at": "2026-06-29T15:48:08.337247Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_9d916310b5bc",
+          "id": "ev_180defa7496b",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -1112,10 +1112,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:47.648936Z"
+          "created_at": "2026-06-29T15:48:08.337247Z"
         },
         {
-          "id": "ev_10aa0d78ac1d",
+          "id": "ev_1bbcdd85eed5",
           "category": "forensic",
           "severity": "medium",
           "title": "Duplicate image objects detected (copy-paste signal)",
@@ -1128,10 +1128,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.8,
-          "created_at": "2026-06-29T03:32:47.011295Z"
+          "created_at": "2026-06-29T15:48:06.962033Z"
         },
         {
-          "id": "ev_c72d1031d407",
+          "id": "ev_6a92589b78d2",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1145,7 +1145,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:47.643649Z"
+          "created_at": "2026-06-29T15:48:08.312799Z"
         }
       ],
       "recommendation": {
@@ -1167,9 +1167,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0028",
+          "id": "app:PKT-0012",
           "kind": "app",
-          "label": "PKT-0028"
+          "label": "PKT-0012"
         },
         {
           "id": "template:67dd53dca763bfe1c3cefd443c8f3535",
@@ -1182,19 +1182,19 @@ export const DEMO_DECISIONS = {
           "label": "GHJPR3456M"
         },
         {
-          "id": "app:PKT-0012",
+          "id": "app:PKT-0028",
           "kind": "app",
-          "label": "PKT-0012"
-        },
-        {
-          "id": "app:PKT-0004",
-          "kind": "app",
-          "label": "PKT-0004"
+          "label": "PKT-0028"
         },
         {
           "id": "employer:HDFC Bank",
           "kind": "employer",
           "label": "HDFC Bank"
+        },
+        {
+          "id": "app:PKT-0004",
+          "kind": "app",
+          "label": "PKT-0004"
         }
       ],
       "edges": [
@@ -1293,11 +1293,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 47.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:49.666568Z"
+        "computed_at": "2026-06-29T15:48:12.885320Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_5e3fcf168717",
+          "id": "ev_fe44844b2410",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -1328,10 +1328,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:49.666568Z"
+          "created_at": "2026-06-29T15:48:12.885320Z"
         },
         {
-          "id": "ev_1a32cdd19734",
+          "id": "ev_e2ef4ef7a116",
           "category": "semantic",
           "severity": "high",
           "title": "Income declared on Form 16 inconsistent with bank credits",
@@ -1344,10 +1344,10 @@ export const DEMO_DECISIONS = {
             "deviation_pct": 45.0
           },
           "confidence": 0.9,
-          "created_at": "2026-06-29T03:32:49.619302Z"
+          "created_at": "2026-06-29T15:48:12.733063Z"
         },
         {
-          "id": "ev_d16afbb096ab",
+          "id": "ev_130c780aa453",
           "category": "semantic",
           "severity": "medium",
           "title": "Income declared on Form 16 inconsistent with salary slip",
@@ -1361,10 +1361,10 @@ export const DEMO_DECISIONS = {
             "deviation_pct": 30.0
           },
           "confidence": 0.9,
-          "created_at": "2026-06-29T03:32:49.619302Z"
+          "created_at": "2026-06-29T15:48:12.733063Z"
         },
         {
-          "id": "ev_9b2d3c6476de",
+          "id": "ev_8eb2a837928e",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1378,7 +1378,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:49.659581Z"
+          "created_at": "2026-06-29T15:48:12.864038Z"
         }
       ],
       "recommendation": {
@@ -1400,19 +1400,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "pan:ABMPS1234F",
-          "kind": "pan",
-          "label": "ABMPS1234F"
-        },
-        {
-          "id": "app:PKT-0001",
+          "id": "app:PKT-0017",
           "kind": "app",
-          "label": "PKT-0001"
-        },
-        {
-          "id": "app:PKT-0009",
-          "kind": "app",
-          "label": "PKT-0009"
+          "label": "PKT-0017"
         },
         {
           "id": "employer:Infosys Limited",
@@ -1420,9 +1410,19 @@ export const DEMO_DECISIONS = {
           "label": "Infosys Limited"
         },
         {
-          "id": "app:PKT-0017",
+          "id": "app:PKT-0009",
           "kind": "app",
-          "label": "PKT-0017"
+          "label": "PKT-0009"
+        },
+        {
+          "id": "app:PKT-0001",
+          "kind": "app",
+          "label": "PKT-0001"
+        },
+        {
+          "id": "pan:ABMPS1234F",
+          "kind": "pan",
+          "label": "ABMPS1234F"
         }
       ],
       "edges": [
@@ -1517,11 +1517,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:52.498056Z"
+        "computed_at": "2026-06-29T15:48:18.995436Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_b84dfd12c0e6",
+          "id": "ev_721a8f5fca39",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -1536,10 +1536,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:52.491202Z"
+          "created_at": "2026-06-29T15:48:18.976062Z"
         },
         {
-          "id": "ev_821f8d3b723d",
+          "id": "ev_c42a6443f7f6",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1553,10 +1553,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:52.491202Z"
+          "created_at": "2026-06-29T15:48:18.976062Z"
         },
         {
-          "id": "ev_734eb12d9c93",
+          "id": "ev_e29d37371bfe",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -1579,7 +1579,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:52.498056Z"
+          "created_at": "2026-06-29T15:48:18.995436Z"
         }
       ],
       "recommendation": {
@@ -1601,14 +1601,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0010",
-          "kind": "app",
-          "label": "PKT-0010"
-        },
-        {
-          "id": "pan:CDNPV5678L",
-          "kind": "pan",
-          "label": "CDNPV5678L"
+          "id": "property:SY-217/3B",
+          "kind": "property",
+          "label": "SY-217/3B"
         },
         {
           "id": "app:PKT-0002",
@@ -1616,24 +1611,29 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0002"
         },
         {
-          "id": "property:SY-217/3B",
-          "kind": "property",
-          "label": "SY-217/3B"
-        },
-        {
-          "id": "employer:Tata Consultancy Services",
-          "kind": "employer",
-          "label": "Tata Consultancy Services"
-        },
-        {
           "id": "app:PKT-0025",
           "kind": "app",
           "label": "PKT-0025"
         },
         {
+          "id": "pan:CDNPV5678L",
+          "kind": "pan",
+          "label": "CDNPV5678L"
+        },
+        {
+          "id": "app:PKT-0010",
+          "kind": "app",
+          "label": "PKT-0010"
+        },
+        {
           "id": "app:PKT-0027",
           "kind": "app",
           "label": "PKT-0027"
+        },
+        {
+          "id": "employer:Tata Consultancy Services",
+          "kind": "employer",
+          "label": "Tata Consultancy Services"
         }
       ],
       "edges": [
@@ -1775,11 +1775,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:55.593366Z"
+        "computed_at": "2026-06-29T15:48:25.244958Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_1f2a8d56e057",
+          "id": "ev_a342a094c61f",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -1794,10 +1794,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:55.580210Z"
+          "created_at": "2026-06-29T15:48:25.225183Z"
         },
         {
-          "id": "ev_9ebc723da7b6",
+          "id": "ev_e1e4d6e69ba7",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1811,10 +1811,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:55.580210Z"
+          "created_at": "2026-06-29T15:48:25.225183Z"
         },
         {
-          "id": "ev_c6eb12c67b6d",
+          "id": "ev_c1169bbf8eb0",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -1837,7 +1837,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:55.593366Z"
+          "created_at": "2026-06-29T15:48:25.244958Z"
         }
       ],
       "recommendation": {
@@ -1859,19 +1859,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0028",
-          "kind": "app",
-          "label": "PKT-0028"
+          "id": "pan:TUVPJ0123H",
+          "kind": "pan",
+          "label": "TUVPJ0123H"
         },
         {
-          "id": "employer:Accenture",
-          "kind": "employer",
-          "label": "Accenture"
-        },
-        {
-          "id": "app:PKT-0013",
+          "id": "app:PKT-0026",
           "kind": "app",
-          "label": "PKT-0013"
+          "label": "PKT-0026"
         },
         {
           "id": "property:SY-058/1A",
@@ -1884,14 +1879,19 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0008"
         },
         {
-          "id": "app:PKT-0026",
+          "id": "app:PKT-0013",
           "kind": "app",
-          "label": "PKT-0026"
+          "label": "PKT-0013"
         },
         {
-          "id": "pan:TUVPJ0123H",
-          "kind": "pan",
-          "label": "TUVPJ0123H"
+          "id": "employer:Accenture",
+          "kind": "employer",
+          "label": "Accenture"
+        },
+        {
+          "id": "app:PKT-0028",
+          "kind": "app",
+          "label": "PKT-0028"
         }
       ],
       "edges": [
@@ -2033,11 +2033,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:32:58.543290Z"
+        "computed_at": "2026-06-29T15:48:30.838250Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_5ab7a4e47816",
+          "id": "ev_dc344c680fef",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2064,10 +2064,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:58.543290Z"
+          "created_at": "2026-06-29T15:48:30.838250Z"
         },
         {
-          "id": "ev_0388c3ccdf34",
+          "id": "ev_091c4cefc761",
           "category": "forensic",
           "severity": "high",
           "title": "White-box edit detected (covered text)",
@@ -2090,10 +2090,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.88,
-          "created_at": "2026-06-29T03:32:57.354345Z"
+          "created_at": "2026-06-29T15:48:28.321502Z"
         },
         {
-          "id": "ev_e90575a047a8",
+          "id": "ev_40da71ca4a82",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -2108,10 +2108,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:58.536327Z"
+          "created_at": "2026-06-29T15:48:30.819353Z"
         },
         {
-          "id": "ev_5c7e419bda77",
+          "id": "ev_a8963771794f",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -2126,7 +2126,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:32:58.536327Z"
+          "created_at": "2026-06-29T15:48:30.819353Z"
         }
       ],
       "recommendation": {
@@ -2148,29 +2148,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0028",
-          "kind": "app",
-          "label": "PKT-0028"
-        },
-        {
-          "id": "template:6785e85709f53a1157c200b0abad584d",
-          "kind": "template",
-          "label": "6785e85709f53a1157c200b0abad584d"
-        },
-        {
           "id": "property:SY-217/3B",
           "kind": "property",
           "label": "SY-217/3B"
         },
         {
-          "id": "app:PKT-0011",
-          "kind": "app",
-          "label": "PKT-0011"
-        },
-        {
-          "id": "app:PKT-0022",
-          "kind": "app",
-          "label": "PKT-0022"
+          "id": "employer:Wipro Limited",
+          "kind": "employer",
+          "label": "Wipro Limited"
         },
         {
           "id": "app:PKT-0003",
@@ -2183,9 +2168,9 @@ export const DEMO_DECISIONS = {
           "label": "EFKPP9012Q"
         },
         {
-          "id": "employer:Wipro Limited",
-          "kind": "employer",
-          "label": "Wipro Limited"
+          "id": "app:PKT-0028",
+          "kind": "app",
+          "label": "PKT-0028"
         },
         {
           "id": "app:PKT-0025",
@@ -2193,9 +2178,24 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0025"
         },
         {
+          "id": "app:PKT-0022",
+          "kind": "app",
+          "label": "PKT-0022"
+        },
+        {
+          "id": "template:6785e85709f53a1157c200b0abad584d",
+          "kind": "template",
+          "label": "6785e85709f53a1157c200b0abad584d"
+        },
+        {
           "id": "app:PKT-0027",
           "kind": "app",
           "label": "PKT-0027"
+        },
+        {
+          "id": "app:PKT-0011",
+          "kind": "app",
+          "label": "PKT-0011"
         }
       ],
       "edges": [
@@ -2369,11 +2369,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 40.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:33:01.556555Z"
+        "computed_at": "2026-06-29T15:48:37.130133Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_dbe1613705e1",
+          "id": "ev_6207fb288b3e",
           "category": "semantic",
           "severity": "critical",
           "title": "Encumbrance certificate contradicts CERSAI registry",
@@ -2396,10 +2396,10 @@ export const DEMO_DECISIONS = {
             "ec_claims_nil": true
           },
           "confidence": 0.95,
-          "created_at": "2026-06-29T03:33:01.487043Z"
+          "created_at": "2026-06-29T15:48:36.957053Z"
         },
         {
-          "id": "ev_03212ac750e1",
+          "id": "ev_a9a0901bed00",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2430,10 +2430,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:01.556555Z"
+          "created_at": "2026-06-29T15:48:37.130133Z"
         },
         {
-          "id": "ev_ce008e822763",
+          "id": "ev_4d539609fab5",
           "category": "forensic",
           "severity": "high",
           "title": "White-box edit detected (covered text)",
@@ -2456,10 +2456,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.88,
-          "created_at": "2026-06-29T03:33:00.574847Z"
+          "created_at": "2026-06-29T15:48:34.709217Z"
         },
         {
-          "id": "ev_5dcd02ae3a06",
+          "id": "ev_fae71eaaacfc",
           "category": "forensic",
           "severity": "high",
           "title": "Visible content contradicts PDF text layer (re-OCR cross-check)",
@@ -2485,10 +2485,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.85,
-          "created_at": "2026-06-29T03:33:00.930549Z"
+          "created_at": "2026-06-29T15:48:35.701611Z"
         },
         {
-          "id": "ev_33cd0863c8bf",
+          "id": "ev_788d17b8d902",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -2503,10 +2503,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:01.549407Z"
+          "created_at": "2026-06-29T15:48:37.108442Z"
         },
         {
-          "id": "ev_be35983c6cd7",
+          "id": "ev_15957903a9b9",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -2520,7 +2520,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:01.549407Z"
+          "created_at": "2026-06-29T15:48:37.108442Z"
         }
       ],
       "recommendation": {
@@ -2542,6 +2542,21 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "app:PKT-0026",
+          "kind": "app",
+          "label": "PKT-0026"
+        },
+        {
+          "id": "app:PKT-0012",
+          "kind": "app",
+          "label": "PKT-0012"
+        },
+        {
+          "id": "property:SY-058/1A",
+          "kind": "property",
+          "label": "SY-058/1A"
+        },
+        {
           "id": "app:PKT-0028",
           "kind": "app",
           "label": "PKT-0028"
@@ -2552,14 +2567,9 @@ export const DEMO_DECISIONS = {
           "label": "GHJPR3456M"
         },
         {
-          "id": "property:SY-058/1A",
-          "kind": "property",
-          "label": "SY-058/1A"
-        },
-        {
-          "id": "app:PKT-0012",
-          "kind": "app",
-          "label": "PKT-0012"
+          "id": "employer:HDFC Bank",
+          "kind": "employer",
+          "label": "HDFC Bank"
         },
         {
           "id": "app:PKT-0004",
@@ -2572,19 +2582,9 @@ export const DEMO_DECISIONS = {
           "label": "6785e85709f53a1157c200b0abad584d"
         },
         {
-          "id": "app:PKT-0026",
-          "kind": "app",
-          "label": "PKT-0026"
-        },
-        {
           "id": "app:PKT-0027",
           "kind": "app",
           "label": "PKT-0027"
-        },
-        {
-          "id": "employer:HDFC Bank",
-          "kind": "employer",
-          "label": "HDFC Bank"
         }
       ],
       "edges": [
@@ -2756,11 +2756,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 0.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:33:04.513526Z"
+        "computed_at": "2026-06-29T15:48:43.101666Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_a9114f763e6a",
+          "id": "ev_45085ad5812d",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -2777,10 +2777,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:04.506410Z"
+          "created_at": "2026-06-29T15:48:43.081541Z"
         },
         {
-          "id": "ev_1f036e35f869",
+          "id": "ev_007829c833e1",
           "category": "semantic",
           "severity": "critical",
           "title": "Loan exceeds registered market value (LTV vs registry > 100%)",
@@ -2794,10 +2794,10 @@ export const DEMO_DECISIONS = {
             "ltv_vs_registry": 1.267
           },
           "confidence": 0.92,
-          "created_at": "2026-06-29T03:33:04.436752Z"
+          "created_at": "2026-06-29T15:48:42.918634Z"
         },
         {
-          "id": "ev_f90b66ec578c",
+          "id": "ev_dda624ea4051",
           "category": "semantic",
           "severity": "critical",
           "title": "Property valuation inflated above registry market value",
@@ -2811,10 +2811,10 @@ export const DEMO_DECISIONS = {
             "inflation_pct": 46.7
           },
           "confidence": 0.9,
-          "created_at": "2026-06-29T03:33:04.436752Z"
+          "created_at": "2026-06-29T15:48:42.918634Z"
         },
         {
-          "id": "ev_f8ff322a310c",
+          "id": "ev_349778ceed71",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2841,10 +2841,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:04.513526Z"
+          "created_at": "2026-06-29T15:48:43.101666Z"
         },
         {
-          "id": "ev_9ae168b55dd0",
+          "id": "ev_7f1c680b0b4a",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -2858,7 +2858,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:04.506410Z"
+          "created_at": "2026-06-29T15:48:43.081541Z"
         }
       ],
       "recommendation": {
@@ -2880,21 +2880,6 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0014",
-          "kind": "app",
-          "label": "PKT-0014"
-        },
-        {
-          "id": "app:PKT-0029",
-          "kind": "app",
-          "label": "PKT-0029"
-        },
-        {
-          "id": "app:PKT-0033",
-          "kind": "app",
-          "label": "PKT-0033"
-        },
-        {
           "id": "employer:Singh Traders",
           "kind": "employer",
           "label": "Singh Traders"
@@ -2905,14 +2890,19 @@ export const DEMO_DECISIONS = {
           "label": "SY-911/2C"
         },
         {
-          "id": "app:PKT-0005",
+          "id": "app:PKT-0014",
           "kind": "app",
-          "label": "PKT-0005"
+          "label": "PKT-0014"
         },
         {
           "id": "app:PKT-0031",
           "kind": "app",
           "label": "PKT-0031"
+        },
+        {
+          "id": "app:PKT-0033",
+          "kind": "app",
+          "label": "PKT-0033"
         },
         {
           "id": "app:PKT-0032",
@@ -2923,6 +2913,16 @@ export const DEMO_DECISIONS = {
           "id": "pan:KLMPS7777N",
           "kind": "pan",
           "label": "KLMPS7777N"
+        },
+        {
+          "id": "app:PKT-0005",
+          "kind": "app",
+          "label": "PKT-0005"
+        },
+        {
+          "id": "app:PKT-0029",
+          "kind": "app",
+          "label": "PKT-0029"
         }
       ],
       "edges": [
@@ -3072,11 +3072,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:33:07.595369Z"
+        "computed_at": "2026-06-29T15:48:49.483480Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_2aaae4cec63d",
+          "id": "ev_7ed992ac11d4",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -3093,10 +3093,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:07.588272Z"
+          "created_at": "2026-06-29T15:48:49.463530Z"
         },
         {
-          "id": "ev_af9b6d78f037",
+          "id": "ev_cf8ded94c0c0",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -3119,7 +3119,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:07.595369Z"
+          "created_at": "2026-06-29T15:48:49.483480Z"
         }
       ],
       "recommendation": {
@@ -3141,14 +3141,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0029",
-          "kind": "app",
-          "label": "PKT-0029"
-        },
-        {
-          "id": "app:PKT-0033",
-          "kind": "app",
-          "label": "PKT-0033"
+          "id": "property:SY-911/2C",
+          "kind": "property",
+          "label": "SY-911/2C"
         },
         {
           "id": "pan:ZZEPS5555E",
@@ -3156,24 +3151,29 @@ export const DEMO_DECISIONS = {
           "label": "ZZEPS5555E"
         },
         {
-          "id": "property:SY-911/2C",
-          "kind": "property",
-          "label": "SY-911/2C"
-        },
-        {
-          "id": "employer:Shaikh Trading Co",
-          "kind": "employer",
-          "label": "Shaikh Trading Co"
-        },
-        {
           "id": "app:PKT-0031",
           "kind": "app",
           "label": "PKT-0031"
         },
         {
+          "id": "app:PKT-0033",
+          "kind": "app",
+          "label": "PKT-0033"
+        },
+        {
           "id": "app:PKT-0032",
           "kind": "app",
           "label": "PKT-0032"
+        },
+        {
+          "id": "app:PKT-0029",
+          "kind": "app",
+          "label": "PKT-0029"
+        },
+        {
+          "id": "employer:Shaikh Trading Co",
+          "kind": "employer",
+          "label": "Shaikh Trading Co"
         }
       ],
       "edges": [
@@ -3307,11 +3307,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:33:10.491587Z"
+        "computed_at": "2026-06-29T15:48:55.338047Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_f2e8a5f594e1",
+          "id": "ev_098648912371",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -3328,10 +3328,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:10.484353Z"
+          "created_at": "2026-06-29T15:48:55.314332Z"
         },
         {
-          "id": "ev_500e250b1937",
+          "id": "ev_deb6704b49fe",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -3354,7 +3354,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:10.491587Z"
+          "created_at": "2026-06-29T15:48:55.338047Z"
         }
       ],
       "recommendation": {
@@ -3376,26 +3376,6 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "pan:ZZFPM6666F",
-          "kind": "pan",
-          "label": "ZZFPM6666F"
-        },
-        {
-          "id": "employer:Menon & Sons",
-          "kind": "employer",
-          "label": "Menon & Sons"
-        },
-        {
-          "id": "app:PKT-0029",
-          "kind": "app",
-          "label": "PKT-0029"
-        },
-        {
-          "id": "app:PKT-0033",
-          "kind": "app",
-          "label": "PKT-0033"
-        },
-        {
           "id": "property:SY-911/2C",
           "kind": "property",
           "label": "SY-911/2C"
@@ -3406,9 +3386,29 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0031"
         },
         {
+          "id": "app:PKT-0033",
+          "kind": "app",
+          "label": "PKT-0033"
+        },
+        {
+          "id": "employer:Menon & Sons",
+          "kind": "employer",
+          "label": "Menon & Sons"
+        },
+        {
           "id": "app:PKT-0032",
           "kind": "app",
           "label": "PKT-0032"
+        },
+        {
+          "id": "pan:ZZFPM6666F",
+          "kind": "pan",
+          "label": "ZZFPM6666F"
+        },
+        {
+          "id": "app:PKT-0029",
+          "kind": "app",
+          "label": "PKT-0029"
         }
       ],
       "edges": [
@@ -3542,11 +3542,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-29T03:33:13.474436Z"
+        "computed_at": "2026-06-29T15:49:01.375901Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_103e25a7fabf",
+          "id": "ev_408b43a06752",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -3563,10 +3563,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:13.467374Z"
+          "created_at": "2026-06-29T15:49:01.349081Z"
         },
         {
-          "id": "ev_53ded3bf6778",
+          "id": "ev_60ef05479d16",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -3589,7 +3589,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-29T03:33:13.474436Z"
+          "created_at": "2026-06-29T15:49:01.375901Z"
         }
       ],
       "recommendation": {
@@ -3611,24 +3611,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "app:PKT-0029",
-          "kind": "app",
-          "label": "PKT-0029"
+          "id": "property:SY-911/2C",
+          "kind": "property",
+          "label": "SY-911/2C"
         },
         {
           "id": "app:PKT-0033",
           "kind": "app",
           "label": "PKT-0033"
-        },
-        {
-          "id": "employer:Das Enterprises",
-          "kind": "employer",
-          "label": "Das Enterprises"
-        },
-        {
-          "id": "property:SY-911/2C",
-          "kind": "property",
-          "label": "SY-911/2C"
         },
         {
           "id": "pan:ZZGPD7777G",
@@ -3644,6 +3634,16 @@ export const DEMO_DECISIONS = {
           "id": "app:PKT-0032",
           "kind": "app",
           "label": "PKT-0032"
+        },
+        {
+          "id": "employer:Das Enterprises",
+          "kind": "employer",
+          "label": "Das Enterprises"
+        },
+        {
+          "id": "app:PKT-0029",
+          "kind": "app",
+          "label": "PKT-0029"
         }
       ],
       "edges": [
@@ -3757,6 +3757,746 @@ export const DEMO_DECISIONS = {
         "doc_type": "legal_opinion",
         "filename": "legal_opinion.pdf",
         "img": "demo/PKT-0033_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
+  },
+  "PKT-0034": {
+    "decision": {
+      "packet_id": "PKT-0034",
+      "trust_score": {
+        "overall": 11.2,
+        "forensic_subscore": 30.0,
+        "semantic_subscore": 0.0,
+        "anomaly_subscore": 0.0,
+        "version": "4.0.0",
+        "computed_at": "2026-06-29T15:49:27.255058Z"
+      },
+      "evidence_chain": [
+        {
+          "id": "ev_fee8954d9812",
+          "category": "anomaly",
+          "severity": "high",
+          "title": "Learned risk model assessment",
+          "description": "The trained risk model assigns this packet a fraud probability of 100%. Leading factors: submission timing relative to document creation; number of cross-document inconsistencies; declared income vs bank/salary mismatch.",
+          "source_doc_id": null,
+          "source_location": "risk model (gradient-boosted trees + isolation forest)",
+          "values": {
+            "fraud_probability": 1.0,
+            "anomaly_score": 0.261,
+            "top_factors": [
+              {
+                "factor": "submission timing relative to document creation",
+                "weight": 0.8246
+              },
+              {
+                "factor": "number of cross-document inconsistencies",
+                "weight": 0.1376
+              },
+              {
+                "factor": "declared income vs bank/salary mismatch",
+                "weight": 0.032
+              }
+            ],
+            "model_version": "4.0.0"
+          },
+          "confidence": 1.0,
+          "created_at": "2026-06-29T15:49:27.255058Z"
+        },
+        {
+          "id": "ev_9cec2b810f60",
+          "category": "semantic",
+          "severity": "high",
+          "title": "Income declared on Form 16 inconsistent with bank credits",
+          "description": "Form 16 declares Rs. 90,000 annual gross income, but bank salary credits annualise to only Rs. 1,350,000 (1500% of declared). A 93% discrepancy exceeds the 20% tolerance and suggests the Form 16 income may be inflated.",
+          "source_doc_id": null,
+          "source_location": "form16.pdf vs bank_statement.pdf",
+          "values": {
+            "form16_income": 90000.0,
+            "bank_implied_annual": 1350000.0,
+            "deviation_pct": 93.3
+          },
+          "confidence": 0.9,
+          "created_at": "2026-06-29T15:49:23.981425Z"
+        },
+        {
+          "id": "ev_fd2f3ce02b25",
+          "category": "semantic",
+          "severity": "high",
+          "title": "Income declared on Form 16 inconsistent with salary slip",
+          "description": "Form 16 declares Rs. 90,000 annual gross income, but the salary slip's net monthly pay of Rs. 112,500 annualises to Rs. 1,350,000 (1500% of declared). A 93% deviation exceeds the 20% tolerance.",
+          "source_doc_id": null,
+          "source_location": "form16.pdf vs salary_slip.pdf",
+          "values": {
+            "form16_income": 90000.0,
+            "slip_net_monthly": 112500.0,
+            "slip_implied_annual": 1350000.0,
+            "deviation_pct": 93.3
+          },
+          "confidence": 0.9,
+          "created_at": "2026-06-29T15:49:23.981425Z"
+        },
+        {
+          "id": "ev_5612ab7d3b0a",
+          "category": "semantic",
+          "severity": "high",
+          "title": "Applicant name inconsistency across documents",
+          "description": "'identity' records name as 'Ramesh Pillai' but 'form16' records 'Zenith Systems Ramesh Pillai'. All documents in a loan packet must identify the same applicant.",
+          "source_doc_id": null,
+          "source_location": "identity vs form16",
+          "values": {
+            "reference_doc": "identity",
+            "reference_name": "Ramesh Pillai",
+            "conflicting_doc": "form16",
+            "conflicting_name": "Zenith Systems Ramesh Pillai"
+          },
+          "confidence": 0.9,
+          "created_at": "2026-06-29T15:49:23.981425Z"
+        },
+        {
+          "id": "ev_67d09dce59d4",
+          "category": "forensic",
+          "severity": "high",
+          "title": "Tampered region (learned forgery model)",
+          "description": "form16.pdf: A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find.",
+          "source_doc_id": null,
+          "source_location": "form16.pdf",
+          "values": {
+            "detector": "forgery_model",
+            "strength": 0.9,
+            "regions": [
+              {
+                "page": 1,
+                "bbox": [
+                  275,
+                  736,
+                  426,
+                  761
+                ],
+                "bbox_frac": [
+                  0.194621372965322,
+                  0.368,
+                  0.30148619957537154,
+                  0.3805
+                ]
+              }
+            ]
+          },
+          "confidence": 0.85,
+          "created_at": "2026-06-29T15:49:18.759567Z"
+        }
+      ],
+      "recommendation": {
+        "action": "freeze",
+        "rationale": "Trust score 11/100 is below the freeze threshold (40) and is backed by concrete document-level evidence (forensic and/or semantic findings). Recommend freezing pending investigation.",
+        "thresholds_used": {
+          "approve_at_or_above": 70.0,
+          "freeze_below": 40.0,
+          "critical_trust_ceiling": 25.0,
+          "weights": {
+            "model": 0.55,
+            "forensic": 0.25,
+            "semantic": 0.15,
+            "anomaly": 0.05
+          }
+        }
+      }
+    },
+    "subgraph": {
+      "nodes": [
+        {
+          "id": "app:PKT-0034",
+          "kind": "app",
+          "label": "PKT-0034"
+        },
+        {
+          "id": "app:PKT-0036",
+          "kind": "app",
+          "label": "PKT-0036"
+        },
+        {
+          "id": "app:PKT-0035",
+          "kind": "app",
+          "label": "PKT-0035"
+        },
+        {
+          "id": "pan:AAAPP1234R",
+          "kind": "pan",
+          "label": "AAAPP1234R"
+        },
+        {
+          "id": "employer:Zenith Systems",
+          "kind": "employer",
+          "label": "Zenith Systems"
+        },
+        {
+          "id": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "kind": "template",
+          "label": "571f502302fe2370fbf9bcb4db13d56c"
+        }
+      ],
+      "edges": [
+        {
+          "source": "app:PKT-0034",
+          "target": "pan:AAAPP1234R"
+        },
+        {
+          "source": "app:PKT-0034",
+          "target": "employer:Zenith Systems"
+        },
+        {
+          "source": "app:PKT-0034",
+          "target": "template:571f502302fe2370fbf9bcb4db13d56c"
+        },
+        {
+          "source": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "target": "app:PKT-0035"
+        },
+        {
+          "source": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "target": "app:PKT-0036"
+        }
+      ]
+    },
+    "overlays": [
+      {
+        "doc": "form16.pdf",
+        "page": 1,
+        "src": "demo/PKT-0034_0.png"
+      }
+    ],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0034_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0034_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": true,
+        "boxes": [
+          [
+            241,
+            645,
+            373,
+            667
+          ]
+        ],
+        "verdict": "EDITED",
+        "method": "model",
+        "finding": {
+          "title": "Tampered region (learned forgery model)",
+          "description": "form16.pdf: A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
+        }
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0034_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0034_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
+  },
+  "PKT-0035": {
+    "decision": {
+      "packet_id": "PKT-0035",
+      "trust_score": {
+        "overall": 13.4,
+        "forensic_subscore": 0.0,
+        "semantic_subscore": 65.0,
+        "anomaly_subscore": 0.0,
+        "version": "4.0.0",
+        "computed_at": "2026-06-29T15:49:48.554810Z"
+      },
+      "evidence_chain": [
+        {
+          "id": "ev_634bc0d3f3ef",
+          "category": "anomaly",
+          "severity": "high",
+          "title": "Learned risk model assessment",
+          "description": "The trained risk model assigns this packet a fraud probability of 100%. Leading factors: submission timing relative to document creation; number of cross-document inconsistencies; declared income vs bank/salary mismatch.",
+          "source_doc_id": null,
+          "source_location": "risk model (gradient-boosted trees + isolation forest)",
+          "values": {
+            "fraud_probability": 1.0,
+            "anomaly_score": 0.261,
+            "top_factors": [
+              {
+                "factor": "submission timing relative to document creation",
+                "weight": 0.9079
+              },
+              {
+                "factor": "number of cross-document inconsistencies",
+                "weight": 0.0505
+              },
+              {
+                "factor": "declared income vs bank/salary mismatch",
+                "weight": 0.0353
+              }
+            ],
+            "model_version": "4.0.0"
+          },
+          "confidence": 1.0,
+          "created_at": "2026-06-29T15:49:48.554810Z"
+        },
+        {
+          "id": "ev_11a82d33fe4b",
+          "category": "semantic",
+          "severity": "high",
+          "title": "Income declared on Form 16 inconsistent with bank credits",
+          "description": "Form 16 declares Rs. 1,250,000 annual gross income, but bank salary credits annualise to only Rs. 3,858,750 (309% of declared). A 68% discrepancy exceeds the 20% tolerance and suggests the Form 16 income may be inflated.",
+          "source_doc_id": null,
+          "source_location": "form16.pdf vs bank_statement.pdf",
+          "values": {
+            "form16_income": 1250000.0,
+            "bank_implied_annual": 3858750.0,
+            "deviation_pct": 67.6
+          },
+          "confidence": 0.9,
+          "created_at": "2026-06-29T15:49:45.548156Z"
+        },
+        {
+          "id": "ev_582d2f3d66d1",
+          "category": "forensic",
+          "severity": "high",
+          "title": "Tampered region (learned forgery model)",
+          "description": "bank_statement.pdf: A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find.",
+          "source_doc_id": null,
+          "source_location": "bank_statement.pdf",
+          "values": {
+            "detector": "forgery_model",
+            "strength": 0.9,
+            "regions": [
+              {
+                "page": 1,
+                "bbox": [
+                  946,
+                  563,
+                  1068,
+                  585
+                ],
+                "bbox_frac": [
+                  0.6694975230007078,
+                  0.2815,
+                  0.7558386411889597,
+                  0.2925
+                ]
+              }
+            ]
+          },
+          "confidence": 0.85,
+          "created_at": "2026-06-29T15:49:42.393007Z"
+        }
+      ],
+      "recommendation": {
+        "action": "freeze",
+        "rationale": "Trust score 13/100 is below the freeze threshold (40) and is backed by concrete document-level evidence (forensic and/or semantic findings). Recommend freezing pending investigation.",
+        "thresholds_used": {
+          "approve_at_or_above": 70.0,
+          "freeze_below": 40.0,
+          "critical_trust_ceiling": 25.0,
+          "weights": {
+            "model": 0.55,
+            "forensic": 0.25,
+            "semantic": 0.15,
+            "anomaly": 0.05
+          }
+        }
+      }
+    },
+    "subgraph": {
+      "nodes": [
+        {
+          "id": "app:PKT-0034",
+          "kind": "app",
+          "label": "PKT-0034"
+        },
+        {
+          "id": "app:PKT-0036",
+          "kind": "app",
+          "label": "PKT-0036"
+        },
+        {
+          "id": "app:PKT-0035",
+          "kind": "app",
+          "label": "PKT-0035"
+        },
+        {
+          "id": "employer:Crescent Retail",
+          "kind": "employer",
+          "label": "Crescent Retail"
+        },
+        {
+          "id": "pan:BBBPR5678S",
+          "kind": "pan",
+          "label": "BBBPR5678S"
+        },
+        {
+          "id": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "kind": "template",
+          "label": "571f502302fe2370fbf9bcb4db13d56c"
+        }
+      ],
+      "edges": [
+        {
+          "source": "app:PKT-0034",
+          "target": "template:571f502302fe2370fbf9bcb4db13d56c"
+        },
+        {
+          "source": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "target": "app:PKT-0035"
+        },
+        {
+          "source": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "target": "app:PKT-0036"
+        },
+        {
+          "source": "app:PKT-0035",
+          "target": "pan:BBBPR5678S"
+        },
+        {
+          "source": "app:PKT-0035",
+          "target": "employer:Crescent Retail"
+        }
+      ]
+    },
+    "overlays": [
+      {
+        "doc": "bank_statement.pdf",
+        "page": 1,
+        "src": "demo/PKT-0035_0.png"
+      }
+    ],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0035_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0035_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0035_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0035_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": true,
+        "boxes": [
+          [
+            830,
+            494,
+            937,
+            513
+          ]
+        ],
+        "verdict": "EDITED",
+        "method": "model",
+        "finding": {
+          "title": "Tampered region (learned forgery model)",
+          "description": "bank_statement.pdf: A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
+        }
+      }
+    ]
+  },
+  "PKT-0036": {
+    "decision": {
+      "packet_id": "PKT-0036",
+      "trust_score": {
+        "overall": 32.2,
+        "forensic_subscore": 65.0,
+        "semantic_subscore": 82.0,
+        "anomaly_subscore": 0.0,
+        "version": "4.0.0",
+        "computed_at": "2026-06-29T15:50:07.694004Z"
+      },
+      "evidence_chain": [
+        {
+          "id": "ev_5270f2d4ff2c",
+          "category": "anomaly",
+          "severity": "high",
+          "title": "Learned risk model assessment",
+          "description": "The trained risk model assigns this packet a fraud probability of 100%. Leading factors: submission timing relative to document creation; number of cross-document inconsistencies; declared income vs bank/salary mismatch.",
+          "source_doc_id": null,
+          "source_location": "risk model (gradient-boosted trees + isolation forest)",
+          "values": {
+            "fraud_probability": 1.0,
+            "anomaly_score": 0.261,
+            "top_factors": [
+              {
+                "factor": "submission timing relative to document creation",
+                "weight": 0.9079
+              },
+              {
+                "factor": "number of cross-document inconsistencies",
+                "weight": 0.0505
+              },
+              {
+                "factor": "declared income vs bank/salary mismatch",
+                "weight": 0.0353
+              }
+            ],
+            "model_version": "4.0.0"
+          },
+          "confidence": 1.0,
+          "created_at": "2026-06-29T15:50:07.694004Z"
+        },
+        {
+          "id": "ev_69b7bb4a9c47",
+          "category": "forensic",
+          "severity": "high",
+          "title": "Tampered region (learned forgery model)",
+          "description": "salary_slip.pdf: A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find.",
+          "source_doc_id": null,
+          "source_location": "salary_slip.pdf",
+          "values": {
+            "detector": "forgery_model",
+            "strength": 0.9,
+            "regions": [
+              {
+                "page": 1,
+                "bbox": [
+                  1039,
+                  600,
+                  1148,
+                  635
+                ],
+                "bbox_frac": [
+                  0.7353149327671621,
+                  0.3,
+                  0.8124557678697806,
+                  0.3175
+                ]
+              }
+            ]
+          },
+          "confidence": 0.85,
+          "created_at": "2026-06-29T15:50:01.578589Z"
+        },
+        {
+          "id": "ev_07fe61d42dd7",
+          "category": "semantic",
+          "severity": "medium",
+          "title": "Income declared on Form 16 inconsistent with salary slip",
+          "description": "Form 16 declares Rs. 1,700,000 annual gross income, but the salary slip's net monthly pay of Rs. 185,867 annualises to Rs. 2,230,404 (131% of declared). A 24% deviation exceeds the 20% tolerance.",
+          "source_doc_id": null,
+          "source_location": "form16.pdf vs salary_slip.pdf",
+          "values": {
+            "form16_income": 1700000.0,
+            "slip_net_monthly": 185867.0,
+            "slip_implied_annual": 2230404.0,
+            "deviation_pct": 23.8
+          },
+          "confidence": 0.9,
+          "created_at": "2026-06-29T15:50:04.937306Z"
+        }
+      ],
+      "recommendation": {
+        "action": "freeze",
+        "rationale": "Trust score 32/100 is below the freeze threshold (40) and is backed by concrete document-level evidence (forensic and/or semantic findings). Recommend freezing pending investigation.",
+        "thresholds_used": {
+          "approve_at_or_above": 70.0,
+          "freeze_below": 40.0,
+          "critical_trust_ceiling": 25.0,
+          "weights": {
+            "model": 0.55,
+            "forensic": 0.25,
+            "semantic": 0.15,
+            "anomaly": 0.05
+          }
+        }
+      }
+    },
+    "subgraph": {
+      "nodes": [
+        {
+          "id": "pan:CCCPG9012M",
+          "kind": "pan",
+          "label": "CCCPG9012M"
+        },
+        {
+          "id": "app:PKT-0034",
+          "kind": "app",
+          "label": "PKT-0034"
+        },
+        {
+          "id": "app:PKT-0036",
+          "kind": "app",
+          "label": "PKT-0036"
+        },
+        {
+          "id": "app:PKT-0035",
+          "kind": "app",
+          "label": "PKT-0035"
+        },
+        {
+          "id": "employer:Nova Logistics",
+          "kind": "employer",
+          "label": "Nova Logistics"
+        },
+        {
+          "id": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "kind": "template",
+          "label": "571f502302fe2370fbf9bcb4db13d56c"
+        }
+      ],
+      "edges": [
+        {
+          "source": "app:PKT-0034",
+          "target": "template:571f502302fe2370fbf9bcb4db13d56c"
+        },
+        {
+          "source": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "target": "app:PKT-0035"
+        },
+        {
+          "source": "template:571f502302fe2370fbf9bcb4db13d56c",
+          "target": "app:PKT-0036"
+        },
+        {
+          "source": "app:PKT-0036",
+          "target": "pan:CCCPG9012M"
+        },
+        {
+          "source": "app:PKT-0036",
+          "target": "employer:Nova Logistics"
+        }
+      ]
+    },
+    "overlays": [
+      {
+        "doc": "salary_slip.pdf",
+        "page": 1,
+        "src": "demo/PKT-0036_0.png"
+      }
+    ],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0036_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0036_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0036_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": true,
+        "boxes": [
+          [
+            911,
+            526,
+            1007,
+            557
+          ]
+        ],
+        "verdict": "EDITED",
+        "method": "model",
+        "finding": {
+          "title": "Tampered region (learned forgery model)",
+          "description": "salary_slip.pdf: A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
+        }
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0036_doc3.jpg",
         "w": 1240,
         "h": 1755,
         "page": 1,

@@ -79,7 +79,7 @@ class TestClusters:
         c = graph.clusters()
         assert "collateral_clusters" in c
         assert "employer_rings" in c
-        assert c["n_applications"] == 33
+        assert c["n_applications"] == 36
 
 
 # ── graph evidence ────────────────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ class TestPersistence:
         graph.save(store)
         assert store.exists()
         reloaded = ApplicationGraph.load(store)
-        assert len(reloaded._app_nodes()) == 33
+        assert len(reloaded._app_nodes()) == 36
         # clusters survive the roundtrip
         assert len(reloaded.collateral_clusters()) == len(graph.collateral_clusters())
 

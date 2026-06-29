@@ -375,16 +375,65 @@ def apply_verification(
     )
 
 
+def _deep_scan_findings(doc_path: Path, filename: str) -> list[EvidenceItem]:
+    """Render any FLATTENED (no text layer) page of a packet doc and run the learned forgery model on it,
+    so a raster forgery the text-layer forensics are blind to is still caught + localized. Evidence-only:
+    these items are NOT fed to the risk feature vector (like re-OCR) — they surface in the evidence chain
+    and the per-document viewer, and drive the forensic sub-score. Vector/text pages are skipped (the U-Net
+    would false-fire on a pristine render; text-layer forensics already cover them)."""
+    import io
+    import tempfile
+
+    import fitz
+    from PIL import Image
+
+    from services.forensics.app.image_forensics import analyze_image
+
+    items: list[EvidenceItem] = []
+    try:
+        with fitz.open(doc_path) as d:
+            for pno in range(d.page_count):
+                if len(d[pno].get_text("text").strip()) >= 40:
+                    continue
+                pix = d[pno].get_pixmap(dpi=300)
+                with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                    Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB").save(tmp.name, "JPEG", quality=90)
+                    tmp_path = tmp.name
+                try:
+                    res = analyze_image(tmp_path, learned="auto")
+                finally:
+                    Path(tmp_path).unlink(missing_ok=True)
+                rw, rh = res.get("width") or 1, res.get("height") or 1
+                for f in res.get("findings", []):
+                    v = dict(f.get("values", {}) or {})
+                    for r in v.get("regions", []) or []:
+                        r["page"] = pno + 1
+                        b = r.get("bbox")
+                        if b:   # normalized box (resolution-independent) so any renderer can place it
+                            r["bbox_frac"] = [b[0] / rw, b[1] / rh, b[2] / rw, b[3] / rh]
+                    items.append(EvidenceItem(
+                        category="forensic", severity=f.get("severity", "high"),
+                        title=f.get("title", "Tampered region (learned forgery model)"),
+                        description=f"{filename}: {f.get('description', '')}",
+                        source_location=filename, values=v, confidence=float(f.get("confidence", 0.85)),
+                    ))
+    except Exception:  # pragma: no cover — render/torch failure must not sink scoring
+        return items
+    return items
+
+
 def score_packet_dir(
     pkt_dir: Path,
     packet_id: Optional[str] = None,
     graph: object = None,
+    deep_scan: bool = False,
 ) -> PacketDecision:
     """Full scoring for a synthetic packet directory (offline path).
 
     Runs Phase 1 forensics + Phase 2 semantic rules + Phase 3 model on the packet,
     then aggregates into a PacketDecision. If a Phase 5 ``graph`` (ApplicationGraph)
-    is supplied, its cross-application evidence for this packet is folded in.
+    is supplied, its cross-application evidence for this packet is folded in. With ``deep_scan=True`` the
+    learned forgery model is also run on any flattened/image page (catches raster forgeries; evidence-only).
     """
     import json
 
@@ -414,6 +463,8 @@ def score_packet_dir(
         result = analyze_pdf(str(doc_path), doc_type=doc_type, filename=doc_rec["filename"])
         for f in result.get("findings", []):
             forensic_items.append(EvidenceItem(**f))
+        if deep_scan:                                    # learned model on flattened/image pages (Part B)
+            forensic_items.extend(_deep_scan_findings(doc_path, doc_rec["filename"]))
         entities_by_doc[doc_type] = extract_entities(str(doc_path), doc_type=doc_type)
 
     # Phase 2 semantic rules

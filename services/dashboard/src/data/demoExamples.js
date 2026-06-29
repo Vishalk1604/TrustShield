@@ -34,8 +34,8 @@ export const DEMO_EXAMPLES = [
     "w": 1413,
     "h": 2000,
     "difficulty": "pro",
-    "old_value": "Rs. 2,900,000",
-    "new_value": "Rs. 4,247,523",
+    "old_value": "Rs. 2,300,000",
+    "new_value": "Rs. 3,368,726",
     "verdict": "EDITED",
     "trust": 15,
     "method": "model",
@@ -63,8 +63,8 @@ export const DEMO_EXAMPLES = [
     "w": 1413,
     "h": 2000,
     "difficulty": "naive",
-    "old_value": "Rs. 1,600,000",
-    "new_value": "Rs. 2,343,461",
+    "old_value": "Rs. 800,000",
+    "new_value": "Rs. 1,171,731",
     "verdict": "EDITED",
     "trust": 15,
     "method": "model",
@@ -132,7 +132,7 @@ export const DEMO_EXAMPLES = [
         711,
         218,
         1031,
-        363
+        361
       ]
     ],
     "blurb": "A region re-saved at a different JPEG quality.",
@@ -179,8 +179,8 @@ export const DEMO_EXAMPLES = [
     "w": 1413,
     "h": 2000,
     "difficulty": "pro",
-    "old_value": "Rs. 170,833",
-    "new_value": "Rs. 250,213",
+    "old_value": "Rs. 184,500",
+    "new_value": "Rs. 270,230",
     "verdict": "EDITED",
     "trust": 15,
     "method": "model",
@@ -189,7 +189,7 @@ export const DEMO_EXAMPLES = [
       [
         950,
         893,
-        1011,
+        1006,
         910
       ]
     ],
@@ -208,24 +208,24 @@ export const DEMO_EXAMPLES = [
     "w": 1413,
     "h": 2000,
     "difficulty": "pro",
-    "old_value": "ASGPM0383D",
-    "new_value": "ASGPM0883D",
-    "verdict": "EDITED",
-    "trust": 15,
-    "method": "model",
-    "detector": "forgery_model",
+    "old_value": "IJLPK6365Y",
+    "new_value": "IJLPK6865Y",
+    "verdict": "CLEAN",
+    "trust": 100,
+    "method": "none",
+    "detector": null,
     "boxes": [
       [
-        492,
-        504,
-        656,
-        539
+        829,
+        887,
+        1148,
+        943
       ]
     ],
     "blurb": "One PAN character changed and seamlessly re-rendered.",
     "finding": {
-      "title": "Tampered region (learned forgery model)",
-      "description": "A learned forgery-localization model flags this region as edited. The learned detector catches edits that leave no noise/compression trace for the heuristics to find."
+      "title": "Not flagged",
+      "description": "This seamless edit evaded every detector in this run."
     }
   }
 ];

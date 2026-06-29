@@ -645,3 +645,27 @@ root cause:
     naive/blended/pro **1.00**, geom 0.908, Form-16 discrimination 0% FP. The dashboard is re-baked at
     300 dpi (`build_demo_examples` / `build_demo_folder` / `homeReveal`): control CLEAN, every seamless edit
     EDITED by the model; UI/README copy updated from "~19%" to the measured ~100% recall / ~2–3% clean FP.
+
+### Format-agnostic analysis + the learned model in packets + raster-forgery packets (2026-06-29)
+The single-doc tool took images only (pixel + U-Net); packets were PDFs scored by text-layer forensics
+(white-box/re-OCR) and the **U-Net never ran on packets**. Unified so any document gets every applicable
+detector, and the learned model contributes inside packets.
+- **`analyze_document` (services/forensics/app/analysis.py).** Image → `analyze_image`. PDF → `analyze_pdf`
+  (text-layer/structural) **+** each page rasterised at 300 dpi → `analyze_image` (pixel + opt-in U-Net),
+  merged into one verdict; `pages[]` carries per-page renders + boxes. `/forensics/analyze-image` now
+  accepts PDFs (the dashboard single-doc tool too). **Gate:** the raster/U-Net pass runs only on pages with
+  **no text layer** (flattened/image PDFs) — a vector render is pristine (out-of-distribution → the U-Net
+  FPs) and text-layer forensics already cover it. Verified: clean vector PDF → CLEAN even under deep; white-
+  box edit → EDITED with the regions boxed.
+- **U-Net on packets (`aggregator.score_packet_dir(deep_scan=True)`).** Renders each flattened page → runs
+  the model → adds its findings as forensic `EvidenceItem`s (with a normalized `bbox_frac` so any renderer
+  can place the box). **Evidence-only** — NOT fed to the gradient-boosted feature vector (like re-OCR), so
+  the trained risk model is untouched; the verdict impact flows through the forensic sub-score.
+- **Raster-forgery packets (`tamper.flatten_and_repaint`, 3 new packets, fraud type `raster_forgery`).**
+  A page is rasterised (with a simulated scan-noise floor at **300 dpi** to match the deep-scan render —
+  rendering at a lower dpi upscales → diffuse whole-page firing), a money figure **seamlessly repainted**
+  via `seamless_edit.edit_field`, and re-embedded as an **image-PDF (no text layer)**. Result: the text-
+  layer checks are structurally blind; only the learned model localizes it (tight box on the figure). The
+  packet still freezes (semantics also read the inflated value via OCR — honest defense-in-depth).
+- **Held-out demo.** All showcase renders now use applicant indices ≥ 500 — well beyond the training build's
+  112 — so the Examples/Home/packet demo run on identities/layouts the model never trained on.

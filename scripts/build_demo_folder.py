@@ -146,7 +146,11 @@ def _find(records, doc_type, tamper_type, difficulty, source=None):
 
 
 # distinct procedural applicant per doc type → varied, judge-friendly showcase documents
-_DOC_APPLICANT = {"form16": 0, "salary_slip": 1, "bank_statement": 2, "identity": 3, "aadhaar": 4}
+# HELD-OUT identities (indices well beyond the training build's DEFAULT_APPLICANTS=112) → the demo runs
+# on documents the model never trained on.
+_HELD_OUT = 500
+_DOC_APPLICANT = {"form16": _HELD_OUT, "salary_slip": _HELD_OUT + 1, "bank_statement": _HELD_OUT + 2,
+                  "identity": _HELD_OUT + 3, "aadhaar": _HELD_OUT + 4}
 
 
 def build_documents() -> list[dict]:

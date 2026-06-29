@@ -48,6 +48,10 @@ IMAGES = REPO / "data" / "synthetic" / "images"
 PUB = REPO / "services" / "dashboard" / "public" / "examples"
 OUT_JS = REPO / "services" / "dashboard" / "src" / "data" / "demoExamples.js"
 
+# Render the demo from HELD-OUT synthetic identities — applicant indices well beyond the training build's
+# range (DEFAULT_APPLICANTS=112) — so the showcase is documents the model has never seen.
+HELD_OUT = 500
+
 _PIXEL = {"ela", "noise", "flat_fill", "copy_move", "jpeg_ghost", "recapture"}
 
 
@@ -108,7 +112,7 @@ def main() -> int:
     examples = []
 
     # clean control — a genuine FULL page at 300 dpi (the model's domain); run the model too and expect CLEAN.
-    ctrl = render_showcase_pair("form16", field=None, dpi=300, applicant_idx=3)
+    ctrl = render_showcase_pair("form16", field=None, dpi=300, applicant_idx=HELD_OUT + 3)
     _save_jpg(ctrl["clean"], PUB / "ctrl_form16_clean.jpg")
     res = analyze_layered(str(PUB / "ctrl_form16_clean.jpg"), escalate=True)
     examples.append({
@@ -125,7 +129,7 @@ def main() -> int:
     for i, (key, doc_type, ttype, diff, prefer, title, blurb) in enumerate(CURATE):
         geom = ttype if diff == "geom" else None
         pair = render_showcase_pair(doc_type, field=(None if geom else ttype), difficulty=diff,
-                                    geom=geom, dpi=300, applicant_idx=i)
+                                    geom=geom, dpi=300, applicant_idx=HELD_OUT + i)
         if pair["edited"] is None:
             print(f"  ! could not render {doc_type}/{ttype}/{diff}")
             continue
@@ -152,7 +156,7 @@ def main() -> int:
         print(f"  {key:16s} verdict={res.get('verdict'):10s} method={m:8s} detector={det} box={box[0]}")
 
     # Home "spot the edit" pair — a full-page Form 16 pro edit at 300 dpi for the Home loupe.
-    home = render_showcase_pair("form16", field="gross_salary", difficulty="pro", dpi=300, applicant_idx=0)
+    home = render_showcase_pair("form16", field="gross_salary", difficulty="pro", dpi=300, applicant_idx=HELD_OUT)
     _save_jpg(home["clean"], PUB / "realistic_form16_clean.jpg")
     _save_jpg(home["edited"], PUB / "realistic_form16_edited.jpg")
     print(f"  home pair -> realistic_form16_{{clean,edited}}.jpg ({home['w']}x{home['h']})")

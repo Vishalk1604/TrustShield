@@ -33,6 +33,7 @@ DEMO_STEPS: list[tuple[str, str, str]] = [
     ("PKT-0032", "Double-financing ring, application #2 - same property surfaces", "freeze"),
     ("PKT-0033", "Double-financing ring, application #3 - the graph reveal", "freeze"),
     ("PKT-0018", "Synthetic-identity ring (shared employer + template)", "freeze"),
+    ("PKT-0034", "Flattened/repainted Form 16 - no text layer; semantics catch the inflated value, the learned model localizes the repaint on a deep scan", "freeze"),
 ]
 
 _SEV_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}

@@ -176,7 +176,7 @@ class TestEndToEnd:
         assert fp == 0, f"{fp} clean packets wrongly flagged"
         assert fn == 0, f"{fn} fraud packets slipped through"
         assert tn == 10, f"expected 10 clean, got {tn}"
-        assert tp == 23, f"expected 23 fraud flagged, got {tp}"
+        assert tp == 26, f"expected 26 fraud flagged, got {tp}"
 
     def test_every_decision_has_evidence(self):
         """Contract: never a score without a non-empty evidence chain."""

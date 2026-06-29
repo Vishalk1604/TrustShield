@@ -496,9 +496,10 @@ function SingleDocMode({ live }) {
     <div style={{ display: "grid", gap: 16 }}>
       <Card pad={18}>
         <p style={{ color: C.textDim, fontSize: 13.5, margin: "0 0 14px", lineHeight: 1.6, maxWidth: 720 }}>
-          Drop one scanned or photographed document. TrustShield runs <b style={{ color: LY.forensic.hue }}>pixel forensics</b> (ELA,
-          sensor-noise loss, copy-move), a <b style={{ color: LY.semantic.hue }}>semantic ID check</b> (PAN/Aadhaar validity + QR
-          cross-verify), and reports a verdict with the edit <b>localized</b> — 100% on-device.
+          Drop one document — <b>image or PDF</b>. TrustShield runs <b style={{ color: LY.forensic.hue }}>pixel forensics</b> (ELA,
+          sensor-noise loss, copy-move), a <b style={{ color: LY.semantic.hue }}>semantic ID check</b> (PAN/Aadhaar validity + QR),
+          and for PDFs also <b>text-layer forensics + the learned model on every page</b> — a verdict with the edit
+          <b> localized</b>, 100% on-device.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           {CURATED_IMAGES.map((ex) => (
@@ -513,8 +514,8 @@ function SingleDocMode({ live }) {
             background: "rgba(148,163,184,0.06)", border: `1px solid ${C.borderStrong}`,
             color: "#dbe5f1", borderRadius: radius.md, padding: "10px 16px",
           }}>
-            Upload image…
-            <input type="file" accept="image/*" onChange={onUpload} disabled={!live} style={{ display: "none" }} />
+            Upload image or PDF…
+            <input type="file" accept="image/*,application/pdf,.pdf" onChange={onUpload} disabled={!live} style={{ display: "none" }} />
           </label>
         </div>
         {!live && (
@@ -607,18 +608,37 @@ function SingleDocMode({ live }) {
             </div>
           </Card>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="ts-img-grid">
-            <figure style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
-              <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
-              <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}><span style={{ color: hexA(C.danger, 0.9) }}>◼</span> detected edit region(s)</figcaption>
-            </figure>
-            {res.ela_b64 && (
-              <figure style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
-                <img src={`data:image/png;base64,${res.ela_b64}`} alt="ELA heatmap" style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
-                <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>ELA heatmap — compression-error energy</figcaption>
-              </figure>
-            )}
-          </div>
+          {res.pages?.length ? (
+            // PDF: render each page with its detected regions boxed (text-layer + learned-model)
+            <div style={{ display: "grid", gap: 12, gridTemplateColumns: res.pages.length > 1 ? "repeat(auto-fill, minmax(280px,1fr))" : "1fr" }}>
+              {res.pages.map((pg) => (
+                <figure key={pg.page} style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
+                  <BoxedImage src={`data:image/jpeg;base64,${pg.img_b64}`} alt={`page ${pg.page}`}
+                    boxes={pg.boxes || []} imgW={pg.w} imgH={pg.h} hue={LY.model.hue}
+                    label={pg.boxes?.length ? "detected edit" : null} style={{ maxHeight: 520, margin: "0 auto" }} />
+                  <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>
+                    Page {pg.page}{res.pages.length > 1 ? ` of ${res.pages.length}` : ""}
+                    {pg.boxes?.length ? <> — <span style={{ color: hexA(C.danger, 0.9) }}>◼</span> edit localized</> : " — no edit"}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="ts-img-grid">
+              {res.annotated_b64 && (
+                <figure style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
+                  <img src={`data:image/png;base64,${res.annotated_b64}`} alt="annotated edit regions" style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
+                  <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}><span style={{ color: hexA(C.danger, 0.9) }}>◼</span> detected edit region(s)</figcaption>
+                </figure>
+              )}
+              {res.ela_b64 && (
+                <figure style={{ margin: 0, background: C.bgInset, border: `1px solid ${C.border}`, borderRadius: radius.md, padding: 8 }}>
+                  <img src={`data:image/png;base64,${res.ela_b64}`} alt="ELA heatmap" style={{ width: "100%", borderRadius: 6, border: `1px solid ${C.borderStrong}`, display: "block" }} />
+                  <figcaption style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>ELA heatmap — compression-error energy</figcaption>
+                </figure>
+              )}
+            </div>
+          )}
 
           <section>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>

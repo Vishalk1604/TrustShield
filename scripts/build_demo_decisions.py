@@ -35,9 +35,11 @@ LABELS = REPO / "data" / "synthetic" / "labels.json"
 PUB_DEMO = REPO / "services" / "dashboard" / "public" / "demo"
 OUT_JS = REPO / "services" / "dashboard" / "src" / "data" / "demoDecisions.js"
 
-# The packets the dashboard bakes for offline Demo mode (parity with the current demoDecisions.js).
+# The packets the dashboard bakes for offline Demo mode. Includes the raster-forgery packets (0034-0036)
+# so packet mode shows the learned model catching a flattened forgery the text-layer checks miss.
 PACKET_IDS = ["PKT-0001", "PKT-0002", "PKT-0004", "PKT-0009", "PKT-0010", "PKT-0012", "PKT-0017",
-              "PKT-0025", "PKT-0026", "PKT-0027", "PKT-0028", "PKT-0029", "PKT-0031", "PKT-0032", "PKT-0033"]
+              "PKT-0025", "PKT-0026", "PKT-0027", "PKT-0028", "PKT-0029", "PKT-0031", "PKT-0032", "PKT-0033",
+              "PKT-0034", "PKT-0035", "PKT-0036"]
 
 
 def _render_overlays(pkt_dir: Path, decision) -> list[dict]:
@@ -73,6 +75,8 @@ _PT2PX = _RENDER_DPI / 72.0
 def _method_for(ev) -> str:
     cat = getattr(ev, "category", None)
     det = (ev.values or {}).get("detector", "") if getattr(ev, "values", None) else ""
+    if det == "forgery_model":
+        return "model"
     if cat == "semantic" or str(det).startswith("qr"):
         return "semantic"
     return "pixel"      # forensic white-box / re-OCR / pixel signals
@@ -96,10 +100,11 @@ def _packet_documents(pkt_dir: Path, decision, pid: str) -> list[dict]:
         fn = next((d["filename"] for d in docs if d["filename"] in hay), None)
         if fn is None:
             continue
-        m = matched.setdefault(fn, {"page": int(regions[0].get("page", 1)), "boxes_pt": [], "ev": ev})
+        m = matched.setdefault(fn, {"page": int(regions[0].get("page", 1)), "boxes": [], "ev": ev})
         for r in regions:
-            if r.get("bbox"):
-                m["boxes_pt"].append((int(r.get("page", 1)), r["bbox"]))
+            if r.get("bbox") or r.get("bbox_frac"):
+                # (page, bbox in PDF points | None, bbox_frac normalized 0-1 | None)
+                m["boxes"].append((int(r.get("page", 1)), r.get("bbox"), r.get("bbox_frac")))
 
     out: list[dict] = []
     for i, d in enumerate(docs):
@@ -115,8 +120,14 @@ def _packet_documents(pkt_dir: Path, decision, pid: str) -> list[dict]:
             continue
         img_name = f"{pid}_doc{i}.jpg"
         Image.open(io.BytesIO(png)).convert("RGB").save(PUB_DEMO / img_name, "JPEG", quality=85)
-        boxes = [[int(b[0] * _PT2PX), int(b[1] * _PT2PX), int(b[2] * _PT2PX), int(b[3] * _PT2PX)]
-                 for (pg, b) in (info["boxes_pt"] if info else []) if pg == page_no]
+        boxes = []
+        for (pg, b, frac) in (info["boxes"] if info else []):
+            if pg != page_no:
+                continue
+            if frac:        # learned-model region: normalized → scale to this render's pixels
+                boxes.append([int(frac[0] * W), int(frac[1] * H), int(frac[2] * W), int(frac[3] * H)])
+            elif b:         # text-layer region: PDF points → pixels
+                boxes.append([int(b[0] * _PT2PX), int(b[1] * _PT2PX), int(b[2] * _PT2PX), int(b[3] * _PT2PX)])
         edited = bool(boxes)
         out.append({
             "doc_type": d.get("doc_type", "document"), "filename": fn,
@@ -142,7 +153,7 @@ def main() -> int:
             print(f"  ! missing {pid}")
             continue
         subgraph = graph.subgraph_for(pid)
-        decision = score_packet_dir(pkt, pid, graph=graph)
+        decision = score_packet_dir(pkt, pid, graph=graph, deep_scan=True)   # run the learned model on flattened pages
         overlays = []
         for i, o in enumerate(_render_overlays(pkt, decision)):
             (PUB_DEMO / f"{pid}_{i}.png").write_bytes(base64.b64decode(o["image_b64"]))

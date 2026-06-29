@@ -124,15 +124,15 @@ class TestFeatures:
         assert x[idx] == 0.0, "future-dated docs should flag creation_before_submission=0"
 
     def test_feature_batch_all_packets(self):
-        """Batch extraction should succeed for all 33 packets."""
+        """Batch extraction should succeed for all 36 packets."""
         from services.risk.app.features import compute_features_batch
         labels = _labels()
         X, y, ids = compute_features_batch(PACKETS_DIR, labels)
-        assert X.shape[0] == 33, f"Expected 33 packets, got {X.shape[0]}"
+        assert X.shape[0] == 36, f"Expected 36 packets, got {X.shape[0]}"
         assert X.shape[1] >= 16, "Expected at least 16 features"
-        assert y.shape[0] == 33
+        assert y.shape[0] == 36
         assert (y == 0).sum() == 10, "Expected 10 clean packets"
-        assert (y == 1).sum() == 23, "Expected 23 fraud packets"
+        assert (y == 1).sum() == 26, "Expected 26 fraud packets"
         # No NaN/Inf in feature matrix
         assert np.isfinite(X).all(), "Feature matrix contains NaN or Inf"
 

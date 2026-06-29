@@ -30,6 +30,8 @@ EXPECTED_FRAUD_TYPES = {
     "valuation_inflation",
     "property_mismatch",
     "double_financing",
+    # flattened/repainted raster forgery (no text layer → caught by the learned model)
+    "raster_forgery",
 }
 
 
