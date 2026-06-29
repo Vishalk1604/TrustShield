@@ -62,9 +62,10 @@ data/synthetic/_preview/
 data/synthetic/packets/
 data/synthetic/labels.json
 
-# Browsable, cross-verified demo corpus — DATASET, never committed.
+# Browsable, cross-verified demo corpus — DATASET, never committed. Anchored to the repo root so it does
+# NOT also ignore services/dashboard/public/demo/ (committed dashboard assets).
 # Rebuild locally:  python scripts/build_demo_folder.py
-demo/
+/demo/
 
 # data/real/ holds REAL, PII-bearing documents used ONLY for local validation of the real-document
 # pipeline. NEVER commit them. data/real/.gitignore keeps just the folder structure + README.

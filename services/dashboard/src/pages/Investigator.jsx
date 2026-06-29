@@ -11,6 +11,7 @@ import PipelineDiagram from "../components/ui/PipelineDiagram.jsx";
 import { Card, Badge, Button } from "../components/ui/primitives.jsx";
 import BoxedImage from "../components/ui/BoxedImage.jsx";
 import DocModal from "../components/ui/DocModal.jsx";
+import PacketDocsModal from "../components/ui/PacketDocsModal.jsx";
 import { METHOD } from "../data/methods.js";
 import { DEMO_DECISIONS } from "../data/demoDecisions.js";
 import { CURATED_PACKETS, CURATED_IMAGES } from "../data/curatedCases.js";
@@ -189,6 +190,7 @@ function PacketMode({ live }) {
   const [showAll, setShowAll] = useState(false);
   const [packetFilter, setPacketFilter] = useState("all"); // all | fraud | clean
   const [activeLayer, setActiveLayer] = useState(null);
+  const [openDocs, setOpenDocs] = useState(null);  // {idx} → packet-documents viewer
 
   const groupRefs = useRef({});
   const verdictRef = useRef(null);
@@ -259,6 +261,8 @@ function PacketMode({ live }) {
   const groups = PIPELINE_ORDER
     .map((cat) => ({ cat, items: (decision?.evidence_chain || []).filter((e) => e.category === cat) }))
     .filter((g) => g.items.length);
+  // baked per-document renders + detection boxes (keyed by packet id → valid in Live and Demo modes)
+  const packetDocs = (selected && DEMO_DECISIONS[selected]?.documents) || [];
 
   const onLayerClick = (id) => {
     setActiveLayer(id);
@@ -385,6 +389,43 @@ function PacketMode({ live }) {
             <PipelineDiagram mode="spine" status={spineStatus} activeId={activeLayer} onLayerClick={onLayerClick} />
           </Card>
 
+          {/* documents in this packet — click to open the page; toggle the marking; step through with next/prev */}
+          {packetDocs.length > 0 && (
+            <Card pad={16}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1, color: C.textFaint }}>DOCUMENTS IN THIS PACKET</div>
+                <span style={{ fontSize: 11, color: C.textFaint }}>
+                  {packetDocs.length} document{packetDocs.length > 1 ? "s" : ""} · click any to open
+                  {packetDocs.some((d) => d.edited) ? " · edited ones are boxed" : ""}
+                </span>
+              </div>
+              <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(150px,1fr))" }}>
+                {packetDocs.map((d, idx) => {
+                  const edited = d.edited && (d.boxes?.length || 0) > 0;
+                  const mh = (METHOD[d.method] || METHOD.none).hue;
+                  return (
+                    <button key={idx} onClick={() => setOpenDocs({ idx })}
+                      style={{ cursor: "pointer", textAlign: "left", background: "rgba(148,163,184,0.04)",
+                        border: `1px solid ${edited ? hexA(C.danger, 0.45) : C.border}`, borderRadius: radius.md, padding: 8,
+                        transition: `all ${motion.base} ${motion.ease}` }}>
+                      <BoxedImage src={d.img} alt={d.doc_type} boxes={edited ? d.boxes : []} imgW={d.w} imgH={d.h}
+                        hue={mh} style={{ maxHeight: 150 }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: "50%", background: edited ? C.danger : C.success, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: C.text, textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {(d.doc_type || "document").replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 10.5, color: edited ? hexA(C.danger, 0.9) : C.textFaint, marginTop: 2 }}>
+                        {edited ? "edit detected" : "no edit"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
           {/* evidence grouped by layer */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 460px", gap: 16, alignItems: "start" }} className="ts-evidence-grid">
             <div style={{ display: "grid", gap: 20 }}>
@@ -412,6 +453,8 @@ function PacketMode({ live }) {
           </div>
         </div>
       )}
+
+      {openDocs && <PacketDocsModal docs={packetDocs} startIndex={openDocs.idx} onClose={() => setOpenDocs(null)} />}
 
       <style>{`@media (max-width: 900px){ .ts-evidence-grid{ grid-template-columns:1fr !important; } }`}</style>
     </div>

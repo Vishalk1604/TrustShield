@@ -12,11 +12,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:09.771837Z"
+        "computed_at": "2026-06-29T03:32:37.234010Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_d00edc2e8104",
+          "id": "ev_8d81b68588be",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -30,10 +30,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:08.083203Z"
+          "created_at": "2026-06-29T03:32:36.115232Z"
         },
         {
-          "id": "ev_c99b03fabd1a",
+          "id": "ev_2504216eeee4",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -56,7 +56,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:09.771837Z"
+          "created_at": "2026-06-29T03:32:37.234010Z"
         }
       ],
       "recommendation": {
@@ -78,19 +78,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "pan:ABMPS1234F",
+          "kind": "pan",
+          "label": "ABMPS1234F"
+        },
+        {
           "id": "app:PKT-0001",
           "kind": "app",
           "label": "PKT-0001"
-        },
-        {
-          "id": "app:PKT-0017",
-          "kind": "app",
-          "label": "PKT-0017"
-        },
-        {
-          "id": "employer:Infosys Limited",
-          "kind": "employer",
-          "label": "Infosys Limited"
         },
         {
           "id": "app:PKT-0009",
@@ -98,9 +93,14 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0009"
         },
         {
-          "id": "pan:ABMPS1234F",
-          "kind": "pan",
-          "label": "ABMPS1234F"
+          "id": "employer:Infosys Limited",
+          "kind": "employer",
+          "label": "Infosys Limited"
+        },
+        {
+          "id": "app:PKT-0017",
+          "kind": "app",
+          "label": "PKT-0017"
         }
       ],
       "edges": [
@@ -130,7 +130,61 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0001_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0001_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0001_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0001_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0002": {
     "decision": {
@@ -141,11 +195,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:11.854645Z"
+        "computed_at": "2026-06-29T03:32:39.286111Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_6fae7485da15",
+          "id": "ev_66c1325d46e9",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -159,10 +213,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:11.837583Z"
+          "created_at": "2026-06-29T03:32:39.279245Z"
         },
         {
-          "id": "ev_6f882aded5f2",
+          "id": "ev_b3963c5bef74",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -185,7 +239,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:11.854645Z"
+          "created_at": "2026-06-29T03:32:39.286111Z"
         }
       ],
       "recommendation": {
@@ -222,14 +276,14 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0002"
         },
         {
-          "id": "app:PKT-0025",
-          "kind": "app",
-          "label": "PKT-0025"
-        },
-        {
           "id": "employer:Tata Consultancy Services",
           "kind": "employer",
           "label": "Tata Consultancy Services"
+        },
+        {
+          "id": "app:PKT-0025",
+          "kind": "app",
+          "label": "PKT-0025"
         }
       ],
       "edges": [
@@ -259,7 +313,61 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0002_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0002_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0002_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0002_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0004": {
     "decision": {
@@ -270,11 +378,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:14.247243Z"
+        "computed_at": "2026-06-29T03:32:41.375047Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_4fec7c0317d3",
+          "id": "ev_d8eb7a9411b3",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -288,10 +396,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:14.234391Z"
+          "created_at": "2026-06-29T03:32:41.366438Z"
         },
         {
-          "id": "ev_dff95f1706c4",
+          "id": "ev_e35b18917687",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -314,7 +422,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:14.247243Z"
+          "created_at": "2026-06-29T03:32:41.375047Z"
         }
       ],
       "recommendation": {
@@ -336,19 +444,19 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "pan:GHJPR3456M",
-          "kind": "pan",
-          "label": "GHJPR3456M"
-        },
-        {
           "id": "app:PKT-0028",
           "kind": "app",
           "label": "PKT-0028"
         },
         {
-          "id": "employer:HDFC Bank",
-          "kind": "employer",
-          "label": "HDFC Bank"
+          "id": "pan:GHJPR3456M",
+          "kind": "pan",
+          "label": "GHJPR3456M"
+        },
+        {
+          "id": "app:PKT-0012",
+          "kind": "app",
+          "label": "PKT-0012"
         },
         {
           "id": "app:PKT-0004",
@@ -356,9 +464,9 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0004"
         },
         {
-          "id": "app:PKT-0012",
-          "kind": "app",
-          "label": "PKT-0012"
+          "id": "employer:HDFC Bank",
+          "kind": "employer",
+          "label": "HDFC Bank"
         }
       ],
       "edges": [
@@ -388,7 +496,61 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0004_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0004_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0004_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0004_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0009": {
     "decision": {
@@ -399,11 +561,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.3,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:16.644761Z"
+        "computed_at": "2026-06-29T03:32:43.391027Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_4172a444af84",
+          "id": "ev_25edd9327718",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -422,10 +584,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 0.997,
-          "created_at": "2026-06-26T14:12:16.644761Z"
+          "created_at": "2026-06-29T03:32:43.391027Z"
         },
         {
-          "id": "ev_f644badb9252",
+          "id": "ev_e38e3d0b304c",
           "category": "forensic",
           "severity": "high",
           "title": "Suspicious producer software detected",
@@ -437,10 +599,10 @@ export const DEMO_DECISIONS = {
             "creator": "Adobe Photoshop 24.0 (Windows)"
           },
           "confidence": 0.9,
-          "created_at": "2026-06-26T14:12:15.747271Z"
+          "created_at": "2026-06-29T03:32:42.771884Z"
         },
         {
-          "id": "ev_f2efeb46414e",
+          "id": "ev_912795924cac",
           "category": "forensic",
           "severity": "medium",
           "title": "Document modified long after creation",
@@ -453,10 +615,10 @@ export const DEMO_DECISIONS = {
             "gap_days": 41
           },
           "confidence": 0.8,
-          "created_at": "2026-06-26T14:12:15.747271Z"
+          "created_at": "2026-06-29T03:32:42.771884Z"
         },
         {
-          "id": "ev_2fdef8aa357e",
+          "id": "ev_41662e807047",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -470,7 +632,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:16.631352Z"
+          "created_at": "2026-06-29T03:32:43.384192Z"
         }
       ],
       "recommendation": {
@@ -492,19 +654,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "pan:ABMPS1234F",
+          "kind": "pan",
+          "label": "ABMPS1234F"
+        },
+        {
           "id": "app:PKT-0001",
           "kind": "app",
           "label": "PKT-0001"
-        },
-        {
-          "id": "app:PKT-0017",
-          "kind": "app",
-          "label": "PKT-0017"
-        },
-        {
-          "id": "employer:Infosys Limited",
-          "kind": "employer",
-          "label": "Infosys Limited"
         },
         {
           "id": "app:PKT-0009",
@@ -512,14 +669,19 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0009"
         },
         {
+          "id": "employer:Infosys Limited",
+          "kind": "employer",
+          "label": "Infosys Limited"
+        },
+        {
           "id": "template:e17eb6fff2dde0d2477c2cc4deaf1b89",
           "kind": "template",
           "label": "e17eb6fff2dde0d2477c2cc4deaf1b89"
         },
         {
-          "id": "pan:ABMPS1234F",
-          "kind": "pan",
-          "label": "ABMPS1234F"
+          "id": "app:PKT-0017",
+          "kind": "app",
+          "label": "PKT-0017"
         }
       ],
       "edges": [
@@ -553,7 +715,61 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0009_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0009_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0009_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0009_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0010": {
     "decision": {
@@ -564,11 +780,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:18.945143Z"
+        "computed_at": "2026-06-29T03:32:45.561023Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_7ba0c5234abf",
+          "id": "ev_6ab1da6204ce",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -595,10 +811,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:18.945143Z"
+          "created_at": "2026-06-29T03:32:45.561023Z"
         },
         {
-          "id": "ev_0d378a57c56d",
+          "id": "ev_9ddf70ef0ea5",
           "category": "forensic",
           "severity": "high",
           "title": "White-box edit detected (covered text)",
@@ -630,10 +846,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.88,
-          "created_at": "2026-06-26T14:12:16.969702Z"
+          "created_at": "2026-06-29T03:32:43.822394Z"
         },
         {
-          "id": "ev_4a4d66a82713",
+          "id": "ev_d887401e7adb",
           "category": "forensic",
           "severity": "high",
           "title": "Visible content contradicts PDF text layer (re-OCR cross-check)",
@@ -672,10 +888,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.85,
-          "created_at": "2026-06-26T14:12:17.752184Z"
+          "created_at": "2026-06-29T03:32:44.511341Z"
         },
         {
-          "id": "ev_cbee5ac841af",
+          "id": "ev_6933cb7b13a9",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -689,7 +905,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:18.931588Z"
+          "created_at": "2026-06-29T03:32:45.554016Z"
         }
       ],
       "recommendation": {
@@ -711,19 +927,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "pan:CDNPV5678L",
-          "kind": "pan",
-          "label": "CDNPV5678L"
-        },
-        {
           "id": "app:PKT-0010",
           "kind": "app",
           "label": "PKT-0010"
         },
         {
-          "id": "template:3e299a62425eb1a0b4ecc61589a9c17b",
-          "kind": "template",
-          "label": "3e299a62425eb1a0b4ecc61589a9c17b"
+          "id": "pan:CDNPV5678L",
+          "kind": "pan",
+          "label": "CDNPV5678L"
         },
         {
           "id": "app:PKT-0002",
@@ -731,14 +942,19 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0002"
         },
         {
-          "id": "app:PKT-0025",
-          "kind": "app",
-          "label": "PKT-0025"
+          "id": "template:3e299a62425eb1a0b4ecc61589a9c17b",
+          "kind": "template",
+          "label": "3e299a62425eb1a0b4ecc61589a9c17b"
         },
         {
           "id": "employer:Tata Consultancy Services",
           "kind": "employer",
           "label": "Tata Consultancy Services"
+        },
+        {
+          "id": "app:PKT-0025",
+          "kind": "app",
+          "label": "PKT-0025"
         }
       ],
       "edges": [
@@ -778,6 +994,82 @@ export const DEMO_DECISIONS = {
         "page": 1,
         "src": "demo/PKT-0010_0.png"
       }
+    ],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0010_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0010_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": true,
+        "boxes": [
+          [
+            237,
+            641,
+            408,
+            672
+          ],
+          [
+            935,
+            758,
+            1112,
+            790
+          ],
+          [
+            272,
+            645,
+            346,
+            668
+          ]
+        ],
+        "verdict": "EDITED",
+        "method": "pixel",
+        "finding": {
+          "title": "White-box edit detected (covered text)",
+          "description": "'form16.pdf' page 1 contains 2 white-filled rectangle(s) drawn over existing text content. This is a classic 'whiteout' technique: the original value is hidden visually but survives in the PDF content stream."
+        }
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0010_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0010_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
     ]
   },
   "PKT-0012": {
@@ -789,11 +1081,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:21.249541Z"
+        "computed_at": "2026-06-29T03:32:47.648936Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_7f56947953d5",
+          "id": "ev_9d916310b5bc",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -820,10 +1112,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:21.249541Z"
+          "created_at": "2026-06-29T03:32:47.648936Z"
         },
         {
-          "id": "ev_5bd90297ca11",
+          "id": "ev_10aa0d78ac1d",
           "category": "forensic",
           "severity": "medium",
           "title": "Duplicate image objects detected (copy-paste signal)",
@@ -836,10 +1128,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.8,
-          "created_at": "2026-06-26T14:12:20.539460Z"
+          "created_at": "2026-06-29T03:32:47.011295Z"
         },
         {
-          "id": "ev_d84003eff951",
+          "id": "ev_c72d1031d407",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -853,7 +1145,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:21.239186Z"
+          "created_at": "2026-06-29T03:32:47.643649Z"
         }
       ],
       "recommendation": {
@@ -875,19 +1167,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "pan:GHJPR3456M",
-          "kind": "pan",
-          "label": "GHJPR3456M"
-        },
-        {
           "id": "app:PKT-0028",
           "kind": "app",
           "label": "PKT-0028"
-        },
-        {
-          "id": "employer:HDFC Bank",
-          "kind": "employer",
-          "label": "HDFC Bank"
         },
         {
           "id": "template:67dd53dca763bfe1c3cefd443c8f3535",
@@ -895,14 +1177,24 @@ export const DEMO_DECISIONS = {
           "label": "67dd53dca763bfe1c3cefd443c8f3535"
         },
         {
-          "id": "app:PKT-0004",
-          "kind": "app",
-          "label": "PKT-0004"
+          "id": "pan:GHJPR3456M",
+          "kind": "pan",
+          "label": "GHJPR3456M"
         },
         {
           "id": "app:PKT-0012",
           "kind": "app",
           "label": "PKT-0012"
+        },
+        {
+          "id": "app:PKT-0004",
+          "kind": "app",
+          "label": "PKT-0004"
+        },
+        {
+          "id": "employer:HDFC Bank",
+          "kind": "employer",
+          "label": "HDFC Bank"
         }
       ],
       "edges": [
@@ -936,7 +1228,61 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0012_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0012_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0012_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0012_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0017": {
     "decision": {
@@ -947,11 +1293,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 47.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:23.195278Z"
+        "computed_at": "2026-06-29T03:32:49.666568Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_a234d940afde",
+          "id": "ev_5e3fcf168717",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -982,10 +1328,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:23.194273Z"
+          "created_at": "2026-06-29T03:32:49.666568Z"
         },
         {
-          "id": "ev_fc3f344cec8b",
+          "id": "ev_1a32cdd19734",
           "category": "semantic",
           "severity": "high",
           "title": "Income declared on Form 16 inconsistent with bank credits",
@@ -998,10 +1344,10 @@ export const DEMO_DECISIONS = {
             "deviation_pct": 45.0
           },
           "confidence": 0.9,
-          "created_at": "2026-06-26T14:12:23.126081Z"
+          "created_at": "2026-06-29T03:32:49.619302Z"
         },
         {
-          "id": "ev_2bf368d5a125",
+          "id": "ev_d16afbb096ab",
           "category": "semantic",
           "severity": "medium",
           "title": "Income declared on Form 16 inconsistent with salary slip",
@@ -1015,10 +1361,10 @@ export const DEMO_DECISIONS = {
             "deviation_pct": 30.0
           },
           "confidence": 0.9,
-          "created_at": "2026-06-26T14:12:23.126081Z"
+          "created_at": "2026-06-29T03:32:49.619302Z"
         },
         {
-          "id": "ev_b68b3fdafa9a",
+          "id": "ev_9b2d3c6476de",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1032,7 +1378,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:23.182746Z"
+          "created_at": "2026-06-29T03:32:49.659581Z"
         }
       ],
       "recommendation": {
@@ -1054,19 +1400,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "pan:ABMPS1234F",
+          "kind": "pan",
+          "label": "ABMPS1234F"
+        },
+        {
           "id": "app:PKT-0001",
           "kind": "app",
           "label": "PKT-0001"
-        },
-        {
-          "id": "app:PKT-0017",
-          "kind": "app",
-          "label": "PKT-0017"
-        },
-        {
-          "id": "employer:Infosys Limited",
-          "kind": "employer",
-          "label": "Infosys Limited"
         },
         {
           "id": "app:PKT-0009",
@@ -1074,9 +1415,14 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0009"
         },
         {
-          "id": "pan:ABMPS1234F",
-          "kind": "pan",
-          "label": "ABMPS1234F"
+          "id": "employer:Infosys Limited",
+          "kind": "employer",
+          "label": "Infosys Limited"
+        },
+        {
+          "id": "app:PKT-0017",
+          "kind": "app",
+          "label": "PKT-0017"
         }
       ],
       "edges": [
@@ -1106,7 +1452,61 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0017_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0017_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "salary_slip",
+        "filename": "salary_slip.pdf",
+        "img": "demo/PKT-0017_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0017_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0025": {
     "decision": {
@@ -1117,11 +1517,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:26.139453Z"
+        "computed_at": "2026-06-29T03:32:52.498056Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_c850188cf3ed",
+          "id": "ev_b84dfd12c0e6",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -1136,10 +1536,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:26.129373Z"
+          "created_at": "2026-06-29T03:32:52.491202Z"
         },
         {
-          "id": "ev_b0567a4e8b4c",
+          "id": "ev_821f8d3b723d",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1153,10 +1553,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:26.129373Z"
+          "created_at": "2026-06-29T03:32:52.491202Z"
         },
         {
-          "id": "ev_9e2a9ba82420",
+          "id": "ev_734eb12d9c93",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -1179,7 +1579,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:26.139453Z"
+          "created_at": "2026-06-29T03:32:52.498056Z"
         }
       ],
       "recommendation": {
@@ -1211,14 +1611,19 @@ export const DEMO_DECISIONS = {
           "label": "CDNPV5678L"
         },
         {
+          "id": "app:PKT-0002",
+          "kind": "app",
+          "label": "PKT-0002"
+        },
+        {
           "id": "property:SY-217/3B",
           "kind": "property",
           "label": "SY-217/3B"
         },
         {
-          "id": "app:PKT-0002",
-          "kind": "app",
-          "label": "PKT-0002"
+          "id": "employer:Tata Consultancy Services",
+          "kind": "employer",
+          "label": "Tata Consultancy Services"
         },
         {
           "id": "app:PKT-0025",
@@ -1229,11 +1634,6 @@ export const DEMO_DECISIONS = {
           "id": "app:PKT-0027",
           "kind": "app",
           "label": "PKT-0027"
-        },
-        {
-          "id": "employer:Tata Consultancy Services",
-          "kind": "employer",
-          "label": "Tata Consultancy Services"
         }
       ],
       "edges": [
@@ -1271,7 +1671,100 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0025_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0025_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0025_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0025_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0025_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0025_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0025_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0026": {
     "decision": {
@@ -1282,11 +1775,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 100.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:29.426141Z"
+        "computed_at": "2026-06-29T03:32:55.593366Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_32bd36d8d560",
+          "id": "ev_1f2a8d56e057",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -1301,10 +1794,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:29.406665Z"
+          "created_at": "2026-06-29T03:32:55.580210Z"
         },
         {
-          "id": "ev_dcc03a6742d6",
+          "id": "ev_9ebc723da7b6",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1318,10 +1811,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:29.406665Z"
+          "created_at": "2026-06-29T03:32:55.580210Z"
         },
         {
-          "id": "ev_e5af2dc94138",
+          "id": "ev_c6eb12c67b6d",
           "category": "anomaly",
           "severity": "info",
           "title": "Learned risk model assessment",
@@ -1344,7 +1837,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:29.426141Z"
+          "created_at": "2026-06-29T03:32:55.593366Z"
         }
       ],
       "recommendation": {
@@ -1366,19 +1859,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "property:SY-058/1A",
-          "kind": "property",
-          "label": "SY-058/1A"
-        },
-        {
           "id": "app:PKT-0028",
           "kind": "app",
           "label": "PKT-0028"
         },
         {
-          "id": "app:PKT-0008",
-          "kind": "app",
-          "label": "PKT-0008"
+          "id": "employer:Accenture",
+          "kind": "employer",
+          "label": "Accenture"
         },
         {
           "id": "app:PKT-0013",
@@ -1386,14 +1874,19 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0013"
         },
         {
+          "id": "property:SY-058/1A",
+          "kind": "property",
+          "label": "SY-058/1A"
+        },
+        {
+          "id": "app:PKT-0008",
+          "kind": "app",
+          "label": "PKT-0008"
+        },
+        {
           "id": "app:PKT-0026",
           "kind": "app",
           "label": "PKT-0026"
-        },
-        {
-          "id": "employer:Accenture",
-          "kind": "employer",
-          "label": "Accenture"
         },
         {
           "id": "pan:TUVPJ0123H",
@@ -1436,7 +1929,100 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0026_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0026_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0026_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0026_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0026_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0026_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0026_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0027": {
     "decision": {
@@ -1447,11 +2033,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:32.510265Z"
+        "computed_at": "2026-06-29T03:32:58.543290Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_53932fd2dfa3",
+          "id": "ev_5ab7a4e47816",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -1478,10 +2064,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:32.510265Z"
+          "created_at": "2026-06-29T03:32:58.543290Z"
         },
         {
-          "id": "ev_9bbcfe89dd89",
+          "id": "ev_0388c3ccdf34",
           "category": "forensic",
           "severity": "high",
           "title": "White-box edit detected (covered text)",
@@ -1504,10 +2090,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.88,
-          "created_at": "2026-06-26T14:12:31.101367Z"
+          "created_at": "2026-06-29T03:32:57.354345Z"
         },
         {
-          "id": "ev_16bd253140d1",
+          "id": "ev_e90575a047a8",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -1522,10 +2108,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:32.498748Z"
+          "created_at": "2026-06-29T03:32:58.536327Z"
         },
         {
-          "id": "ev_82137a996d72",
+          "id": "ev_5c7e419bda77",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1540,7 +2126,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:32.498748Z"
+          "created_at": "2026-06-29T03:32:58.536327Z"
         }
       ],
       "recommendation": {
@@ -1562,29 +2148,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "template:6785e85709f53a1157c200b0abad584d",
-          "kind": "template",
-          "label": "6785e85709f53a1157c200b0abad584d"
-        },
-        {
           "id": "app:PKT-0028",
           "kind": "app",
           "label": "PKT-0028"
         },
         {
-          "id": "app:PKT-0003",
-          "kind": "app",
-          "label": "PKT-0003"
-        },
-        {
-          "id": "pan:EFKPP9012Q",
-          "kind": "pan",
-          "label": "EFKPP9012Q"
-        },
-        {
-          "id": "employer:Wipro Limited",
-          "kind": "employer",
-          "label": "Wipro Limited"
+          "id": "template:6785e85709f53a1157c200b0abad584d",
+          "kind": "template",
+          "label": "6785e85709f53a1157c200b0abad584d"
         },
         {
           "id": "property:SY-217/3B",
@@ -1600,6 +2171,21 @@ export const DEMO_DECISIONS = {
           "id": "app:PKT-0022",
           "kind": "app",
           "label": "PKT-0022"
+        },
+        {
+          "id": "app:PKT-0003",
+          "kind": "app",
+          "label": "PKT-0003"
+        },
+        {
+          "id": "pan:EFKPP9012Q",
+          "kind": "pan",
+          "label": "EFKPP9012Q"
+        },
+        {
+          "id": "employer:Wipro Limited",
+          "kind": "employer",
+          "label": "Wipro Limited"
         },
         {
           "id": "app:PKT-0025",
@@ -1669,6 +2255,109 @@ export const DEMO_DECISIONS = {
         "page": 1,
         "src": "demo/PKT-0027_0.png"
       }
+    ],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0027_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0027_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0027_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0027_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": true,
+        "boxes": [
+          [
+            308,
+            471,
+            479,
+            511
+          ]
+        ],
+        "verdict": "EDITED",
+        "method": "pixel",
+        "finding": {
+          "title": "White-box edit detected (covered text)",
+          "description": "'sale_deed.pdf' page 1 contains 1 white-filled rectangle(s) drawn over existing text content. This is a classic 'whiteout' technique: the original value is hidden visually but survives in the PDF content stream."
+        }
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0027_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0027_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0027_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
     ]
   },
   "PKT-0028": {
@@ -1680,11 +2369,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 40.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:36.040985Z"
+        "computed_at": "2026-06-29T03:33:01.556555Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_a5fda9b417ea",
+          "id": "ev_dbe1613705e1",
           "category": "semantic",
           "severity": "critical",
           "title": "Encumbrance certificate contradicts CERSAI registry",
@@ -1707,10 +2396,10 @@ export const DEMO_DECISIONS = {
             "ec_claims_nil": true
           },
           "confidence": 0.95,
-          "created_at": "2026-06-26T14:12:35.883603Z"
+          "created_at": "2026-06-29T03:33:01.487043Z"
         },
         {
-          "id": "ev_ed1efdc0f048",
+          "id": "ev_03212ac750e1",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -1741,10 +2430,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:36.040985Z"
+          "created_at": "2026-06-29T03:33:01.556555Z"
         },
         {
-          "id": "ev_f28ca2a080f1",
+          "id": "ev_ce008e822763",
           "category": "forensic",
           "severity": "high",
           "title": "White-box edit detected (covered text)",
@@ -1767,10 +2456,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.88,
-          "created_at": "2026-06-26T14:12:34.640931Z"
+          "created_at": "2026-06-29T03:33:00.574847Z"
         },
         {
-          "id": "ev_dfdecb100173",
+          "id": "ev_5dcd02ae3a06",
           "category": "forensic",
           "severity": "high",
           "title": "Visible content contradicts PDF text layer (re-OCR cross-check)",
@@ -1796,10 +2485,10 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 0.85,
-          "created_at": "2026-06-26T14:12:35.126228Z"
+          "created_at": "2026-06-29T03:33:00.930549Z"
         },
         {
-          "id": "ev_ccfaa5c73fd9",
+          "id": "ev_33cd0863c8bf",
           "category": "graph",
           "severity": "medium",
           "title": "Collateral pledged across multiple applications",
@@ -1814,10 +2503,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 2
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:36.021124Z"
+          "created_at": "2026-06-29T03:33:01.549407Z"
         },
         {
-          "id": "ev_5009a163e52e",
+          "id": "ev_be35983c6cd7",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -1831,7 +2520,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:36.021124Z"
+          "created_at": "2026-06-29T03:33:01.549407Z"
         }
       ],
       "recommendation": {
@@ -1853,14 +2542,14 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
+          "id": "app:PKT-0028",
+          "kind": "app",
+          "label": "PKT-0028"
+        },
+        {
           "id": "pan:GHJPR3456M",
           "kind": "pan",
           "label": "GHJPR3456M"
-        },
-        {
-          "id": "template:6785e85709f53a1157c200b0abad584d",
-          "kind": "template",
-          "label": "6785e85709f53a1157c200b0abad584d"
         },
         {
           "id": "property:SY-058/1A",
@@ -1868,19 +2557,9 @@ export const DEMO_DECISIONS = {
           "label": "SY-058/1A"
         },
         {
-          "id": "app:PKT-0028",
+          "id": "app:PKT-0012",
           "kind": "app",
-          "label": "PKT-0028"
-        },
-        {
-          "id": "employer:HDFC Bank",
-          "kind": "employer",
-          "label": "HDFC Bank"
-        },
-        {
-          "id": "app:PKT-0026",
-          "kind": "app",
-          "label": "PKT-0026"
+          "label": "PKT-0012"
         },
         {
           "id": "app:PKT-0004",
@@ -1888,14 +2567,24 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0004"
         },
         {
+          "id": "template:6785e85709f53a1157c200b0abad584d",
+          "kind": "template",
+          "label": "6785e85709f53a1157c200b0abad584d"
+        },
+        {
+          "id": "app:PKT-0026",
+          "kind": "app",
+          "label": "PKT-0026"
+        },
+        {
           "id": "app:PKT-0027",
           "kind": "app",
           "label": "PKT-0027"
         },
         {
-          "id": "app:PKT-0012",
-          "kind": "app",
-          "label": "PKT-0012"
+          "id": "employer:HDFC Bank",
+          "kind": "employer",
+          "label": "HDFC Bank"
         }
       ],
       "edges": [
@@ -1947,6 +2636,115 @@ export const DEMO_DECISIONS = {
         "page": 1,
         "src": "demo/PKT-0028_0.png"
       }
+    ],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0028_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0028_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0028_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0028_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0028_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": true,
+        "boxes": [
+          [
+            370,
+            421,
+            1114,
+            461
+          ],
+          [
+            550,
+            425,
+            652,
+            456
+          ]
+        ],
+        "verdict": "EDITED",
+        "method": "pixel",
+        "finding": {
+          "title": "White-box edit detected (covered text)",
+          "description": "'encumbrance_certificate.pdf' page 1 contains 1 white-filled rectangle(s) drawn over existing text content. This is a classic 'whiteout' technique: the original value is hidden visually but survives in the PDF content stream."
+        }
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0028_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0028_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
     ]
   },
   "PKT-0029": {
@@ -1958,11 +2756,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 0.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:39.251345Z"
+        "computed_at": "2026-06-29T03:33:04.513526Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_0fe74a4e8ac4",
+          "id": "ev_a9114f763e6a",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -1979,10 +2777,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:39.232748Z"
+          "created_at": "2026-06-29T03:33:04.506410Z"
         },
         {
-          "id": "ev_534ed65e0f3d",
+          "id": "ev_1f036e35f869",
           "category": "semantic",
           "severity": "critical",
           "title": "Loan exceeds registered market value (LTV vs registry > 100%)",
@@ -1996,10 +2794,10 @@ export const DEMO_DECISIONS = {
             "ltv_vs_registry": 1.267
           },
           "confidence": 0.92,
-          "created_at": "2026-06-26T14:12:39.111985Z"
+          "created_at": "2026-06-29T03:33:04.436752Z"
         },
         {
-          "id": "ev_8d6e4d061d76",
+          "id": "ev_f90b66ec578c",
           "category": "semantic",
           "severity": "critical",
           "title": "Property valuation inflated above registry market value",
@@ -2013,10 +2811,10 @@ export const DEMO_DECISIONS = {
             "inflation_pct": 46.7
           },
           "confidence": 0.9,
-          "created_at": "2026-06-26T14:12:39.110980Z"
+          "created_at": "2026-06-29T03:33:04.436752Z"
         },
         {
-          "id": "ev_7867cb5e449c",
+          "id": "ev_f8ff322a310c",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2043,10 +2841,10 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:39.251345Z"
+          "created_at": "2026-06-29T03:33:04.513526Z"
         },
         {
-          "id": "ev_8495ffa0a4d7",
+          "id": "ev_9ae168b55dd0",
           "category": "graph",
           "severity": "info",
           "title": "Repeat applicant",
@@ -2060,7 +2858,7 @@ export const DEMO_DECISIONS = {
             ]
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:39.232748Z"
+          "created_at": "2026-06-29T03:33:04.506410Z"
         }
       ],
       "recommendation": {
@@ -2082,24 +2880,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "property:SY-911/2C",
-          "kind": "property",
-          "label": "SY-911/2C"
-        },
-        {
-          "id": "app:PKT-0033",
+          "id": "app:PKT-0014",
           "kind": "app",
-          "label": "PKT-0033"
-        },
-        {
-          "id": "app:PKT-0032",
-          "kind": "app",
-          "label": "PKT-0032"
-        },
-        {
-          "id": "employer:Singh Traders",
-          "kind": "employer",
-          "label": "Singh Traders"
+          "label": "PKT-0014"
         },
         {
           "id": "app:PKT-0029",
@@ -2107,9 +2890,19 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0029"
         },
         {
-          "id": "app:PKT-0014",
+          "id": "app:PKT-0033",
           "kind": "app",
-          "label": "PKT-0014"
+          "label": "PKT-0033"
+        },
+        {
+          "id": "employer:Singh Traders",
+          "kind": "employer",
+          "label": "Singh Traders"
+        },
+        {
+          "id": "property:SY-911/2C",
+          "kind": "property",
+          "label": "SY-911/2C"
         },
         {
           "id": "app:PKT-0005",
@@ -2120,6 +2913,11 @@ export const DEMO_DECISIONS = {
           "id": "app:PKT-0031",
           "kind": "app",
           "label": "PKT-0031"
+        },
+        {
+          "id": "app:PKT-0032",
+          "kind": "app",
+          "label": "PKT-0032"
         },
         {
           "id": "pan:KLMPS7777N",
@@ -2170,7 +2968,100 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0029_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0029_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0029_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0029_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0029_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0029_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0029_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0031": {
     "decision": {
@@ -2181,11 +3072,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:42.332642Z"
+        "computed_at": "2026-06-29T03:33:07.595369Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_3938f305c68f",
+          "id": "ev_2aaae4cec63d",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -2202,10 +3093,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:42.322133Z"
+          "created_at": "2026-06-29T03:33:07.588272Z"
         },
         {
-          "id": "ev_b0b5c14f633b",
+          "id": "ev_af9b6d78f037",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2228,7 +3119,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:42.332642Z"
+          "created_at": "2026-06-29T03:33:07.595369Z"
         }
       ],
       "recommendation": {
@@ -2250,9 +3141,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "property:SY-911/2C",
-          "kind": "property",
-          "label": "SY-911/2C"
+          "id": "app:PKT-0029",
+          "kind": "app",
+          "label": "PKT-0029"
         },
         {
           "id": "app:PKT-0033",
@@ -2260,9 +3151,14 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0033"
         },
         {
-          "id": "app:PKT-0032",
-          "kind": "app",
-          "label": "PKT-0032"
+          "id": "pan:ZZEPS5555E",
+          "kind": "pan",
+          "label": "ZZEPS5555E"
+        },
+        {
+          "id": "property:SY-911/2C",
+          "kind": "property",
+          "label": "SY-911/2C"
         },
         {
           "id": "employer:Shaikh Trading Co",
@@ -2270,19 +3166,14 @@ export const DEMO_DECISIONS = {
           "label": "Shaikh Trading Co"
         },
         {
-          "id": "app:PKT-0029",
-          "kind": "app",
-          "label": "PKT-0029"
-        },
-        {
-          "id": "pan:ZZEPS5555E",
-          "kind": "pan",
-          "label": "ZZEPS5555E"
-        },
-        {
           "id": "app:PKT-0031",
           "kind": "app",
           "label": "PKT-0031"
+        },
+        {
+          "id": "app:PKT-0032",
+          "kind": "app",
+          "label": "PKT-0032"
         }
       ],
       "edges": [
@@ -2312,7 +3203,100 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0031_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0031_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0031_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0031_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0031_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0031_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0031_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0032": {
     "decision": {
@@ -2323,11 +3307,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:45.305639Z"
+        "computed_at": "2026-06-29T03:33:10.491587Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_4525f6b8a85b",
+          "id": "ev_f2e8a5f594e1",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -2344,10 +3328,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:45.293855Z"
+          "created_at": "2026-06-29T03:33:10.484353Z"
         },
         {
-          "id": "ev_e05977f1aa27",
+          "id": "ev_500e250b1937",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2370,7 +3354,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:45.305639Z"
+          "created_at": "2026-06-29T03:33:10.491587Z"
         }
       ],
       "recommendation": {
@@ -2392,19 +3376,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "property:SY-911/2C",
-          "kind": "property",
-          "label": "SY-911/2C"
-        },
-        {
-          "id": "app:PKT-0033",
-          "kind": "app",
-          "label": "PKT-0033"
-        },
-        {
-          "id": "app:PKT-0032",
-          "kind": "app",
-          "label": "PKT-0032"
+          "id": "pan:ZZFPM6666F",
+          "kind": "pan",
+          "label": "ZZFPM6666F"
         },
         {
           "id": "employer:Menon & Sons",
@@ -2412,19 +3386,29 @@ export const DEMO_DECISIONS = {
           "label": "Menon & Sons"
         },
         {
-          "id": "pan:ZZFPM6666F",
-          "kind": "pan",
-          "label": "ZZFPM6666F"
-        },
-        {
           "id": "app:PKT-0029",
           "kind": "app",
           "label": "PKT-0029"
         },
         {
+          "id": "app:PKT-0033",
+          "kind": "app",
+          "label": "PKT-0033"
+        },
+        {
+          "id": "property:SY-911/2C",
+          "kind": "property",
+          "label": "SY-911/2C"
+        },
+        {
           "id": "app:PKT-0031",
           "kind": "app",
           "label": "PKT-0031"
+        },
+        {
+          "id": "app:PKT-0032",
+          "kind": "app",
+          "label": "PKT-0032"
         }
       ],
       "edges": [
@@ -2454,7 +3438,100 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0032_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0032_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0032_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0032_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0032_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0032_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0032_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   },
   "PKT-0033": {
     "decision": {
@@ -2465,11 +3542,11 @@ export const DEMO_DECISIONS = {
         "semantic_subscore": 100.0,
         "anomaly_subscore": 0.0,
         "version": "4.0.0",
-        "computed_at": "2026-06-26T14:12:48.289406Z"
+        "computed_at": "2026-06-29T03:33:13.474436Z"
       },
       "evidence_chain": [
         {
-          "id": "ev_eb0c1ad5ee84",
+          "id": "ev_103e25a7fabf",
           "category": "graph",
           "severity": "critical",
           "title": "Collateral pledged across multiple applications",
@@ -2486,10 +3563,10 @@ export const DEMO_DECISIONS = {
             "distinct_applicants": 4
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:48.276760Z"
+          "created_at": "2026-06-29T03:33:13.467374Z"
         },
         {
-          "id": "ev_2653153c87a2",
+          "id": "ev_53ded3bf6778",
           "category": "anomaly",
           "severity": "high",
           "title": "Learned risk model assessment",
@@ -2512,7 +3589,7 @@ export const DEMO_DECISIONS = {
             "model_version": "4.0.0"
           },
           "confidence": 1.0,
-          "created_at": "2026-06-26T14:12:48.289406Z"
+          "created_at": "2026-06-29T03:33:13.474436Z"
         }
       ],
       "recommendation": {
@@ -2534,9 +3611,9 @@ export const DEMO_DECISIONS = {
     "subgraph": {
       "nodes": [
         {
-          "id": "property:SY-911/2C",
-          "kind": "property",
-          "label": "SY-911/2C"
+          "id": "app:PKT-0029",
+          "kind": "app",
+          "label": "PKT-0029"
         },
         {
           "id": "app:PKT-0033",
@@ -2544,19 +3621,19 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0033"
         },
         {
-          "id": "app:PKT-0032",
-          "kind": "app",
-          "label": "PKT-0032"
-        },
-        {
-          "id": "app:PKT-0029",
-          "kind": "app",
-          "label": "PKT-0029"
-        },
-        {
           "id": "employer:Das Enterprises",
           "kind": "employer",
           "label": "Das Enterprises"
+        },
+        {
+          "id": "property:SY-911/2C",
+          "kind": "property",
+          "label": "SY-911/2C"
+        },
+        {
+          "id": "pan:ZZGPD7777G",
+          "kind": "pan",
+          "label": "ZZGPD7777G"
         },
         {
           "id": "app:PKT-0031",
@@ -2564,9 +3641,9 @@ export const DEMO_DECISIONS = {
           "label": "PKT-0031"
         },
         {
-          "id": "pan:ZZGPD7777G",
-          "kind": "pan",
-          "label": "ZZGPD7777G"
+          "id": "app:PKT-0032",
+          "kind": "app",
+          "label": "PKT-0032"
         }
       ],
       "edges": [
@@ -2596,6 +3673,99 @@ export const DEMO_DECISIONS = {
         }
       ]
     },
-    "overlays": []
+    "overlays": [],
+    "documents": [
+      {
+        "doc_type": "identity",
+        "filename": "identity.pdf",
+        "img": "demo/PKT-0033_doc0.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "form16",
+        "filename": "form16.pdf",
+        "img": "demo/PKT-0033_doc1.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "bank_statement",
+        "filename": "bank_statement.pdf",
+        "img": "demo/PKT-0033_doc2.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "sale_deed",
+        "filename": "sale_deed.pdf",
+        "img": "demo/PKT-0033_doc3.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "encumbrance_certificate",
+        "filename": "encumbrance_certificate.pdf",
+        "img": "demo/PKT-0033_doc4.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "property_valuation",
+        "filename": "property_valuation.pdf",
+        "img": "demo/PKT-0033_doc5.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      },
+      {
+        "doc_type": "legal_opinion",
+        "filename": "legal_opinion.pdf",
+        "img": "demo/PKT-0033_doc6.jpg",
+        "w": 1240,
+        "h": 1755,
+        "page": 1,
+        "edited": false,
+        "boxes": [],
+        "verdict": "CLEAN",
+        "method": null,
+        "finding": null
+      }
+    ]
   }
 };
