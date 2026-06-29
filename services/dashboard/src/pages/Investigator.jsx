@@ -402,14 +402,15 @@ function PacketMode({ live }) {
               <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(150px,1fr))" }}>
                 {packetDocs.map((d, idx) => {
                   const edited = d.edited && (d.boxes?.length || 0) > 0;
-                  const mh = (METHOD[d.method] || METHOD.none).hue;
                   return (
                     <button key={idx} onClick={() => setOpenDocs({ idx })}
                       style={{ cursor: "pointer", textAlign: "left", background: "rgba(148,163,184,0.04)",
                         border: `1px solid ${edited ? hexA(C.danger, 0.45) : C.border}`, borderRadius: radius.md, padding: 8,
                         transition: `all ${motion.base} ${motion.ease}` }}>
-                      <BoxedImage src={d.img} alt={d.doc_type} boxes={edited ? d.boxes : []} imgW={d.w} imgH={d.h}
-                        hue={mh} style={{ maxHeight: 150 }} />
+                      {/* whole-page preview (contain) — the full box is shown in the viewer, not the thumbnail */}
+                      <div style={{ height: 150, borderRadius: radius.sm, overflow: "hidden", background: "#0e131c", border: `1px solid ${C.border}` }}>
+                        <img src={d.img} alt={d.doc_type} style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "top", display: "block" }} />
+                      </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
                         <span style={{ width: 7, height: 7, borderRadius: "50%", background: edited ? C.danger : C.success, flexShrink: 0 }} />
                         <span style={{ fontSize: 12, fontWeight: 700, color: C.text, textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
